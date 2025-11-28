@@ -27,13 +27,14 @@ namespace ARChess.Scripts
         {
             EnhanceTouch.TouchSimulation.Enable();
             EnhanceTouch.EnhancedTouchSupport.Enable();
-            EnhanceTouch.Touch.onFingerDown -= FingerDown;
+            EnhanceTouch.Touch.onFingerDown += FingerDown;
         }
 
         private void OnDisable()
         {
             EnhanceTouch.TouchSimulation.Disable();
             EnhanceTouch.EnhancedTouchSupport.Disable();
+            EnhanceTouch.Touch.onFingerDown -= FingerDown;
         }
 
         private void FingerDown(EnhanceTouch.Finger finger)
@@ -41,15 +42,35 @@ namespace ARChess.Scripts
             // If finger is down, we don't want to call this function
             if (finger.index != 0) return;
 
-            // Hoit on simple Plane with polygon from current finger touch screen position
-            if (_arRaycastManager.Raycast(finger.currentTouch.screenPosition, hits, TrackableType.PlaneWithinPolygon))
+            if (_arRaycastManager.Raycast(finger.currentTouch.screenPosition, hits,
+                    TrackableType.PlaneWithinPolygon))
             {
-                foreach (ARRaycastHit arRaycastHit in hits)
+                ClonePrefab();   
+            }
+        }
+
+        private void ClonePrefab()
+        {
+            // Hoit on simple Plane with polygon from current finger touch screen position
+            foreach (ARRaycastHit hit in hits)
+            {
+                // Assign pose to a variable
+                Pose pose = hit.sessionRelativePose;
+                
+                // Instantiate object with prefab using same position and rotation
+                GameObject obj = Instantiate(prefab, pose.position, pose.rotation);
+
+                if (_arPlaneManager.GetPlane(hit.trackableId).alignment == PlaneAlignment.HorizontalUp)
                 {
-                    // Assign pose to a variable
-                    Pose pose = arRaycastHit.pose;
-                    // Instantiate object with prefab using same position and rotation
-                    GameObject obj = Instantiate(prefab, pose.position, pose.rotation);
+                    // Rotate obj towards our camera so that it would be more realistic
+                    Vector3 position = obj.transform.position;
+                    // Rotate only on x & y axis. Therefore, set Y to 0 so that it will be 0 when targetRotation quaternion multiplies
+                    position.y = 0f;
+                    Vector3 cameraPosition = Camera.main.transform.position;
+                    cameraPosition.y = 0f;
+                    Vector3 direction = cameraPosition - position;
+                    Quaternion targetRotation = Quaternion.LookRotation(direction);
+                    obj.transform.rotation = targetRotation;
                 }
             }
         }

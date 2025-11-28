@@ -258,6 +258,7 @@ sysinfo.txt
 *.aab
 *.unitypackage
 *.app
+ARFoundationRemoteCompanionApp/
 
 # Crashlytics generated file
 

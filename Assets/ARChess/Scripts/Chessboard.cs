@@ -63,8 +63,8 @@ namespace ARChess.Scripts
         {
             tiles = new GameObject[tileCountX, tileCountY];
             for (int x = 0; x < tileCountX; x++)
-            for (int y = 0; y < tileCountY; y++)
-                tiles[x, y] = GenerateSingleTiles(tileSize, x, y);
+                for (int y = 0; y < tileCountY; y++)
+                    tiles[x, y] = GenerateSingleTiles(tileSize, x, y);
         }
 
         private GameObject GenerateSingleTiles(float tileSize, int x, int y)
@@ -109,9 +109,9 @@ namespace ARChess.Scripts
         private Vector2Int LookupTileIndex(GameObject hitInfo)
         {
             for (int x = 0; x < TILE_COUNT_X; x++)
-            for (int y = 0; y < TILE_COUNT_Y; y++)
-                if (tiles[x, y] == hitInfo)
-                    return new Vector2Int(x, y);
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                    if (tiles[x, y] == hitInfo)
+                        return new Vector2Int(x, y);
 
             return -Vector2Int.one; // Invalid
         }
