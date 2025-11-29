@@ -2,25 +2,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.Interaction.Toolkit.Transformers;
 using EnhanceTouch = UnityEngine.InputSystem.EnhancedTouch;
 
 namespace ARChess.Scripts
 {
-    [RequireComponent(typeof(ARRaycastManager), typeof(ARPlaneManager))]
+    
     public class PlaceObject : MonoBehaviour
     {
     
         [SerializeField]
         private GameObject prefab;
     
-        private ARRaycastManager _arRaycastManager;
-        private ARPlaneManager _arPlaneManager;
+        public ARRaycastManager _arRaycastManager;
+        public ARPlaneManager _arPlaneManager;
+        private GameObject spawnerParent;
         private List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
         private void Awake()
         {
-            _arRaycastManager = GetComponent<ARRaycastManager>();
-            _arPlaneManager = GetComponent<ARPlaneManager>();
+            spawnerParent = new GameObject("Spawners");
+            spawnerParent.AddComponent<ARTransformer>();
         }
 
         private void OnEnable()
@@ -51,14 +53,16 @@ namespace ARChess.Scripts
 
         private void ClonePrefab()
         {
-            // Hoit on simple Plane with polygon from current finger touch screen position
+            // Hit on simple Plane with polygon from current finger touch screen position
             foreach (ARRaycastHit hit in hits)
             {
                 // Assign pose to a variable
-                Pose pose = hit.sessionRelativePose;
+                Pose pose = hit.pose;
                 
                 // Instantiate object with prefab using same position and rotation
                 GameObject obj = Instantiate(prefab, pose.position, pose.rotation);
+                
+                obj.transform.SetParent(spawnerParent.transform);
 
                 if (_arPlaneManager.GetPlane(hit.trackableId).alignment == PlaneAlignment.HorizontalUp)
                 {
@@ -71,6 +75,10 @@ namespace ARChess.Scripts
                     Vector3 direction = cameraPosition - position;
                     Quaternion targetRotation = Quaternion.LookRotation(direction);
                     obj.transform.rotation = targetRotation;
+                    
+                    // Assign to trackable position
+                    position.y = pose.position.y;
+                    Debug.Log($"Position Y: {position.y}, Pose Y: {pose.position.y}");
                 }
             }
         }

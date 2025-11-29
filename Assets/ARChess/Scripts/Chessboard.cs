@@ -72,7 +72,7 @@ namespace ARChess.Scripts
             GameObject tileObject = new GameObject(string.Format("X:{0}, Y:{1}", x, y));
 
             // Apply similar transform to script game object's children
-            tileObject.transform.SetParent(transform);
+            tileObject.transform.SetParent(transform , false); // Set worldPositionStays to false so that it maintain local orientation, but there is no global position values. Everything is (0, 0 ,0) in tileObject position
 
             Mesh mesh = new Mesh();
 
