@@ -1,28 +1,39 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-public class ChessInteractable : XRGrabInteractable
+namespace ARChess.Scripts
 {
-    [SerializeField]
-    private Transform bitTransform;
-
-    [SerializeField] 
-    private float speed = 100.0f;
-
-    public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
+    public class ChessInteractable : XRGrabInteractable
     {
-        base.ProcessInteractable(updatePhase);
+        [SerializeField]
+        private Transform bitTransform;
 
-        if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic) // Called every frame. Corresponds with the MonoBehaviour.Update method.
+        [SerializeField] 
+        private float speed = 100.0f;
+
+        public override void ProcessInteractable(XRInteractionUpdateOrder.UpdatePhase updatePhase)
         {
-            if (isSelected)
-                RotateChess();   
-        }
-    }
+            base.ProcessInteractable(updatePhase);
 
-    private void RotateChess()
-    {
+            if (updatePhase == XRInteractionUpdateOrder.UpdatePhase.Dynamic) // Called every frame. Corresponds with the MonoBehaviour.Update method.
+            {
+                if (isSelected)
+                    RotateChess();   
+            }
+        }
+    
+        private void RotateChess()
+        {
         
+            if (firstInteractorSelecting is XRBaseInputInteractor interactor)
+            {
+                XRInputButtonReader activateState = interactor.activateInput;
+                bitTransform.Rotate((Vector3.forward * speed * activateState.ReadValue()) * Time.deltaTime);
+            }
+        
+        }
     }
 }

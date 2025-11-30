@@ -1,10 +1,12 @@
+using System;
 using UnityEngine;
 
 namespace ARChess.Scripts
 {
     public class Chessboard : MonoBehaviour
     {
-        [Header("Art Stuff")] [SerializeField] private Material tileMaterial;
+        [Header("Art Stuff")] 
+        [SerializeField] private Material tileMaterial;
 
         // LOGIC
         private const int TILE_COUNT_X = 8;
@@ -12,10 +14,21 @@ namespace ARChess.Scripts
         private GameObject[,] tiles;
         private Camera currentCamera;
         private Vector2Int currentHover;
+        private BoxCollider chessCollider;
+        private GameObject ChessTiles;
+        private GameObject ChessAttach;
 
         private void Awake()
         {
+            ChessTiles = GameObject.Find("All Chess Tiles");
+            ChessAttach = GameObject.Find("Chess Attach");
             GenerateAllTiles(1, TILE_COUNT_X, TILE_COUNT_Y);
+        }
+
+        public GameObject AttachObject
+        {
+            get => ChessAttach;
+            set => ChessAttach = value;
         }
 
         private void Update()
@@ -65,14 +78,50 @@ namespace ARChess.Scripts
             for (int x = 0; x < tileCountX; x++)
                 for (int y = 0; y < tileCountY; y++)
                     tiles[x, y] = GenerateSingleTiles(tileSize, x, y);
+            
+            AddChessBound(tiles, tileCountX, tileCountY);
+        }
+
+        private void AddChessBound(GameObject[,] allTiles, int tileCountX, int tileCountY)
+        {
+            // Add Box Collider to Empty Game Object
+            chessCollider = ChessAttach.AddComponent<BoxCollider>();
+            
+            // Add Bounds from ZERO using current gameObject transform position
+            Bounds totalBounds = new Bounds(ChessAttach.transform.position, Vector3.zero);
+
+            for (int x = 0; x < tileCountX; x++)
+                for (int y = 0; y < tileCountY; y++)
+                {
+                    if (allTiles[x, y] == null) continue;
+                    Renderer childRenderer = allTiles[x,y].GetComponent<MeshRenderer>();
+                    Mesh childMesh = allTiles[x, y].GetComponent<MeshFilter>().mesh;
+                    String name = childRenderer.material.name.Replace("(Instance)", "").Trim();
+                    if (name.Contains(tileMaterial.name))
+                    {
+                        // Use mesh bound for more accurate
+                        totalBounds.Encapsulate(childMesh.bounds);
+                    }
+                }
+            
+            // Assign the floats
+            float totalWidth = totalBounds.size.x;
+            float totalHeight = totalBounds.size.y;
+            float totalZ = totalBounds.size.z;
+            
+            // Append to collider size
+            chessCollider.size = new Vector3(totalWidth, totalHeight, totalZ);
+            
+            // Reposition center of the box collider
+            chessCollider.center = new Vector3(totalWidth / 2, totalHeight / 2, totalZ / 2);   
         }
 
         private GameObject GenerateSingleTiles(float tileSize, int x, int y)
         {
             GameObject tileObject = new GameObject(string.Format("X:{0}, Y:{1}", x, y));
 
-            // Apply similar transform to script game object's children
-            tileObject.transform.SetParent(transform , false); // Set worldPositionStays to false so that it maintain local orientation, but there is no global position values. Everything is (0, 0 ,0) in tileObject position
+            // Set tile gameobject as children of ChessTiles gameobject
+            tileObject.transform.SetParent(ChessTiles.transform, false);
 
             Mesh mesh = new Mesh();
 
