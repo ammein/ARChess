@@ -16,14 +16,7 @@ namespace ARChess.Scripts
     
         public ARRaycastManager _arRaycastManager;
         public ARPlaneManager _arPlaneManager;
-        private GameObject spawnerParent;
         private List<ARRaycastHit> hits = new List<ARRaycastHit>();
-
-        private void Awake()
-        {
-            spawnerParent = new GameObject("Spawners");
-            spawnerParent.AddComponent<ARTransformer>();
-        }
 
         private void OnEnable()
         {
@@ -61,8 +54,6 @@ namespace ARChess.Scripts
                 
                 // Instantiate object with prefab using same position and rotation
                 GameObject obj = Instantiate(prefab, pose.position, pose.rotation);
-                
-                obj.transform.SetParent(spawnerParent.transform);
 
                 if (_arPlaneManager.GetPlane(hit.trackableId).alignment == PlaneAlignment.HorizontalUp)
                 {
