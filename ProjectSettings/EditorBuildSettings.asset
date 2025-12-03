@@ -6,16 +6,21 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/ARChess/Scenes/MainMenu.unity
+    guid: 8fd7078afb8b7460ca572711de857914
+  - enabled: 1
     path: Assets/ARChess/Scenes/ARScene.unity
     guid: 4755b35b590504809a7525fd2109c2e2
   m_configObjects:
     AR Foundation RemoteARFoundationRemoteLoaderSettings: {fileID: 11400000, guid: cb1baa6cc18d949429e3b118a292e41a, type: 2}
     AR Foundation RemoteARFoundationRemoteSessionRecordsData: {fileID: 11400000, guid: a30fa407a42784ea58852a09a27962a0, type: 2}
+    Unity.XR.Oculus.Settings: {fileID: 11400000, guid: b695b0c764a224831bde67639219ee30, type: 2}
     UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 6ee72d15cf39dd748a13eac57397b9af, type: 2}
     UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: 0465d33c6aee55f44b0237db8b0e0259, type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: af43aac49539d4d1ea5d3e6413513a7a, type: 2}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: e5b78455bbb594a35bbe0d51af2fb759, type: 3}
     com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: c199e683398494f32b4cde18e73ab731, type: 2}
     com.unity.xr.magicleap.magic_leap_settings: {fileID: 11400000, guid: 0b53a025a635a4393ba0b49822242280, type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 3fd4fc0127790db4bae83f7b77da8d45, type: 2}
-    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: b07c4ba7650be4c25b3d0c497e7e2bb8, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: a88172cac51104121a17702394702f5a, type: 2}
   m_UseUCBPForAssetBundles: 0

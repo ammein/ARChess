@@ -10,5 +10,5 @@ AssetOrigin:
   productId: 201106
   packageName: AR Foundation Remote 2.0
   packageVersion: 2.0.41-release.0
-  assetPath: Assets/Plugins/ARFoundationRemoteInstaller/Resources/ARCompanion.unity
+  assetPath: Assets/Plugins/ARFoundationRemoteInstaller/ARCompanion.unity
   uploadId: 823522

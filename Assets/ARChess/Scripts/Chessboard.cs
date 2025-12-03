@@ -1,4 +1,6 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace ARChess.Scripts
 {
@@ -12,10 +14,35 @@ namespace ARChess.Scripts
         private GameObject[,] tiles;
         private Camera currentCamera;
         private Vector2Int currentHover;
+        private BoxCollider chessCollider;
+        private GameObject ChessTiles;
+        private GameObject ChessVisuals;
+        private GameObject ChessAttach;
+        
+        [SerializeField]
+        [Tooltip("Tile size of the chessboard")]
+        private int m_tileSize = 1;
+        
+        public BoxCollider ChessCollider => chessCollider;
+
+        public GameObject AttachObject
+        {
+            get => ChessAttach;
+            set => ChessAttach = value;
+        }
+
+        public int TileSize
+        {
+            get => m_tileSize;
+            set => m_tileSize = value;
+        }
 
         private void Awake()
         {
-            GenerateAllTiles(1, TILE_COUNT_X, TILE_COUNT_Y);
+            ChessTiles = GameObject.Find("All Chess Tiles");
+            ChessAttach = GameObject.Find("Chess Attach");
+            ChessVisuals = GameObject.Find("Chess Visuals");
+            GenerateAllTiles(m_tileSize);
         }
 
         private void Update()
@@ -26,9 +53,17 @@ namespace ARChess.Scripts
                 return;
             }
 
-            RaycastHit info;
-            Ray ray = currentCamera.ScreenPointToRay(Input.GetTouch(0).position);
+            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
+            {
+                Ray ray = currentCamera.ScreenPointToRay(Input.GetTouch(0).position);
+                HitTile(ray, Info);
+            }
+        }
 
+        public RaycastHit Info { get; set; }
+
+        private void HitTile(Ray ray, RaycastHit info)
+        {
             // To prevent raycast to infinite distance, we have to make the endpoint only react to Tile or 100 max distance
             if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile")))
             {
@@ -59,33 +94,148 @@ namespace ARChess.Scripts
         }
 
         // Generate the board
-        private void GenerateAllTiles(float tileSize, int tileCountX, int tileCountY)
+        public bool GenerateAllTiles(int tileSize, int tileCountX = TILE_COUNT_X, int tileCountY = TILE_COUNT_Y)
         {
+            m_tileSize = tileSize;
             tiles = new GameObject[tileCountX, tileCountY];
+
+            // Calculate half the total size to center the chessboard
+            int halfWidth = (tileCountX * (int)tileSize) / 2;
+            int halfHeight = (tileCountY * (int)tileSize) / 2;
+
             for (int x = 0; x < tileCountX; x++)
+            {
                 for (int y = 0; y < tileCountY; y++)
-                    tiles[x, y] = GenerateSingleTiles(tileSize, x, y);
+                {
+                    // Calculate the position to center the tiles
+                    float posX = (x * tileSize) - halfWidth + (tileSize / 2);
+                    float posY = (y * tileSize) - halfHeight + (tileSize / 2);
+
+                    tiles[x, y] = GenerateSingleTiles(tileSize, x, y, posX, posY);
+                }
+            }
+
+            AddChessBound(tiles, tileCountX, tileCountY);
+
+            for (int x = 0; x < tileCountX; x++)
+            {
+                for (int y = 0; y < tileCountY; y++)
+                {
+                    GenerateBoundsBoxCollider(tiles[x, y], x, y);
+                }
+            }
+
+            // Add Collider into XR Grab Interactable
+            XRGrabInteractable interactable = gameObject.GetComponent<XRGrabInteractable>();
+            if (interactable != null)
+            {
+                interactable.colliders.Add(ChessAttach.GetComponent<BoxCollider>());
+                interactable.predictedVisualsTransform = ChessVisuals.transform;
+                StartCoroutine(ReregisterInteractable(interactable));
+            }
+
+            return true;
+        }
+        
+        /// <summary>
+        /// A Helper method since the XR does not have colliders to be updated dynamically, This function will reregister XR Grab Interactable
+        /// into Interaction Manager
+        ///
+        /// See: https://discussions.unity.com/t/how-to-add-child-colliders-to-a-parent-xrgrabinteractable-collider-list/891324/6
+        /// </summary>
+        /// <param name="interactable"></param>
+        /// <returns></returns>
+        private IEnumerator ReregisterInteractable(XRGrabInteractable interactable)
+        {
+            yield return new WaitForEndOfFrame();
+            interactable.interactionManager.UnregisterInteractable(interactable as IXRInteractable);
+
+            yield return new WaitForEndOfFrame();
+            interactable.interactionManager.RegisterInteractable(interactable as IXRInteractable);
+
+            yield return null;
+        }
+        
+
+        private void AddChessBound(GameObject[,] allTiles, int tileCountX, int tileCountY)
+        {
+            // Add Box Collider to Empty Game Object
+            chessCollider = ChessAttach.AddComponent<BoxCollider>();
+
+            // Initialize Bounds to encompass all tiles
+            Bounds totalBounds = new Bounds();
+
+            // Calculate the bounds based on the tile positions
+            for (int x = 0; x < tileCountX; x++)
+            {
+                for (int y = 0; y < tileCountY; y++)
+                {
+                    if (allTiles[x, y] == null) continue;
+
+                    // Get the mesh bounds in local space
+                    Mesh childMesh = allTiles[x, y].GetComponent<MeshFilter>().mesh;
+
+                    // Calculate the bounds in world space
+                    Vector3 tilePosition = allTiles[x, y].transform.position; // Use world position
+                    Bounds meshBounds = childMesh.bounds;
+                    meshBounds.center += tilePosition; // Offset the bounds to the tile's world position
+
+                    // Encapsulate the bounds
+                    totalBounds.Encapsulate(meshBounds);
+                }
+            }
+
+            // Set the size of the collider based on the total bounds
+            chessCollider.size = totalBounds.size;
+            
+            chessCollider.center = totalBounds.center;
+            
+            chessCollider.providesContacts = true;
         }
 
-        private GameObject GenerateSingleTiles(float tileSize, int x, int y)
-        {
-            GameObject tileObject = new GameObject(string.Format("X:{0}, Y:{1}", x, y));
 
-            // Apply similar transform to script game object's children
-            tileObject.transform.SetParent(transform);
+        private void GenerateBoundsBoxCollider(GameObject tileObject, int x, int y)
+        {
+            GameObject tileBounds = new GameObject(string.Format("X:{0} Y:{1}", x, y));
+            
+            tileBounds.transform.SetParent(ChessTiles.transform);
+            
+            tileBounds.AddComponent<MeshFilter>().mesh = tileObject.GetComponent<MeshFilter>().mesh;
+            tileBounds.AddComponent<MeshRenderer>().material = tileMaterial;
+            
+            // Add Bounds from ZERO using current gameObject transform position
+            Bounds totalBounds = new Bounds(tileObject.transform.position, Vector3.zero);
+            // Whenever the camera is assign to "Tile" layer, the object will change the layer into Tile
+            tileBounds.layer = LayerMask.NameToLayer("Tile");
+            // Add Box Collider Component
+            BoxCollider boxCollider = tileBounds.AddComponent<BoxCollider>();
+            boxCollider.center = tileObject.transform.position;
+            boxCollider.isTrigger = true;
+        }
+
+        private GameObject GenerateSingleTiles(float tileSize, int x, int y, float posX, float posY)
+        {
+            GameObject tileObject = new GameObject(string.Format("Tile: ({0}, {1})", x, y));
+
+            // Set tile gameobject as children of ChessTiles gameobject
+            tileObject.transform.SetParent(ChessVisuals.transform);
+            tileObject.transform.position = new Vector3(posX, 0, posY);
 
             Mesh mesh = new Mesh();
-
-            // Add Mesh as component
+    
+            // Add Meshes and Materials
             tileObject.AddComponent<MeshFilter>().mesh = mesh;
             tileObject.AddComponent<MeshRenderer>().material = tileMaterial;
 
-            // Add simple vertices using index and points
+            // Calculate half the tile size
+            float halfTileSize = tileSize / 2.0f;
+
+            // Define vertices with height
             Vector3[] vertices = new Vector3[4];
-            vertices[0] = new Vector3(x * tileSize, 0, y * tileSize);
-            vertices[1] = new Vector3(x * tileSize, 0, (y + 1) * tileSize);
-            vertices[2] = new Vector3((x + 1) * tileSize, 0, y * tileSize);
-            vertices[3] = new Vector3((x + 1) * tileSize, 0, (y + 1) * tileSize);
+            vertices[0] = new Vector3(-halfTileSize, 0, -halfTileSize); // Bottom-left
+            vertices[1] = new Vector3(-halfTileSize, 0, halfTileSize);  // Top-left
+            vertices[2] = new Vector3(halfTileSize, 0, -halfTileSize);   // Bottom-right
+            vertices[3] = new Vector3(halfTileSize, 0, halfTileSize);    // Top-right
 
             // Assign Index on vertices like (0 -> 1 -> 2) & (1 -> 3 -> 2)
             int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
@@ -94,24 +244,21 @@ namespace ARChess.Scripts
             mesh.vertices = vertices;
             mesh.triangles = tris;
 
-            // Recalculate normals for lighting and other environment affect to the mesh...
+            // Set a height for the tiles
             mesh.RecalculateNormals();
-
-            // Whenever the camera is assign to "Tile" layer, the object will change the layer into Tile
-            tileObject.layer = LayerMask.NameToLayer("Tile");
-            // Add Box Collider Component
-            tileObject.AddComponent<BoxCollider>();
+            mesh.RecalculateBounds(); // Ensure the bounds are recalculated
 
             return tileObject;
         }
+
 
         // Operations
         private Vector2Int LookupTileIndex(GameObject hitInfo)
         {
             for (int x = 0; x < TILE_COUNT_X; x++)
-                for (int y = 0; y < TILE_COUNT_Y; y++)
-                    if (tiles[x, y] == hitInfo)
-                        return new Vector2Int(x, y);
+            for (int y = 0; y < TILE_COUNT_Y; y++)
+                if (tiles[x, y] == hitInfo)
+                    return new Vector2Int(x, y);
 
             return -Vector2Int.one; // Invalid
         }
