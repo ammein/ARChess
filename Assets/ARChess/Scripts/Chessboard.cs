@@ -1,6 +1,4 @@
-using System;
-using System.Globalization;
-using System.Runtime.Serialization;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
@@ -131,18 +129,38 @@ namespace ARChess.Scripts
             XRGrabInteractable interactable = gameObject.GetComponent<XRGrabInteractable>();
             if (interactable != null)
             {
+                interactable.colliders.Add(ChessAttach.GetComponent<BoxCollider>());
                 interactable.predictedVisualsTransform = ChessVisuals.transform;
+                StartCoroutine(ReregisterInteractable(interactable));
             }
 
             return true;
         }
+        
+        /// <summary>
+        /// A Helper method since the XR does not have colliders to be updated dynamically, This function will reregister XR Grab Interactable
+        /// into Interaction Manager
+        ///
+        /// See: https://discussions.unity.com/t/how-to-add-child-colliders-to-a-parent-xrgrabinteractable-collider-list/891324/6
+        /// </summary>
+        /// <param name="interactable"></param>
+        /// <returns></returns>
+        private IEnumerator ReregisterInteractable(XRGrabInteractable interactable)
+        {
+            yield return new WaitForEndOfFrame();
+            interactable.interactionManager.UnregisterInteractable(interactable as IXRInteractable);
 
+            yield return new WaitForEndOfFrame();
+            interactable.interactionManager.RegisterInteractable(interactable as IXRInteractable);
 
+            yield return null;
+        }
+        
 
         private void AddChessBound(GameObject[,] allTiles, int tileCountX, int tileCountY)
         {
             // Add Box Collider to Empty Game Object
-            chessCollider = ChessAttach.GetComponent<BoxCollider>();
+            chessCollider = ChessAttach.AddComponent<BoxCollider>();
 
             // Initialize Bounds to encompass all tiles
             Bounds totalBounds = new Bounds();
@@ -171,6 +189,8 @@ namespace ARChess.Scripts
             chessCollider.size = totalBounds.size;
             
             chessCollider.center = totalBounds.center;
+            
+            chessCollider.providesContacts = true;
         }
 
 
@@ -190,6 +210,7 @@ namespace ARChess.Scripts
             // Add Box Collider Component
             BoxCollider boxCollider = tileBounds.AddComponent<BoxCollider>();
             boxCollider.center = tileObject.transform.position;
+            boxCollider.isTrigger = true;
         }
 
         private GameObject GenerateSingleTiles(float tileSize, int x, int y, float posX, float posY)

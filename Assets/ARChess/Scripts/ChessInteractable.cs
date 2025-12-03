@@ -8,7 +8,6 @@ namespace ARChess.Scripts
 {
     public class ChessInteractable : MonoBehaviour
     {
-        
         /// <summary>
         /// The type of trigger to use to spawn an object.
         /// </summary>
@@ -25,12 +24,12 @@ namespace ARChess.Scripts
             /// </summary>
             InputAction,
         }
-        
+
         bool m_AttemptSpawn;
+        bool m_AttemptHadSelection;
         bool m_EverHadSelection;
-        
-        [SerializeField]
-        [Tooltip("The AR ray interactor that determines where to spawn the object.")]
+
+        [SerializeField] [Tooltip("The AR ray interactor that determines where to spawn the object.")]
         XRRayInteractor m_ARInteractor;
 
         /// <summary>
@@ -41,10 +40,11 @@ namespace ARChess.Scripts
             get => m_ARInteractor;
             set => m_ARInteractor = value;
         }
-        
+
         [SerializeField]
-        [Tooltip("The type of trigger to use to spawn an object, either when the Interactor's select action occurs or " +
-                 "when a button input is performed.")]
+        [Tooltip(
+            "The type of trigger to use to spawn an object, either when the Interactor's select action occurs or " +
+            "when a button input is performed.")]
         SpawnTriggerType m_SpawnTriggerType;
 
         /// <summary>
@@ -55,9 +55,8 @@ namespace ARChess.Scripts
             get => m_SpawnTriggerType;
             set => m_SpawnTriggerType = value;
         }
-        
-        [SerializeField]
-        [Tooltip("When enabled, spawn will not be triggered if an object is currently selected.")]
+
+        [SerializeField] [Tooltip("When enabled, spawn will not be triggered if an object is currently selected.")]
         bool m_BlockSpawnWhenInteractorHasSelection = true;
 
         /// <summary>
@@ -68,9 +67,8 @@ namespace ARChess.Scripts
             get => m_BlockSpawnWhenInteractorHasSelection;
             set => m_BlockSpawnWhenInteractorHasSelection = value;
         }
-        
-        [SerializeField]
-        XRInputButtonReader m_SpawnObjectInput;
+
+        [SerializeField] XRInputButtonReader m_SpawnObjectInput;
 
         /// <summary>
         /// The input used to trigger spawn, if <see cref="spawnTriggerType"/> is set to <see cref="SpawnTriggerType.InputAction"/>.
@@ -80,9 +78,8 @@ namespace ARChess.Scripts
             get => m_SpawnObjectInput;
             set => XRInputReaderUtility.SetInputProperty(ref m_SpawnObjectInput, value, this);
         }
-        
-        [SerializeField]
-        PlaceObject m_PlaceObject;
+
+        [SerializeField] PlaceObject m_PlaceObject;
 
         void OnEnable()
         {
@@ -112,27 +109,25 @@ namespace ARChess.Scripts
             if (m_AttemptSpawn)
             {
                 m_AttemptSpawn = false;
-                
+
                 // Cancel the spawn if the select was delayed until the frame after the spawn trigger.
                 // This can happen if the select action uses a different input source than the spawn trigger.
                 if (m_ARInteractor.hasSelection)
                     return;
 
-                // Don't spawn the object if the tap was over screen space UI.
-                var isPointerOverUI = EventSystem.current && EventSystem.current.IsPointerOverGameObject(-1);
-                if (m_ARInteractor.TryGetCurrentARRaycastHit(out var raycastHit))
-                {
-                    if (!(raycastHit.trackable is ARPlane arPlane))
-                        return;
-                    
-                    GameObject obj = m_PlaceObject.ClonePrefab(raycastHit.pose.position, arPlane.normal);
-                }
+                spawnOrEdit();
 
                 return;
             }
-            
+
+            if (m_AttemptHadSelection)
+            {
+                Debug.Log("Attempt Selection");
+                spawnOrEdit();
+            }
+
             var selectState = m_ARInteractor.logicalSelectState;
-            
+
             if (m_BlockSpawnWhenInteractorHasSelection)
             {
                 if (selectState.wasPerformedThisFrame)
@@ -140,7 +135,7 @@ namespace ARChess.Scripts
                 else if (selectState.active)
                     m_EverHadSelection |= m_ARInteractor.hasSelection;
             }
-            
+
             m_AttemptSpawn = false;
             switch (m_SpawnTriggerType)
             {
@@ -148,13 +143,31 @@ namespace ARChess.Scripts
                     if (selectState.wasCompletedThisFrame)
                         m_AttemptSpawn = !m_ARInteractor.hasSelection && !m_EverHadSelection;
                     break;
-                
+
                 case SpawnTriggerType.InputAction:
                     if (m_SpawnObjectInput.ReadWasPerformedThisFrame())
                         m_AttemptSpawn = !m_ARInteractor.hasSelection && !m_EverHadSelection;
                     break;
             }
-                
+
+            if (!m_AttemptSpawn && m_ARInteractor.hasSelection) m_AttemptHadSelection = true;
+            else m_AttemptHadSelection = false;
+        }
+
+        private bool spawnOrEdit()
+        {
+            bool hit = false;
+            // Don't spawn the object if the tap was over screen space UI.
+            var isPointerOverUI = EventSystem.current && EventSystem.current.IsPointerOverGameObject(-1);
+            if (!isPointerOverUI && m_ARInteractor.TryGetCurrentARRaycastHit(out var raycastHit))
+            {
+                if (!(raycastHit.trackable is ARPlane arPlane))
+                    return false;
+
+                hit = m_PlaceObject.ClonePrefab(raycastHit.pose.position, arPlane.normal);
+            }
+
+            return hit;
         }
     }
 }

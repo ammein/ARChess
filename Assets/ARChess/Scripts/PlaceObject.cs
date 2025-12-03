@@ -14,10 +14,6 @@ namespace ARChess.Scripts
         
         private GameObject m_ObjectInstance;
 
-        [SerializeField]
-        [Tooltip("The prefab size on spawn")]
-        private float originSize = 1;
-
         public GameObject ObjectInstance
         {
             get => m_ObjectInstance;
@@ -31,17 +27,16 @@ namespace ARChess.Scripts
         public event Action<GameObject> ObjectSpawned;
 
         // ReSharper disable Unity.PerformanceAnalysis
-        public GameObject ClonePrefab(Vector3 positionPose, Vector3 spawnNormal)
+        public bool ClonePrefab(Vector3 positionPose, Vector3 spawnNormal)
         {
             
             var facePosition = Camera.main.transform.position;
             var forward = facePosition - positionPose;
-
-
+            
             if (m_ObjectInstance)
             {
                 Positioning(forward, positionPose, spawnNormal);
-                return m_ObjectInstance;
+                return true;
             }
             
             // Instantiate object with prefab using same position and rotation
@@ -51,7 +46,7 @@ namespace ARChess.Scripts
 
             ObjectSpawned?.Invoke(m_ObjectInstance);
 
-            return m_ObjectInstance;
+            return true;
         }
 
         private void Positioning(Vector3 forward, Vector3 positionPose, Vector3 spawnNormal)
@@ -59,9 +54,7 @@ namespace ARChess.Scripts
             m_ObjectInstance.transform.position = positionPose;
             
             BurstMathUtility.ProjectOnPlane(forward, spawnNormal, out var projectedForward);
-            // m_ObjectInstance.transform.rotation = Quaternion.LookRotation(projectedForward, spawnNormal);
-
-            m_ObjectInstance.transform.localScale = new Vector3(originSize, originSize, originSize);
+            m_ObjectInstance.transform.localRotation = Quaternion.LookRotation(projectedForward, spawnNormal);
         }
     }
 }
