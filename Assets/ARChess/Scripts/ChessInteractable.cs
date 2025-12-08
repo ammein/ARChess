@@ -24,10 +24,13 @@ namespace ARChess.Scripts
             /// </summary>
             InputAction,
         }
+        
+        private ARPlaneManager _arPlaneManager;
 
         bool m_AttemptSpawn;
         bool m_AttemptHadSelection;
         bool m_EverHadSelection;
+        bool m_AttemptEdit = false;
 
         [SerializeField] [Tooltip("The AR ray interactor that determines where to spawn the object.")]
         XRRayInteractor m_ARInteractor;
@@ -93,6 +96,11 @@ namespace ARChess.Scripts
 
         private void Start()
         {
+            if (_arPlaneManager == null)
+            {
+                _arPlaneManager = FindFirstObjectByType<ARPlaneManager>();
+            }
+            
             if (m_ARInteractor == null)
             {
                 Debug.LogError("Missing AR Interactor reference, disabling component.", this);
@@ -103,6 +111,8 @@ namespace ARChess.Scripts
 
         private void Update()
         {
+
+            if (!m_AttemptEdit) return;
             // Wait a frame after the Spawn Object input is triggered to actually cast against AR planes and spawn
             // in order to ensure the touchscreen gestures have finished processing to allow the ray pose driver
             // to update the pose based on the touch position of the gestures.
@@ -122,7 +132,6 @@ namespace ARChess.Scripts
 
             if (m_AttemptHadSelection)
             {
-                Debug.Log("Attempt Selection");
                 spawnOrEdit();
             }
 
@@ -168,6 +177,32 @@ namespace ARChess.Scripts
             }
 
             return hit;
+        }
+
+        public void EnableOrDisableInteractive(bool state)
+        {
+            if (state)
+            {
+                m_AttemptEdit = true;
+                if (_arPlaneManager != null)
+                {
+                    foreach (var plane in _arPlaneManager.trackables)
+                    {
+                        plane.gameObject.SetActive(true); // Hide the GameObject of the plane
+                    }
+                }
+            }
+            else
+            {
+                m_AttemptEdit = false;
+                if (_arPlaneManager != null)
+                {
+                    foreach (var plane in _arPlaneManager.trackables)
+                    {
+                        plane.gameObject.SetActive(false); // Hide the GameObject of the plane
+                    }
+                }
+            }
         }
     }
 }

@@ -22,6 +22,9 @@ namespace ARChess.Scripts
         public float duration = 3f;
         [Range(0f, 1f)]
         public float animationSpeed = 0.5f; // Time between dot changes
+        [SerializeField]
+        [Tooltip("Loading Text String")]
+        private string loadingTextString;
         
         private float _currentValue;
         private int _dotCount;
@@ -46,7 +49,7 @@ namespace ARChess.Scripts
         
         private IEnumerator AnimateEllipsis(TextMeshProUGUI text)
         {
-            text.text = "Load Video Player";
+            text.text = loadingTextString;
             while (true)
             {
                 // Add dots up to 3
@@ -60,7 +63,7 @@ namespace ARChess.Scripts
                 if (_dotCount > 3)
                 {
                     _dotCount = 0; // Reset to 0
-                    text.text = "Load Video Player"; // Remove dots
+                    text.text = loadingTextString; // Remove dots
                 }
 
                 // Wait for the specified animation speed
