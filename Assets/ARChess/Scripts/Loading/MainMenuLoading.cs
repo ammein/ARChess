@@ -1,10 +1,10 @@
 using System.Collections;
+using ARChess.Scripts.Image;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Video;
 
-namespace ARChess.Scripts
+namespace ARChess.Scripts.Loading
 {
     public class MainMenuLoading : MonoBehaviour
     {
@@ -13,7 +13,7 @@ namespace ARChess.Scripts
         public GameObject mainScene;
         public VideoPlayer videoPlayer;
         public GameObject loadingBar;
-        public Image loadingBarFill;
+        public UnityEngine.UI.Image loadingBarFill;
         public TextMeshProUGUI loadingText;
         
         [Header("Animation Controls")]
@@ -42,19 +42,19 @@ namespace ARChess.Scripts
             {
                 videoPlayer.Play();
                 loadingBar.GetComponent<RawImageOpacityControl>().opacity = 1f;
-                StartCoroutine(CheckLoad(startValue, endValue, duration));
-                StartCoroutine(AnimateEllipsis(loadingText));
+                StartCoroutine(CheckLoad(startValue, endValue));
+                StartCoroutine(AnimateEllipsis());
             }
         }
         
-        private IEnumerator AnimateEllipsis(TextMeshProUGUI text)
+        private IEnumerator AnimateEllipsis()
         {
-            text.text = loadingTextString;
+            loadingText.text = loadingTextString;
             while (true)
             {
                 // Add dots up to 3
                 string dots = new string('.', _dotCount);
-                text.text += dots;
+                loadingText.text += dots;
 
                 // Increment dot count, reset after 3
                 _dotCount++;
@@ -63,7 +63,7 @@ namespace ARChess.Scripts
                 if (_dotCount > 3)
                 {
                     _dotCount = 0; // Reset to 0
-                    text.text = loadingTextString; // Remove dots
+                    loadingText.text = loadingTextString; // Remove dots
                 }
 
                 // Wait for the specified animation speed
@@ -71,33 +71,43 @@ namespace ARChess.Scripts
             }
         }
 
-        IEnumerator CheckLoad(float from, float to, float timeDuration)
+        IEnumerator CheckLoad(float from, float to)
         {
             videoPlayer.Pause();
             float elapsedTime = 0f;
 
-            while (elapsedTime < timeDuration)
+            while (!videoPlayer.isPrepared)
             {
-                // Calculate the 't' value, which represents the progress from 0 to 1
-                float t = elapsedTime / timeDuration;
-
-                // Apply the Lerp function
-                _currentValue = Mathf.Lerp(from, to, t);
-
                 // Increment the elapsed time using Time.deltaTime for frame-rate independence
                 elapsedTime += Time.deltaTime;
+                
+                _currentValue = Mathf.Lerp(from, to, elapsedTime / duration);
 
                 // Yield control back to Unity, so the Coroutine can resume in the next frame
+                yield return null;
+            }
+
+            // Apply the Lerp function
+            var animateTime = 0f;
+
+            while (animateTime < duration)
+            {
+                // Convert t into 0 to 1 value
+                var t = animateTime / duration;
+                
+                loadingBarFill.fillAmount = t;
+                
+                animateTime += Time.deltaTime;
+
                 yield return null;
             }
             
             // Ensure the value reaches the exact endValue at the end of the duration
             _currentValue = to;
-            
-            loadingBarFill.fillAmount = _currentValue;
 
             if (Mathf.Approximately(_currentValue, endValue) && videoPlayer.isPrepared)
             {
+                loadingBarFill.fillAmount = _currentValue;
                 loadingScene.SetActive(false);
                 mainScene.SetActive(true);
                 videoPlayer.Play();

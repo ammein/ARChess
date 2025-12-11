@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace ARChess.Scripts
+namespace ARChess.Scripts.Image
 {
     public class RawImageOpacityControl : MonoBehaviour
     {
@@ -18,7 +18,7 @@ namespace ARChess.Scripts
             {
                 AssignColor(targetRawImage);
             }
-            else if(TryGetComponent(out Image targetImage))
+            else if(TryGetComponent(out UnityEngine.UI.Image targetImage))
             {
                 AssignColor(targetImage);
             }
@@ -32,7 +32,7 @@ namespace ARChess.Scripts
             targetRawImage.color = color;
         }
 
-        private void AssignColor(Image targetImage)
+        private void AssignColor(UnityEngine.UI.Image targetImage)
         {
             Color color = targetImage.color;
             color.a = opacity;

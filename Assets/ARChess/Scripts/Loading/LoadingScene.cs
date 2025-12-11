@@ -1,16 +1,16 @@
 using System.Collections;
+using ARChess.Scripts.Image;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
-namespace ARChess.Scripts
+namespace ARChess.Scripts.Loading
 {
     public class LoadingScene : MonoBehaviour
     {
         [Header("Elements")]
         public GameObject loadingScreen;
-        public Image loadingBarFill;
+        public UnityEngine.UI.Image loadingBarFill;
         public RawImageOpacityControl control;
         public TextMeshProUGUI loadingText;
         
@@ -26,16 +26,16 @@ namespace ARChess.Scripts
         {
             loadingText.text = loadingTextString;
             StartCoroutine(LoadSceneAsync(id));
-            _ellipsisCoroutine = StartCoroutine(AnimateEllipsis(loadingText));
+            _ellipsisCoroutine = StartCoroutine(AnimateEllipsis());
         }
 
-        private IEnumerator AnimateEllipsis(TextMeshProUGUI text)
+        private IEnumerator AnimateEllipsis()
         {
             while (true)
             {
                 // Add dots up to 3
                 string dots = new string('.', _dotCount);
-                text.text += dots;
+                loadingText.text += dots;
 
                 // Increment dot count, reset after 3
                 _dotCount++;
@@ -44,7 +44,7 @@ namespace ARChess.Scripts
                 if (_dotCount > 3)
                 {
                     _dotCount = 0; // Reset to 0
-                    text.text = loadingTextString; // Remove dots
+                    loadingText.text = loadingTextString; // Remove dots
                 }
 
                 // Wait for the specified animation speed

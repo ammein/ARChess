@@ -1,5 +1,19 @@
 {
   "dependencies": {
+    "com.gilzoide.safe-area-layout": {
+      "version": "https://github.com/gilzoide/unity-safe-area-layout.git#1.1.2",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "f11287e334aa090369e2f1e5257dc82714b1a4d6"
+    },
+    "com.gindemit.rlottie": {
+      "version": "https://github.com/gindemit/unity-rlottie.git?path=/unity/RLottieUnity/Assets/LottiePlugin/#0.4.5",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "fb064d87368c55c4b5ea6cfe82bab9cf21be4e15"
+    },
     "com.kyrylokuzyk.arfoundationremote": {
       "version": "file:../Assets/Plugins/ARFoundationRemoteInstaller/com.kyrylokuzyk.arfoundationremote.tgz",
       "depth": 0,

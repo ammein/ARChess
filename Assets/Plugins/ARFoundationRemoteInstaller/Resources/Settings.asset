@@ -37,10 +37,28 @@ MonoBehaviour:
   editorGameViewSettings:
     resolutionScale: 0.33333334
     maxEditorViewFps: 10
-  packages: []
+  packages:
+  - displayName: AR Foundation Remote
+    version: 2.0.42-release.0
+    id: com.kyrylokuzyk.arfoundationremote
+  - displayName: AR Foundation
+    version: 6.2.0
+    id: com.unity.xr.arfoundation
+  - displayName: Google ARCore XR Plugin
+    version: 6.2.0
+    id: com.unity.xr.arcore
+  - displayName: Apple ARKit XR Plugin
+    version: 6.2.0
+    id: com.unity.xr.arkit
+  - displayName: Input System
+    version: 1.14.2
+    id: com.unity.inputsystem
+  - displayName: Universal Render Pipeline
+    version: 17.2.0
+    id: com.unity.render-pipelines.universal
   inputHandlingData:
     isLegacyInputManagerEnabled: 0
-    isNewInputSystemEnabled: 0
+    isNewInputSystemEnabled: 1
   debugSettings:
     logStartupErrors: 0
     showTelepathyLogs: 0
