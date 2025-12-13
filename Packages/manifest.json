@@ -3,6 +3,7 @@
     "com.gilzoide.safe-area-layout": "https://github.com/gilzoide/unity-safe-area-layout.git#1.1.2",
     "com.gindemit.rlottie": "https://github.com/gindemit/unity-rlottie.git?path=/unity/RLottieUnity/Assets/LottiePlugin/#0.4.5",
     "com.kyrylokuzyk.arfoundationremote": "file:../Assets/Plugins/ARFoundationRemoteInstaller/com.kyrylokuzyk.arfoundationremote.tgz",
+    "com.unify.unified-universal-blur": "https://github.com/lukakldiashvili/Unified-Universal-Blur.git",
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.device-simulator.devices": "1.0.1",
     "com.unity.feature.development": "1.0.2",

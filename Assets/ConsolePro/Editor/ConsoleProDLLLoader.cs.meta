@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: e317ae881451486793d80b11d2ef85b2
+guid: 7ea8162181b6450d9456e3c822f1c2fe
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
@@ -13,6 +13,6 @@ AssetOrigin:
   serializedVersion: 1
   productId: 11889
   packageName: Editor Console Pro
-  packageVersion: 3.977
+  packageVersion: 3.979
   assetPath: Assets/ConsolePro/Editor/ConsoleProDLLLoader.cs
-  uploadId: 830324
+  uploadId: 833240

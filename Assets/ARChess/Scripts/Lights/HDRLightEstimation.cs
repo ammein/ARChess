@@ -1,3 +1,5 @@
+using System;
+using ARChess.Scripts.Project;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
@@ -17,6 +19,10 @@ namespace ARChess.Scripts.Lights
 
         [SerializeField]
         Transform m_Arrow;
+
+        [SerializeField]
+        [Tooltip("Project settings for the light estimation information.")]
+        private ProjectStateOptions globalSettings;
 
         public Transform arrow
         {
@@ -112,6 +118,19 @@ namespace ARChess.Scripts.Lights
             {
                 var cameraTransform = m_CameraManager.GetComponent<Camera>().transform;
                 arrow.position = cameraTransform.position + cameraTransform.forward * .25f;
+            }
+        }
+
+        private void Update()
+        {
+            if (m_CameraManager && globalSettings && globalSettings.dynamicLighting && 
+                m_CameraManager.currentLightEstimation is not (LightEstimation.AmbientSphericalHarmonics or LightEstimation.MainLightDirection or LightEstimation.MainLightIntensity)
+                ){
+                m_CameraManager.requestedLightEstimation = LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity;
+            }
+            else if(m_CameraManager && globalSettings && !globalSettings.dynamicLighting && m_CameraManager.currentLightEstimation is not LightEstimation.None)
+            {
+                m_CameraManager.requestedLightEstimation = LightEstimation.None;
             }
         }
 

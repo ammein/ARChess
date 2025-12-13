@@ -15,3 +15,4 @@ MonoBehaviour:
   playerName: Guest
   initialChessboardSize: 0.06
   tutorialsEnabled: 1
+  dynamicLighting: 0

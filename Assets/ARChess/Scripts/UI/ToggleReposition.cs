@@ -17,16 +17,20 @@ namespace ARChess.Scripts.UI
         public UnityEngine.UI.Image backgroundImage;
         [Tooltip("GameObject that has TextMeshPro Component to switch string states")]
         public Text buttonText;
-        [Tooltip("GameObject that has AnimatedImage (Lottie) Component to switch icon states")]
-        public GameObject lottieIcon;
-        [Tooltip("GameObject that has RawImage/Image Component to switch button states")]
-        public GameObject Icon;
 
         [Header("Text Color")] 
         [Tooltip("Text color for active state")]
         public Color activeTextColor;
         [Tooltip("Text color for inactive state")]
         public Color inactiveTextColor;
+        
+        [Header("Icon")]
+        [Tooltip("GameObject that has AnimatedImage (Lottie) Component to switch icon states")]
+        public GameObject lottieIcon;
+        [Tooltip("GameObject that has RawImage/Image Component to switch button states")]
+        public GameObject Icon;
+        [Tooltip("For Lottie Icon Local Scale (Useful to adjust when the rlottie component inverted your lottie animation. This will help to inverted your scale by adjusting Y axis or X axis)")]
+        public Vector3 LottieIconScale = new Vector3(2f, -2f, 2f);
 
         private RawImage _iconImage;
         private Toggle _toggle;
@@ -68,15 +72,18 @@ namespace ARChess.Scripts.UI
         }
         
         private void ScanIconSprite(bool isOn) {
+            AnimatedImage lottie = lottieIcon.GetComponent<AnimatedImage>();
             if (isOn)
             {
                 lottieIcon.SetActive(true);
+                lottie.Play();
                 Icon.SetActive(false);
-                lottieIcon.transform.localScale = new Vector3(2f, -2f, 2f);
+                lottieIcon.transform.localScale = LottieIconScale;
             }
             else
             {
                 lottieIcon.transform.localScale = new Vector3(0, 0, 0);
+                lottie.Stop();
                 lottieIcon.SetActive(false);
                 Icon.SetActive(true);
             }

@@ -17,12 +17,17 @@ namespace ARChess.Scripts.Project
         [Header("Tutorials")]
         public bool tutorialsEnabled = true;
 
+        [Header("AR Settings")]
+        [Tooltip("For using dynamic lighting from real world source for your scene.")]
+        public bool dynamicLighting = false;
+
         // Add a method to reset values if needed
         public void ResetToDefaults()
         {
             playerName = "Guest";
             initialChessboardSize = 0.06f;
             tutorialsEnabled = true;
+            dynamicLighting = false;
         }
     }
 }
