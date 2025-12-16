@@ -123,12 +123,11 @@ namespace ARChess.Scripts.Lights
 
         private void Update()
         {
-            if (m_CameraManager && globalSettings && globalSettings.dynamicLighting && 
-                m_CameraManager.currentLightEstimation is not (LightEstimation.AmbientSphericalHarmonics or LightEstimation.MainLightDirection or LightEstimation.MainLightIntensity)
-                ){
+            if (m_CameraManager && globalSettings && globalSettings.dynamicLighting && m_CameraManager.requestedLightEstimation is not
+                    (LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity)){
                 m_CameraManager.requestedLightEstimation = LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity;
             }
-            else if(m_CameraManager && globalSettings && !globalSettings.dynamicLighting && m_CameraManager.currentLightEstimation is not LightEstimation.None)
+            else if(m_CameraManager && globalSettings && !globalSettings.dynamicLighting && m_CameraManager.requestedLightEstimation is not LightEstimation.None)
             {
                 m_CameraManager.requestedLightEstimation = LightEstimation.None;
             }

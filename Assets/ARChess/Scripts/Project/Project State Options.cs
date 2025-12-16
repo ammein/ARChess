@@ -19,7 +19,11 @@ namespace ARChess.Scripts.Project
 
         [Header("AR Settings")]
         [Tooltip("For using dynamic lighting from real world source for your scene.")]
-        public bool dynamicLighting = false;
+        public bool dynamicLighting;
+
+        [Header("Scene Settings")]
+        [Tooltip("Main Scene Video Loaded")]
+        public bool mainSceneVideoLoaded;
 
         // Add a method to reset values if needed
         public void ResetToDefaults()

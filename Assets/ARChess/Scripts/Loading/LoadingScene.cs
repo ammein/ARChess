@@ -11,20 +11,32 @@ namespace ARChess.Scripts.Loading
         [Header("Elements")]
         public GameObject loadingScreen;
         public UnityEngine.UI.Image loadingBarFill;
-        public RawImageOpacityControl control;
+        public RawImageOpacityControl backgroundOpacityControl;
         public TextMeshProUGUI loadingText;
         
         [Header("Controls")]
+        [SerializeField]
+        [Tooltip("Delay in seconds before loading scene")]
+        private float beforeLoadDelay = 1.5f;
+        [SerializeField]
+        [Tooltip("Delay in seconds after loading scene")]
+        private float afterLoadDelay = 1.5f;
+        [SerializeField]
         [Range(0f, 1f)]
-        public float animationSpeed = 0.5f; // Time between dot changes
+        [Tooltip("Animation speed between ellipsis text changes")]
+        private float animationDotSpeed = 0.5f; // Time between dot changes
         public string loadingTextString = "Loading";
+        public string enteringTextString = "Starting";
         
         private int _dotCount;
         private Coroutine _ellipsisCoroutine;
+        private string _textLoadingState;
 
         public void LoadScene(int id)
         {
-            loadingText.text = loadingTextString;
+            loadingScreen.SetActive(true);
+            backgroundOpacityControl.opacity = 1.0f;
+            _textLoadingState = loadingTextString;
             StartCoroutine(LoadSceneAsync(id));
             _ellipsisCoroutine = StartCoroutine(AnimateEllipsis());
         }
@@ -44,32 +56,48 @@ namespace ARChess.Scripts.Loading
                 if (_dotCount > 3)
                 {
                     _dotCount = 0; // Reset to 0
-                    loadingText.text = loadingTextString; // Remove dots
+                    loadingText.text = _textLoadingState; // Remove dots
                 }
 
                 // Wait for the specified animation speed
-                yield return new WaitForSeconds(animationSpeed);
+                yield return new WaitForSeconds(animationDotSpeed);
             }
+            // ReSharper disable once IteratorNeverReturns
         }
 
         private IEnumerator LoadSceneAsync(int id)
         {
             AsyncOperation operation = SceneManager.LoadSceneAsync(id);
+            if (operation != null)
+            {
+                // https://docs.unity3d.com/ScriptReference/AsyncOperation-allowSceneActivation.html
+                operation.allowSceneActivation = false;
+
+                while (operation is { isDone: false })
+                {
+                    loadingText.text = loadingTextString;
+                    var progress = Mathf.Clamp01(operation.progress / .9f);
+                    loadingBarFill.fillAmount = progress;
+
+                    if (loadingBarFill.fillAmount >= .9f)
+                    {
+                        yield return new WaitForSeconds(beforeLoadDelay);
+                        _textLoadingState = enteringTextString;
+                        yield return new WaitForSeconds(afterLoadDelay);
+                        operation.allowSceneActivation = true;
+                        backgroundOpacityControl.opacity = 0.0f;
+                        StopCoroutine(_ellipsisCoroutine);
+                    }
+                    yield return null;
+                }
+            }
             
-            loadingScreen.SetActive(true);
-            control.opacity = 1.0f;
+            // https://discussions.unity.com/t/solved-fully-reset-current-scene/727611/13
+            // Unload the current scene
+            yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
 
-            while (operation is { isDone: false })
-            {
-                var progress = Mathf.Clamp01(operation.progress / .9f);
-                loadingBarFill.fillAmount = progress;
-                yield return null;
-            }
-
-            if (operation is { isDone: true })
-            {
-                StopCoroutine(_ellipsisCoroutine);
-            }
+            // Remove unused assets for current scene
+            yield return Resources.UnloadUnusedAssets();
         }
     }
 }

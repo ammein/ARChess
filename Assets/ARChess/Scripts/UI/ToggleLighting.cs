@@ -1,5 +1,8 @@
-using LottiePlugin.UI;
+using ARChess.Scripts.Project;
 using UnityEngine;
+using UnityEngine.XR.Management;
+using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.ARFoundation;
 using UnityEngine.UI;
 
 namespace ARChess.Scripts.UI
@@ -9,16 +12,22 @@ namespace ARChess.Scripts.UI
         private Toggle _toggle;
         
         [Header("UI References")]
-        public UnityEngine.UI.Image BackgroundImage;
-        public GameObject IconLottie;
-        public GameObject Icon;
+        public UnityEngine.UI.Image backgroundImage;
+        public GameObject iconLottie;
+        public GameObject icon;
         
         [Header("Background Images")]
-        public Sprite LightON;
-        public Sprite LightOFF;
+        public Sprite lightOn;
+        public Sprite lightOff;
+        
+        [Header("Project Settings")]
+        [SerializeField]
+        private ProjectStateOptions projectStateOptions;
 
         private Texture _jsonImage;
-        private AnimatedImage _lottie;
+        private XRLoader _loader;
+        private XRCameraSubsystem _cameraSubsystem;
+        
         
         private void Awake()
         {
@@ -29,8 +38,6 @@ namespace ARChess.Scripts.UI
                     _toggle = toggle;
                 }
             }
-            
-            _lottie = IconLottie.GetComponent<AnimatedImage>();
         }
 
         private void Start()
@@ -43,19 +50,29 @@ namespace ARChess.Scripts.UI
             _toggle.onValueChanged.RemoveListener(SwitchLight);
         }
         
+        private void EnableCameraTorch(bool enable)
+        {
+            _loader = LoaderUtility.GetActiveLoader();
+            _cameraSubsystem = _loader?.GetLoadedSubsystem<XRCameraSubsystem>();
+            if (_cameraSubsystem != null && _cameraSubsystem.DoesCurrentCameraSupportTorch())
+                _cameraSubsystem.requestedCameraTorchMode = enable ? XRCameraTorchMode.On : XRCameraTorchMode.Off;
+        }
+        
         private void SwitchLight(bool isOn)
         {
-            if (_toggle.isOn && BackgroundImage.sprite != LightON)
+            if (_toggle.isOn && backgroundImage.sprite != lightOn)
             {
-                BackgroundImage.sprite = LightON;
-                Icon.SetActive(false);
-                IconLottie.transform.localScale = new Vector3(2, -2, 2);
+                backgroundImage.sprite = lightOn;
+                icon.SetActive(false);
+                iconLottie.transform.localScale = new Vector3(2, -2, 2);
+                EnableCameraTorch(isOn);
             }
-            else if(!_toggle.isOn && BackgroundImage.sprite != LightOFF)
+            else if(!_toggle.isOn && backgroundImage.sprite != lightOff)
             {
-                BackgroundImage.sprite = LightOFF;
-                Icon.SetActive(true);
-                IconLottie.transform.localScale = new Vector3(0, 0, 0);
+                backgroundImage.sprite = lightOff;
+                icon.SetActive(true);
+                iconLottie.transform.localScale = new Vector3(0, 0, 0);
+                EnableCameraTorch(isOn);
             }
         }
     }
