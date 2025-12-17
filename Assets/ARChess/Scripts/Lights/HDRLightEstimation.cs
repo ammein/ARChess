@@ -1,5 +1,6 @@
 using System;
 using ARChess.Scripts.Project;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.XR.ARFoundation;
@@ -13,6 +14,7 @@ namespace ARChess.Scripts.Lights
     [RequireComponent(typeof(Light))]
     public class HDRLightEstimation : MonoBehaviour
     {
+        [Header("Lighting Settings")]
         [SerializeField]
         [Tooltip("The ARCameraManager which will produce frame events containing light estimation information.")]
         ARCameraManager m_CameraManager;
@@ -20,9 +22,29 @@ namespace ARChess.Scripts.Lights
         [SerializeField]
         Transform m_Arrow;
 
+        [Header("Project Settings")]
         [SerializeField]
         [Tooltip("Project settings for the light estimation information.")]
         private ProjectStateOptions globalSettings;
+
+        [Header("Transform Values of Dynamic Lighting")]
+        [SerializeField] 
+        [Tooltip("Position of the light if the dynamic lighting is on.")]
+        private Vector3 dynamicLightPosition;
+        
+        [SerializeField] 
+        [Tooltip("Rotation of the light if the dynamic lighting is on.")]
+        private Quaternion dynamicLightRotation;
+
+        
+        [Header("Default Value (View Only)")]
+        [SerializeField]
+        [Tooltip("The position of the light if the dynamic lighting is off.")]
+        private Vector3 defaultPosition;
+        
+        [SerializeField]
+        [Tooltip("The rotation of the light if the dynamic lighting is off.")]
+        private Vector3 defaultRotation;
 
         public Transform arrow
         {
@@ -118,18 +140,67 @@ namespace ARChess.Scripts.Lights
             {
                 var cameraTransform = m_CameraManager.GetComponent<Camera>().transform;
                 arrow.position = cameraTransform.position + cameraTransform.forward * .25f;
+
+                if (globalSettings.dynamicLighting)
+                {
+                    cameraTransform.position = dynamicLightPosition;
+                    cameraTransform.rotation = dynamicLightRotation;
+                }
+            }
+        }
+        
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (!EditorApplication.isPlayingOrWillChangePlaymode)
+            {
+                if(EditorApplication.isUpdating)
+                    EditorApplication.update -= UpdateTransformEditor;
+                EditorApplication.update += UpdateTransformEditor;
             }
         }
 
+        private void UpdateTransformEditor()
+        {
+            if (this == null) return;
+            defaultPosition = transform.localPosition;
+            defaultRotation = transform.localEulerAngles;
+        }
+
+        private void OnDestroy()
+        {
+            EditorApplication.update -= UpdateTransformEditor;
+        }
+#endif
+
         private void Update()
         {
-            if (m_CameraManager && globalSettings && globalSettings.dynamicLighting && m_CameraManager.requestedLightEstimation is not
-                    (LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity)){
-                m_CameraManager.requestedLightEstimation = LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity;
+            if (m_CameraManager && globalSettings && globalSettings.dynamicLighting){
+                if(m_CameraManager.requestedLightEstimation is not
+                   (LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity))
+                    m_CameraManager.requestedLightEstimation = LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity;
+                
+                if(m_CameraManager.requestedFacingDirection is not CameraFacingDirection.World)
+                    m_CameraManager.requestedFacingDirection = CameraFacingDirection.World;
             }
-            else if(m_CameraManager && globalSettings && !globalSettings.dynamicLighting && m_CameraManager.requestedLightEstimation is not LightEstimation.None)
+            else if(m_CameraManager && globalSettings && !globalSettings.dynamicLighting)
             {
-                m_CameraManager.requestedLightEstimation = LightEstimation.None;
+                if(m_CameraManager.requestedLightEstimation is not LightEstimation.None)
+                    m_CameraManager.requestedLightEstimation = LightEstimation.None;
+            }
+        }
+
+        public void ToggleLightEstimation(bool toggle)
+        {
+            if (toggle)
+            {
+                transform.position = dynamicLightPosition;
+                transform.rotation = dynamicLightRotation;
+            }
+            else
+            {
+                transform.position = defaultPosition;
+                transform.rotation = Quaternion.Euler(defaultRotation);
             }
         }
 
