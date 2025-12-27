@@ -1,4 +1,3 @@
-using System;
 using ARChess.Scripts.Project;
 using UnityEditor;
 using UnityEngine;
@@ -17,7 +16,7 @@ namespace ARChess.Scripts.Lights
         [Header("Lighting Settings")]
         [SerializeField]
         [Tooltip("The ARCameraManager which will produce frame events containing light estimation information.")]
-        ARCameraManager m_CameraManager;
+        private ARCameraManager m_CameraManager;
 
         [SerializeField]
         Transform m_Arrow;
@@ -175,17 +174,20 @@ namespace ARChess.Scripts.Lights
 
         private void Update()
         {
-            if (m_CameraManager && globalSettings && globalSettings.dynamicLighting){
-                if(m_CameraManager.requestedLightEstimation is not
-                   (LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity))
-                    m_CameraManager.requestedLightEstimation = LightEstimation.AmbientSphericalHarmonics | LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity;
-                
-                if(m_CameraManager.requestedFacingDirection is not CameraFacingDirection.World)
+            if (m_CameraManager && globalSettings && globalSettings.dynamicLighting)
+            {
+                if (m_CameraManager.currentLightEstimation is not
+                    (LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity |
+                     LightEstimation.AmbientSphericalHarmonics))
+                {
+                    m_CameraManager.requestedLightEstimation =
+                        LightEstimation.MainLightDirection | LightEstimation.MainLightIntensity | LightEstimation.AmbientSphericalHarmonics;
                     m_CameraManager.requestedFacingDirection = CameraFacingDirection.World;
+                }
             }
             else if(m_CameraManager && globalSettings && !globalSettings.dynamicLighting)
             {
-                if(m_CameraManager.requestedLightEstimation is not LightEstimation.None)
+                if(m_CameraManager.currentLightEstimation is not LightEstimation.None)
                     m_CameraManager.requestedLightEstimation = LightEstimation.None;
             }
         }

@@ -64,7 +64,7 @@
                     "name": "Eye Gaze Is Tracked",
                     "type": "Button",
                     "id": "ea26ba43-844b-4585-817a-2f124b571813",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -3123,7 +3123,7 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "modifier",
+                    "name": "Modifier",
                     "id": "30c845d9-0972-4e51-92bf-2eee8171abc7",
                     "path": "<Mouse>/press",
                     "interactions": "",
@@ -3134,7 +3134,7 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "binding",
+                    "name": "Binding",
                     "id": "9ab23efd-1004-4423-b9b9-b070db6cde4e",
                     "path": "<Mouse>/position",
                     "interactions": "",
@@ -3376,8 +3376,8 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "modifier",
-                    "id": "ab34c73d-e0f0-4cf2-962e-2c201f9c5714",
+                    "name": "Modifier",
+                    "id": "333cc25c-9991-4881-9610-a01c62a843a0",
                     "path": "<Mouse>/press",
                     "interactions": "",
                     "processors": "",
@@ -3387,7 +3387,7 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "binding",
+                    "name": "Binding",
                     "id": "38c38fe4-fefa-4a01-a80a-6185ecb009cb",
                     "path": "<Mouse>/position",
                     "interactions": "",

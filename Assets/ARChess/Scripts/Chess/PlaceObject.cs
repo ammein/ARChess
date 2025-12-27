@@ -40,12 +40,6 @@ namespace ARChess.Scripts.Chess
             var facePosition = Camera.main.transform.position;
             var forward = facePosition - positionPose;
             
-            if (m_ObjectInstance)
-            {
-                Positioning(forward, positionPose, spawnNormal);
-                return m_ObjectInstance;
-            }
-            
             // Instantiate object with prefab using same position and rotation
             m_ObjectInstance = Instantiate(prefab);
             
@@ -65,6 +59,11 @@ namespace ARChess.Scripts.Chess
             
             // Resize Chessboard
             m_ObjectInstance.transform.localScale = new Vector3(globalProjectStateOptions.initialChessboardSize, globalProjectStateOptions.initialChessboardSize, globalProjectStateOptions.initialChessboardSize);
+        }
+
+        public void Positioning(Vector3 positionPose, Vector3 spawnNormal)
+        {
+            Positioning(Camera.main.transform.position - positionPose, positionPose, spawnNormal);
         }
     }
 }

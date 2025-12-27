@@ -1,7 +1,9 @@
 using System.Text;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
+using UnityEngine.XR.ARFoundation;
 
 namespace ARChess.Scripts.Lights
 {
@@ -72,6 +74,29 @@ namespace ARChess.Scripts.Lights
             get => m_SphericalHarmonicsText;
             set => m_SphericalHarmonicsText = value;
         }
+        
+        [Tooltip("The UI Text element used to display the estimated facing direction of the AR Camera")]
+        [SerializeField]
+        [CanBeNull]
+        Text m_facingDirectionText;
+
+        public Text facingDirectionText
+        {
+            get => m_facingDirectionText;
+            set => m_facingDirectionText = value;
+        }
+        
+        [Tooltip("The UI Text element used to display the estimation light mode")]
+        [SerializeField]
+        [CanBeNull]
+        Text m_LightModeText;
+
+        public Text lightModeText
+        {
+            get => m_LightModeText;
+            set => m_LightModeText = value;
+        }
+        
         StringBuilder m_SphericalHarmonicsStringBuilder = new StringBuilder("");
 
         void Awake()
@@ -96,6 +121,12 @@ namespace ARChess.Scripts.Lights
             SetUIValue(m_HDRLightEstimation.mainLightColor, mainLightColorText);
             SetUIValue(m_HDRLightEstimation.mainLightIntensityLumens, mainLightIntensityLumens);
             SetSphericalHarmonicsUIValue(m_HDRLightEstimation.sphericalHarmonics, ambientSphericalHarmonicsText);
+            
+            if(facingDirectionText)
+                SetCameraValue(m_HDRLightEstimation.cameraManager.currentFacingDirection, facingDirectionText);
+            
+            if(lightModeText)
+                SetLightModeValue(m_HDRLightEstimation.cameraManager.currentLightEstimation, lightModeText);
         }
 
         void SetSphericalHarmonicsUIValue(SphericalHarmonicsL2? maybeAmbientSphericalHarmonics, Text text)
@@ -132,6 +163,16 @@ namespace ARChess.Scripts.Lights
         {
             if (text != null)
                 text.text = displayValue.HasValue ? displayValue.Value.ToString(): k_UnavailableText;
+        }
+
+        void SetCameraValue(CameraFacingDirection displayValue, Text text)
+        {
+            text.text = displayValue.ToString();
+        }
+
+        void SetLightModeValue(LightEstimation lightEstimation, Text text)
+        {
+            text.text = lightEstimation.ToString();
         }
 
         const string k_UnavailableText = "Unavailable";

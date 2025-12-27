@@ -1,33 +1,18 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.Rendering;
+using UnityEngine.InputSystem;
 using UnityEngine.XR.ARFoundation;
-using UnityEngine.XR.Interaction.Toolkit;
-using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
+using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace ARChess.Scripts.Chess
 {
+
+    [RequireComponent(typeof(PlaceObject))]
     public class ChessInteractable : MonoBehaviour
     {
-        /// <summary>
-        /// The type of trigger to use to spawn an object.
-        /// </summary>
-        public enum SpawnTriggerType
-        {
-            /// <summary>
-            /// Spawn an object when the interactor activates its select input
-            /// but no selection actually occurs.
-            /// </summary>
-            SelectAttempt,
-
-            /// <summary>
-            /// Spawn an object when an input is performed.
-            /// </summary>
-            InputAction,
-        }
-        
         private ARPlaneManager _arPlaneManager;
         private GameObject m_ObjectInstance;
 
@@ -35,6 +20,11 @@ namespace ARChess.Scripts.Chess
         bool m_AttemptHadSelection;
         bool m_EverHadSelection;
         private bool _mAttemptEdit = false;
+        
+        [Header("Raycast Settings")]
+        [SerializeField]
+        [Tooltip("The raycast manager for Trackable detector")]
+        private ARRaycastManager raycastManager;
 
         [SerializeField] [Tooltip("The AR ray interactor that determines where to spawn the object.")]
         XRRayInteractor m_ARInteractor;
@@ -46,21 +36,6 @@ namespace ARChess.Scripts.Chess
         {
             get => m_ARInteractor;
             set => m_ARInteractor = value;
-        }
-
-        [SerializeField]
-        [Tooltip(
-            "The type of trigger to use to spawn an object, either when the Interactor's select action occurs or " +
-            "when a button input is performed.")]
-        SpawnTriggerType m_SpawnTriggerType;
-
-        /// <summary>
-        /// The type of trigger to use to spawn an object.
-        /// </summary>
-        public SpawnTriggerType spawnTriggerType
-        {
-            get => m_SpawnTriggerType;
-            set => m_SpawnTriggerType = value;
         }
 
         [SerializeField] [Tooltip("When enabled, spawn will not be triggered if an object is currently selected.")]
@@ -75,27 +50,35 @@ namespace ARChess.Scripts.Chess
             set => m_BlockSpawnWhenInteractorHasSelection = value;
         }
 
-        [SerializeField] XRInputButtonReader m_SpawnObjectInput;
+        [Header("Input Actions")]
+        [SerializeField] 
+        [Tooltip("For Spawn Chess Input")]
+        InputActionReference m_SpawnObjectInput;
 
         /// <summary>
-        /// The input used to trigger spawn, if <see cref="spawnTriggerType"/> is set to <see cref="SpawnTriggerType.InputAction"/>.
+        /// The input used to trigger spawn, if <see cref="spawnTriggerType"/> is set to <see cref="InputAction"/>.
         /// </summary>
-        public XRInputButtonReader spawnObjectInput
+        public InputActionReference spawnObjectInput
         {
             get => m_SpawnObjectInput;
-            set => XRInputReaderUtility.SetInputProperty(ref m_SpawnObjectInput, value, this);
+            set => m_SpawnObjectInput = value;
         }
 
-        [SerializeField] PlaceObject m_PlaceObject;
+        private PlaceObject m_PlaceObject;
 
         void OnEnable()
         {
-            m_SpawnObjectInput.EnableDirectActionIfModeUsed();
+            m_SpawnObjectInput.action.performed += SpawnOrEdit;
         }
 
         void OnDisable()
         {
-            m_SpawnObjectInput.DisableDirectActionIfModeUsed();
+            m_SpawnObjectInput.action.performed -= SpawnOrEdit;
+        }
+
+        void Awake()
+        {
+           m_PlaceObject = GetComponent<PlaceObject>(); 
         }
 
         private void Start()
@@ -113,82 +96,36 @@ namespace ARChess.Scripts.Chess
             }
         }
 
-
-        private void Update()
+        private void SpawnOrEdit(InputAction.CallbackContext obj)
         {
-
-            // If attempt edit is false, don't spawn anything!
-            if (!_mAttemptEdit)
-            {
-                Grab(0);
-                return;
-            }
-            // Wait a frame after the Spawn Object input is triggered to actually cast against AR planes and spawn
-            // in order to ensure the touchscreen gestures have finished processing to allow the ray pose driver
-            // to update the pose based on the touch position of the gestures.
-            if (m_AttemptSpawn)
-            {
-                m_AttemptSpawn = false;
-
-                // Cancel the spawn if the select was delayed until the frame after the spawn trigger.
-                // This can happen if the select action uses a different input source than the spawn trigger.
-                if (m_ARInteractor.hasSelection)
-                    return;
-
-                SpawnOrEdit();
-
-                return;
-            }
-
-            if (m_AttemptHadSelection)
-            {
-                SpawnOrEdit();
-            }
-
-            var selectState = m_ARInteractor.logicalSelectState;
-
-            if (m_BlockSpawnWhenInteractorHasSelection)
-            {
-                if (selectState.wasPerformedThisFrame)
-                    m_EverHadSelection = m_ARInteractor.hasSelection;
-                else if (selectState.active)
-                    m_EverHadSelection |= m_ARInteractor.hasSelection;
-            }
-
-            m_AttemptSpawn = false;
-            switch (m_SpawnTriggerType)
-            {
-                case SpawnTriggerType.SelectAttempt:
-                    if (selectState.wasCompletedThisFrame)
-                        m_AttemptSpawn = !m_ARInteractor.hasSelection && !m_EverHadSelection;
-                    break;
-
-                case SpawnTriggerType.InputAction:
-                    if (m_SpawnObjectInput.ReadWasPerformedThisFrame())
-                        m_AttemptSpawn = !m_ARInteractor.hasSelection && !m_EverHadSelection;
-                    break;
-            }
-
-            if (!m_AttemptSpawn && m_ARInteractor.hasSelection) m_AttemptHadSelection = true;
-            else m_AttemptHadSelection = false;
-        }
-
-        private void SpawnOrEdit()
-        {
+            if (!_mAttemptEdit) return;
             // Don't spawn the object if the tap was over screen space UI.
-            var isPointerOverUI = EventSystem.current && EventSystem.current.IsPointerOverGameObject(-1);
-            if (!isPointerOverUI && _mAttemptEdit && m_ARInteractor.TryGetCurrentARRaycastHit(out var raycastHit))
+            if (IsPointerOverUIObject(obj.ReadValue<Vector2>())) return;
+            List<ARRaycastHit> hits = new List<ARRaycastHit>();
+            // Check if raycast value hits on AR Plane
+            if (raycastManager.Raycast(obj.ReadValue<Vector2>(), hits, TrackableType.PlaneWithinPolygon))
             {
-                if (raycastHit.trackable is not ARPlane arPlane)
-                    return;
-
-                m_ObjectInstance = m_PlaceObject.ClonePrefab(raycastHit.pose.position, arPlane.normal);
+                foreach (var hit in hits)
+                {
+                    if (hit.trackable is not ARPlane arPlane)
+                        return;
+                 
+                    if(m_ObjectInstance)
+                        m_PlaceObject.Positioning(hit.pose.position, arPlane.normal);
+                    else
+                        m_ObjectInstance = m_PlaceObject.ClonePrefab(hit.pose.position, arPlane.normal);
+                }
             }
-
-            if (_mAttemptEdit)
-            {
-                Grab("Chess");
-            }
+        }
+        
+        // Helper function to check if a pointer is over a UI element
+        private bool IsPointerOverUIObject(Vector2 touchPosition)
+        {
+            PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+            eventDataCurrentPosition.position = new Vector2(touchPosition.x, touchPosition.y);
+            List<RaycastResult> results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+            return results.Count > 0;
         }
 
         private void Grab(params string[] layerMask)
@@ -219,6 +156,7 @@ namespace ARChess.Scripts.Chess
                     plane.gameObject.SetActive(true); // Show the GameObject of the plane
                 }
                 _mAttemptEdit = true;
+                Grab("Chess");
             }
             else
             {
@@ -230,6 +168,7 @@ namespace ARChess.Scripts.Chess
                 // Disable AR Plane Manager after set all trackable inactive
                 _arPlaneManager.enabled = false;
                 _mAttemptEdit = false;
+                Grab(0);
             }
         }
     }

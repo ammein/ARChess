@@ -1,6 +1,12 @@
+using System;
 using System.Collections;
+using System.Diagnostics;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using Debug = UnityEngine.Debug;
+using Object = UnityEngine.Object;
 
 namespace ARChess.Scripts.Chess
 {
@@ -28,6 +34,9 @@ namespace ARChess.Scripts.Chess
         
         public BoxCollider ChessCollider => chessCollider;
 
+        private bool _updateLocation;
+        private Vector2 _location;
+
         public GameObject AttachObject
         {
             get => ChessAttach;
@@ -45,22 +54,31 @@ namespace ARChess.Scripts.Chess
             ChessTiles = GameObject.Find("All Chess Tiles");
             ChessAttach = GameObject.Find("Chess Attach");
             ChessVisuals = GameObject.Find("Chess Visuals");
+            currentCamera = Camera.main;
             GenerateAllTiles(m_tileSize);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        private void LogThis(string message, Object context)
+        {
+            Debug.Log(message, context);
         }
 
         private void Update()
         {
             if (!currentCamera)
             {
-                currentCamera = Camera.current;
+                LogThis("No Camera Assigned", this);
                 return;
             }
 
-            if (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-            {
-                Ray ray = currentCamera.ScreenPointToRay(Input.GetTouch(0).position);
-                HitTile(ray, Info);
-            }
+            // #if UNITY_EDITOR
+            // Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
+            // HitTile(ray, Info);
+            // #else
+            // Ray ray = currentCamera.ScreenPointToRay(Input.GetTouch(0).position);
+            // HitTile(ray, Info);
+            // #endif
         }
 
         public RaycastHit Info { get; set; }
@@ -70,12 +88,14 @@ namespace ARChess.Scripts.Chess
             // To prevent raycast to infinite distance, we have to make the endpoint only react to Tile or 100 max distance
             if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile")))
             {
+                LogThis("Tile", this);
                 // Get the indexes of the tile I've hit
                 Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
 
                 // If we're hovering a tile after not hovering any tiles
                 if (currentHover == -Vector2Int.one)
                 {
+                    LogThis("Hover", this);
                     currentHover = hitPosition;
                     // Change Layer to "Hover"
                     tiles[hitPosition.x, hitPosition.y].layer = LayerMask.GetMask("Hover");
@@ -87,9 +107,11 @@ namespace ARChess.Scripts.Chess
                 currentHover = hitPosition;
                 // Change Layer to "Hover"
                 tiles[hitPosition.x, hitPosition.y].layer = LayerMask.GetMask("Hover");
+                LogThis("Hover", this);
             }
             else
             {
+                LogThis("Tile", this);
                 if (currentHover == -Vector2Int.one) return;
                 tiles[currentHover.x, currentHover.y].layer = LayerMask.GetMask("Tile");
                 currentHover = -Vector2Int.one;
