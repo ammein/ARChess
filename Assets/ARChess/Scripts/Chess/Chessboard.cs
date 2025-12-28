@@ -1,10 +1,6 @@
-using System;
 using System.Collections;
 using System.Diagnostics;
-using Unity.XR.CoreUtils;
 using UnityEngine;
-using UnityEngine.InputSystem;
-using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -76,7 +72,7 @@ namespace ARChess.Scripts.Chess
 
         public void ChessInteract(Vector2 position)
         {
-            Ray ray = currentCamera.ScreenPointToRay(new Vector3(position.x, position.y, 1));
+            Ray ray = currentCamera.ScreenPointToRay(new Vector3(position.x, position.y, 0));
             HitTile(ray, Info);
         }
 
@@ -94,7 +90,7 @@ namespace ARChess.Scripts.Chess
                 // If we're hovering a tile after not hovering any tiles
                 if (currentHover == -Vector2Int.one)
                 {
-                    LogThis("Hover", this);
+                    LogThis($"Hover: {info.transform.gameObject}", this);
                     currentHover = hitPosition;
                     // Change Layer to "Hover"
                     tiles[hitPosition.x, hitPosition.y].layer = LayerMask.GetMask("Hover");
@@ -233,7 +229,7 @@ namespace ARChess.Scripts.Chess
             Bounds totalBounds = new Bounds(tileObject.transform.position, Vector3.zero);
             // Whenever the camera is assign to "Tile" layer, the object will change the layer into Tile
             tileBounds.layer = LayerMask.NameToLayer("Tile");
-            // Add Box Collider Co\mponent
+            // Add Box Collider Component
             BoxCollider boxCollider = tileBounds.AddComponent<BoxCollider>();
             boxCollider.center = tileObject.transform.position;
             boxCollider.isTrigger = true;
@@ -282,11 +278,22 @@ namespace ARChess.Scripts.Chess
         private Vector2Int LookupTileIndex(GameObject hitInfo)
         {
             for (int x = 0; x < TILE_COUNT_X; x++)
-            for (int y = 0; y < TILE_COUNT_Y; y++)
-                if (tiles[x, y] == hitInfo)
-                    return new Vector2Int(x, y);
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                    if (tiles[x, y] == hitInfo)
+                        return new Vector2Int(x, y);
 
             return -Vector2Int.one; // Invalid
+        }
+
+        public void ToggleContact(bool toggle)
+        {
+            if (tiles.Length == 0) return;
+            for(int x = 0; x < TILE_COUNT_X; x++)
+            for (int y = 0; y < TILE_COUNT_Y; y++)
+            {
+                Debug.Log(tiles[x, y]);
+                tiles[x, y].GetComponent<BoxCollider>().providesContacts = toggle;
+            }
         }
     }
 }

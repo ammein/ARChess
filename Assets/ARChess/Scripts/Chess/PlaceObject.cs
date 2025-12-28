@@ -65,5 +65,11 @@ namespace ARChess.Scripts.Chess
         {
             Positioning(Camera.main.transform.position - positionPose, positionPose, spawnNormal);
         }
+
+        public void ToggleContact(bool toggle)
+        {
+            if (!m_ObjectInstance) return;
+            m_ObjectInstance.transform.Find("Chess Attach").GetComponent<BoxCollider>().providesContacts = toggle;
+        }
     }
 }

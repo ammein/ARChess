@@ -23,6 +23,7 @@ namespace ARChess.Scripts.Chess
         bool m_AttemptHadSelection;
         bool m_EverHadSelection;
         private bool _mAttemptEdit = false;
+        private Chessboard m_Chessboard;
         
         [Header("Raycast Settings")]
         [SerializeField]
@@ -89,7 +90,7 @@ namespace ARChess.Scripts.Chess
 
         void Awake()
         {
-           m_PlaceObject = GetComponent<PlaceObject>(); 
+           m_PlaceObject = GetComponent<PlaceObject>();
         }
 
         private void Start()
@@ -123,8 +124,8 @@ namespace ARChess.Scripts.Chess
         {
             // Don't spawn the object if the tap was over screen space UI.
             if (IsPointerOverUIObject(obj.ReadValue<Vector2>())) return;
-            if (!m_ObjectInstance) return;
-            m_ObjectInstance.GetComponent<Chessboard>().ChessInteract(obj.ReadValue<Vector2>());
+            if (!m_ObjectInstance && !m_Chessboard) return;
+            m_Chessboard.ChessInteract(obj.ReadValue<Vector2>());
         }
 
         private void ChessPlace(InputAction.CallbackContext obj)
@@ -143,7 +144,10 @@ namespace ARChess.Scripts.Chess
                     if(m_ObjectInstance)
                         m_PlaceObject.Positioning(hit.pose.position, arPlane.normal);
                     else
+                    {
                         m_ObjectInstance = m_PlaceObject.ClonePrefab(hit.pose.position, arPlane.normal);
+                        m_Chessboard = m_ObjectInstance.GetComponent<Chessboard>();
+                    }
                 }
             }
         }
@@ -187,6 +191,10 @@ namespace ARChess.Scripts.Chess
                 }
                 _mAttemptEdit = true;
                 Grab("Chess");
+                if(m_PlaceObject)
+                    m_PlaceObject.ToggleContact(true);
+                if(m_Chessboard)
+                    m_Chessboard.ToggleContact(false);
             }
             else
             {
@@ -199,6 +207,10 @@ namespace ARChess.Scripts.Chess
                 _arPlaneManager.enabled = false;
                 _mAttemptEdit = false;
                 Grab(0);
+                if(m_PlaceObject)
+                    m_PlaceObject.ToggleContact(false);
+                if(m_Chessboard)
+                    m_Chessboard.ToggleContact(true);
             }
         }
     }
