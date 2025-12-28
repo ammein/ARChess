@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
+using Unity.XR.CoreUtils;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
@@ -71,14 +72,12 @@ namespace ARChess.Scripts.Chess
                 LogThis("No Camera Assigned", this);
                 return;
             }
+        }
 
-            // #if UNITY_EDITOR
-            // Ray ray = currentCamera.ScreenPointToRay(Input.mousePosition);
-            // HitTile(ray, Info);
-            // #else
-            // Ray ray = currentCamera.ScreenPointToRay(Input.GetTouch(0).position);
-            // HitTile(ray, Info);
-            // #endif
+        public void ChessInteract(Vector2 position)
+        {
+            Ray ray = currentCamera.ScreenPointToRay(new Vector3(position.x, position.y, 1));
+            HitTile(ray, Info);
         }
 
         public RaycastHit Info { get; set; }
@@ -203,17 +202,19 @@ namespace ARChess.Scripts.Chess
                     // Calculate the bounds in world space
                     Vector3 tilePosition = allTiles[x, y].transform.position; // Use world position
                     Bounds meshBounds = childMesh.bounds;
-                    meshBounds.center += tilePosition; // Offset the bounds to the tile's world position
+                    // Create a new Bounds object to encapsulate the mesh bounds in world space
+                    Bounds worldBounds = new Bounds(tilePosition + meshBounds.center, meshBounds.size);
 
                     // Encapsulate the bounds
-                    totalBounds.Encapsulate(meshBounds);
+                    totalBounds.Encapsulate(worldBounds);
                 }
             }
 
             // Set the size of the collider based on the total bounds
             chessCollider.size = totalBounds.size;
             
-            chessCollider.center = totalBounds.center;
+            // Set the center of the collider correctly
+            chessCollider.center = totalBounds.center - ChessAttach.transform.position; // Adjust for the parent's position if necessary
             
             chessCollider.providesContacts = true;
         }
@@ -232,7 +233,7 @@ namespace ARChess.Scripts.Chess
             Bounds totalBounds = new Bounds(tileObject.transform.position, Vector3.zero);
             // Whenever the camera is assign to "Tile" layer, the object will change the layer into Tile
             tileBounds.layer = LayerMask.NameToLayer("Tile");
-            // Add Box Collider Component
+            // Add Box Collider Co\mponent
             BoxCollider boxCollider = tileBounds.AddComponent<BoxCollider>();
             boxCollider.center = tileObject.transform.position;
             boxCollider.isTrigger = true;

@@ -4,6 +4,9 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
+#if AR_FOUNDATION_REMOTE_INSTALLED
+using ARFoundationRemote.Editor;
+#endif
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -38,42 +41,50 @@ namespace ARChess.Scripts.Chess
             set => m_ARInteractor = value;
         }
 
-        [SerializeField] [Tooltip("When enabled, spawn will not be triggered if an object is currently selected.")]
-        bool m_BlockSpawnWhenInteractorHasSelection = true;
-
-        /// <summary>
-        /// When enabled, spawn will not be triggered if an object is currently selected.
-        /// </summary>
-        public bool blockSpawnWhenInteractorHasSelection
-        {
-            get => m_BlockSpawnWhenInteractorHasSelection;
-            set => m_BlockSpawnWhenInteractorHasSelection = value;
-        }
-
         [Header("Input Actions")]
         [SerializeField] 
         [Tooltip("For Spawn Chess Input")]
-        InputActionReference m_SpawnObjectInput;
+        InputActionReference m_ARFoundationObjectInput;
+        [SerializeField]
+        [Tooltip("For Spawn Chess Input in XR Simulation")]
+        InputActionReference m_SimulationObjectInput;
 
         /// <summary>
         /// The input used to trigger spawn, if <see cref="spawnTriggerType"/> is set to <see cref="InputAction"/>.
         /// </summary>
         public InputActionReference spawnObjectInput
         {
-            get => m_SpawnObjectInput;
-            set => m_SpawnObjectInput = value;
+            #if AR_FOUNDATION_REMOTE_INSTALLED
+            get => m_ARFoundationObjectInput;
+            set => m_ARFoundationObjectInput = value;
+            #else
+            get => m_SimulationObjectInput;
+            set => m_SimulationObjectInput = value;
+            #endif
         }
 
         private PlaceObject m_PlaceObject;
 
         void OnEnable()
         {
-            m_SpawnObjectInput.action.performed += SpawnOrEdit;
+            #if UNITY_EDITOR && AR_COMPANION
+            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            #elif UNITY_EDITOR
+            m_SimulationObjectInput.action.performed += SpawnOrEdit;
+            #else
+            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            #endif
         }
 
         void OnDisable()
         {
-            m_SpawnObjectInput.action.performed -= SpawnOrEdit;
+            #if UNITY_EDITOR && AR_COMPANION
+            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit; 
+            #elif UNITY_EDITOR
+            m_SimulationObjectInput.action.performed -= SpawnOrEdit;
+            #else
+            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit; 
+            #endif
         }
 
         void Awake()
@@ -98,7 +109,26 @@ namespace ARChess.Scripts.Chess
 
         private void SpawnOrEdit(InputAction.CallbackContext obj)
         {
-            if (!_mAttemptEdit) return;
+            if (!_mAttemptEdit)
+            {
+                ChessInteractive(obj);
+            }
+            else
+            {
+                ChessPlace(obj);   
+            }
+        }
+
+        private void ChessInteractive(InputAction.CallbackContext obj)
+        {
+            // Don't spawn the object if the tap was over screen space UI.
+            if (IsPointerOverUIObject(obj.ReadValue<Vector2>())) return;
+            if (!m_ObjectInstance) return;
+            m_ObjectInstance.GetComponent<Chessboard>().ChessInteract(obj.ReadValue<Vector2>());
+        }
+
+        private void ChessPlace(InputAction.CallbackContext obj)
+        {
             // Don't spawn the object if the tap was over screen space UI.
             if (IsPointerOverUIObject(obj.ReadValue<Vector2>())) return;
             List<ARRaycastHit> hits = new List<ARRaycastHit>();
