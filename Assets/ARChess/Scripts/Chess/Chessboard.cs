@@ -17,6 +17,7 @@ namespace ARChess.Scripts.Chess
         private const int TILE_COUNT_X = 8;
         private const int TILE_COUNT_Y = 8;
         private GameObject[,] tiles;
+        private GameObject[,] tilesBounds;
         private Camera currentCamera;
         private Vector2Int currentHover;
         private BoxCollider chessCollider;
@@ -81,34 +82,32 @@ namespace ARChess.Scripts.Chess
         private void HitTile(Ray ray, RaycastHit info)
         {
             // To prevent raycast to infinite distance, we have to make the endpoint only react to Tile or 100 max distance
-            if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile")))
+            if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Selected")))
             {
-                LogThis("Tile", this);
                 // Get the indexes of the tile I've hit
-                Vector2Int hitPosition = LookupTileIndex(info.transform.gameObject);
+                Vector2Int hitPosition = LookupTileIndex(info.collider.gameObject);
 
                 // If we're hovering a tile after not hovering any tiles
                 if (currentHover == -Vector2Int.one)
                 {
-                    LogThis($"Hover: {info.transform.gameObject}", this);
+                    LogThis($"Tile {hitPosition.x},{hitPosition.y} hit", this);
                     currentHover = hitPosition;
                     // Change Layer to "Hover"
-                    tiles[hitPosition.x, hitPosition.y].layer = LayerMask.GetMask("Hover");
+                    tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");
                 }
 
                 // If we were already hovering a tile, change the previous one
                 if (currentHover == hitPosition) return;
-                tiles[currentHover.x, currentHover.y].layer = LayerMask.GetMask("Tile");
+                LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
+                tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
                 currentHover = hitPosition;
                 // Change Layer to "Hover"
-                tiles[hitPosition.x, hitPosition.y].layer = LayerMask.GetMask("Hover");
-                LogThis("Hover", this);
+                tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");
             }
             else
             {
-                LogThis("Tile", this);
                 if (currentHover == -Vector2Int.one) return;
-                tiles[currentHover.x, currentHover.y].layer = LayerMask.GetMask("Tile");
+                tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
                 currentHover = -Vector2Int.one;
             }
         }
@@ -118,6 +117,7 @@ namespace ARChess.Scripts.Chess
         {
             m_tileSize = tileSize;
             tiles = new GameObject[tileCountX, tileCountY];
+            tilesBounds = new GameObject[tileCountX, tileCountY];
 
             // Calculate half the total size to center the chessboard
             int halfWidth = (tileCountX * (int)tileSize) / 2;
@@ -231,7 +231,8 @@ namespace ARChess.Scripts.Chess
             tileBounds.layer = LayerMask.NameToLayer("Tile");
             // Add Box Collider Component
             BoxCollider boxCollider = tileBounds.AddComponent<BoxCollider>();
-            boxCollider.center = tileObject.transform.position;
+            tileBounds.transform.position = tileObject.transform.position;
+            tilesBounds[x, y] = tileBounds;
             boxCollider.isTrigger = true;
         }
 
@@ -279,7 +280,7 @@ namespace ARChess.Scripts.Chess
         {
             for (int x = 0; x < TILE_COUNT_X; x++)
                 for (int y = 0; y < TILE_COUNT_Y; y++)
-                    if (tiles[x, y] == hitInfo)
+                    if (tilesBounds[x, y] == hitInfo)
                         return new Vector2Int(x, y);
 
             return -Vector2Int.one; // Invalid
@@ -287,13 +288,15 @@ namespace ARChess.Scripts.Chess
 
         public void ToggleContact(bool toggle)
         {
-            if (tiles.Length == 0) return;
-            for(int x = 0; x < TILE_COUNT_X; x++)
-            for (int y = 0; y < TILE_COUNT_Y; y++)
+            if (tilesBounds.Length == 0) return;
+            for (int x = 0; x < TILE_COUNT_X; x++)
             {
-                Debug.Log(tiles[x, y]);
-                tiles[x, y].GetComponent<BoxCollider>().providesContacts = toggle;
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                {
+                    tilesBounds[x, y].GetComponent<BoxCollider>().providesContacts = toggle;
+                }
             }
+            
         }
     }
 }
