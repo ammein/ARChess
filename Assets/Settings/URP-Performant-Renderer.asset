@@ -17,19 +17,19 @@ MonoBehaviour:
     passTag: Cell Selected
     Event: 500
     filterSettings:
-      RenderQueueType: 0
+      RenderQueueType: 1
       LayerMask:
         serializedVersion: 2
-        m_Bits: 128
+        m_Bits: 512
       PassNames: []
-    overrideMaterial: {fileID: -876546973899608171, guid: 0927d29e476ce5843b1f7d2a96943c51, type: 3}
+    overrideMaterial: {fileID: 2100000, guid: b997f1821f8214ffeb9799b2a58f3a2f, type: 2}
     overrideMaterialPassIndex: 0
-    overrideShader: {fileID: 0}
+    overrideShader: {fileID: 4800000, guid: 6c26d1d3b8b5c441e8f9eb7fe84cddf4, type: 3}
     overrideShaderPassIndex: 0
     overrideMode: 1
     overrideDepthState: 0
-    depthCompareFunction: 4
-    enableWrite: 1
+    depthCompareFunction: 2
+    enableWrite: 0
     stencilSettings:
       overrideStencilState: 0
       stencilReference: 0
@@ -73,7 +73,7 @@ MonoBehaviour:
   - {fileID: -3660328115424617209}
   m_RendererFeatureMap: 87eaa552b667f42ca0233c98e09b3d59e84aa38d9391d746079dbde6f8e633cd
   m_UseNativeRenderPass: 0
-  xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
+  xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
   m_PrepassLayerMask:

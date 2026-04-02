@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Diagnostics;
 using UnityEngine;
@@ -24,11 +25,20 @@ namespace ARChess.Scripts.Chess
         private GameObject ChessTiles;
         private GameObject ChessVisuals;
         private GameObject ChessAttach;
+        private Vector3 bounds;
         
-        [Header("Size")]
+        [Header("Chess Settings")]
         [SerializeField]
         [Tooltip("Tile size of the chessboard")]
-        private int m_tileSize = 1;
+        private float m_tileSize = 1;
+
+        [SerializeField] 
+        [Tooltip("Y Offset of the chessboard")]
+        private float yOffset = 0f;
+        
+        [SerializeField]
+        [Tooltip("Board Center of the chessboard")]
+        private Vector3 boardCenter = Vector3.zero;
         
         public BoxCollider ChessCollider => chessCollider;
 
@@ -41,7 +51,7 @@ namespace ARChess.Scripts.Chess
             set => ChessAttach = value;
         }
 
-        public int TileSize
+        public float TileSize
         {
             get => m_tileSize;
             set => m_tileSize = value;
@@ -82,7 +92,7 @@ namespace ARChess.Scripts.Chess
         private void HitTile(Ray ray, RaycastHit info)
         {
             // To prevent raycast to infinite distance, we have to make the endpoint only react to Tile or 100 max distance
-            if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Selected")))
+            if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Selected", "Bound Selected", "Visual Tile")))
             {
                 // Get the indexes of the tile I've hit
                 Vector2Int hitPosition = LookupTileIndex(info.collider.gameObject);
@@ -93,43 +103,50 @@ namespace ARChess.Scripts.Chess
                     LogThis($"Tile {hitPosition.x},{hitPosition.y} hit", this);
                     currentHover = hitPosition;
                     // Change Layer to "Hover"
-                    tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");
+                    tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
+                    tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");
                 }
 
                 // If we were already hovering a tile, change the previous one
                 if (currentHover == hitPosition) return;
                 LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
                 tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
+                tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
                 currentHover = hitPosition;
                 // Change Layer to "Hover"
-                tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");
+                tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
+                tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");
             }
             else
             {
                 if (currentHover == -Vector2Int.one) return;
                 tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
+                tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
                 currentHover = -Vector2Int.one;
             }
         }
 
         // Generate the board
-        public bool GenerateAllTiles(int tileSize, int tileCountX = TILE_COUNT_X, int tileCountY = TILE_COUNT_Y)
+        public bool GenerateAllTiles(float tileSize, int tileCountX = TILE_COUNT_X, int tileCountY = TILE_COUNT_Y)
         {
+            yOffset += transform.position.y;
             m_tileSize = tileSize;
             tiles = new GameObject[tileCountX, tileCountY];
             tilesBounds = new GameObject[tileCountX, tileCountY];
 
             // Calculate half the total size to center the chessboard
-            int halfWidth = (tileCountX * (int)tileSize) / 2;
-            int halfHeight = (tileCountY * (int)tileSize) / 2;
+            float halfWidth = ((float)tileCountX * tileSize) / 2f;
+            float halfHeight = ((float)tileCountY * tileSize) / 2f;
+            
+            bounds = new Vector3(halfWidth, 0, halfHeight) + boardCenter;
 
             for (int x = 0; x < tileCountX; x++)
             {
                 for (int y = 0; y < tileCountY; y++)
                 {
                     // Calculate the position to center the tiles
-                    float posX = (x * tileSize) - halfWidth + (tileSize / 2);
-                    float posY = (y * tileSize) - halfHeight + (tileSize / 2);
+                    float posX = (x * tileSize) - halfWidth + (tileSize / 2f);
+                    float posY = (y * tileSize) - halfHeight + (tileSize / 2f);
 
                     tiles[x, y] = GenerateSingleTiles(tileSize, x, y, posX, posY);
                 }
@@ -225,8 +242,22 @@ namespace ARChess.Scripts.Chess
             tileBounds.AddComponent<MeshFilter>().mesh = tileObject.GetComponent<MeshFilter>().mesh;
             tileBounds.AddComponent<MeshRenderer>().material = tileMaterial;
             
-            // Add Bounds from ZERO using current gameObject transform position
-            Bounds totalBounds = new Bounds(tileObject.transform.position, Vector3.zero);
+            Mesh mesh = tileObject.GetComponent<MeshFilter>().mesh;
+            
+            // Assign UV
+            // Reference: https://docs.unity3d.com/ScriptReference/Mesh-uv.html?ampDeviceId=d4ea89ad-4dee-4f88-952c-b59ece6145dc&ampSessionId=1775090412449&ampTimestamp=1775178649783
+            Vector3[] vertices = mesh.vertices;
+            Vector2[] uvs = new Vector2[vertices.Length];
+
+            for (int i = 0; i < uvs.Length; i++)
+            {
+                // Apply vertices and centerized the UV so that the effect "Render Objects" apply material correctly
+                uvs[i] = new Vector2(vertices[i].x + (float)0.5, vertices[i].z + (float)0.5);
+            }
+            mesh.uv = uvs;
+            
+            mesh.RecalculateUVDistributionMetrics();
+            
             // Whenever the camera is assign to "Tile" layer, the object will change the layer into Tile
             tileBounds.layer = LayerMask.NameToLayer("Tile");
             // Add Box Collider Component
@@ -243,6 +274,8 @@ namespace ARChess.Scripts.Chess
             // Set tile gameobject as children of ChessTiles gameobject
             tileObject.transform.SetParent(ChessVisuals.transform);
             tileObject.transform.position = new Vector3(posX, 0, posY);
+            
+            tileObject.layer = LayerMask.NameToLayer("Visual Tile");
 
             Mesh mesh = new Mesh();
     
@@ -255,10 +288,10 @@ namespace ARChess.Scripts.Chess
 
             // Define vertices with height
             Vector3[] vertices = new Vector3[4];
-            vertices[0] = new Vector3(-halfTileSize, 0, -halfTileSize); // Bottom-left
-            vertices[1] = new Vector3(-halfTileSize, 0, halfTileSize);  // Top-left
-            vertices[2] = new Vector3(halfTileSize, 0, -halfTileSize);   // Bottom-right
-            vertices[3] = new Vector3(halfTileSize, 0, halfTileSize);    // Top-right
+            vertices[0] = new Vector3(-halfTileSize, yOffset, -halfTileSize) - bounds; // Bottom-left
+            vertices[1] = new Vector3(-halfTileSize, yOffset, halfTileSize) - bounds;  // Top-left
+            vertices[2] = new Vector3(halfTileSize, yOffset, -halfTileSize) - bounds;   // Bottom-right
+            vertices[3] = new Vector3(halfTileSize, yOffset, halfTileSize) - bounds;    // Top-right
 
             // Assign Index on vertices like (0 -> 1 -> 2) & (1 -> 3 -> 2)
             int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
