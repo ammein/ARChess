@@ -256,8 +256,6 @@ namespace ARChess.Scripts.Chess
             }
             mesh.uv = uvs;
             
-            mesh.RecalculateUVDistributionMetrics();
-            
             // Whenever the camera is assign to "Tile" layer, the object will change the layer into Tile
             tileBounds.layer = LayerMask.NameToLayer("Tile");
             // Add Box Collider Component
