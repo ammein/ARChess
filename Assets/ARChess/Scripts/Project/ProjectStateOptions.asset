@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: ProjectStateOptions
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Project.ProjectStateOptions
   playerName: Guest
-  initialChessboardSize: 0.06
+  initialChessboardSize: 1
   tutorialsEnabled: 1
   dynamicLighting: 0
   mainSceneVideoLoaded: 0

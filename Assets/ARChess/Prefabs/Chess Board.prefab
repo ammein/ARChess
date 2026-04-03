@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &2452835073181834794
+--- !u!1 &648523621424451989
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,69 +8,7 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 5562161111751229744}
-  m_Layer: 3
-  m_Name: All Chess Tiles
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5562161111751229744
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2452835073181834794}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5016031204418835459}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &3661830728998984155
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6792457226264234018}
-  m_Layer: 3
-  m_Name: Chess Attach
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6792457226264234018
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3661830728998984155}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5016031204418835459}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &4067423878281760995
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7480195479019500549}
+  - component: {fileID: 2784113099764219638}
   m_Layer: 3
   m_Name: Chess Visuals
   m_TagString: Untagged
@@ -78,22 +16,84 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &7480195479019500549
+--- !u!4 &2784113099764219638
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4067423878281760995}
+  m_GameObject: {fileID: 648523621424451989}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 5016031204418835459}
+  m_Father: {fileID: 4973409956631690357}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &4762060385137570792
+--- !u!1 &926189977538362391
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2517314814569727065}
+  m_Layer: 3
+  m_Name: All Chess Tiles
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2517314814569727065
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 926189977538362391}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4973409956631690357}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5882708323307227626
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1090473386909453685}
+  m_Layer: 3
+  m_Name: Chess Attach
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1090473386909453685
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5882708323307227626}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4973409956631690357}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &4796231881778617246
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -101,113 +101,109 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalPosition.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalRotation.y
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - target: {fileID: 919132149155446097, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       propertyPath: m_Name
       value: Chess Board
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
-      propertyPath: m_Layer
-      value: 3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7480195479019500549}
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+      addedObject: {fileID: 2784113099764219638}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5562161111751229744}
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+      addedObject: {fileID: 2517314814569727065}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6792457226264234018}
+      addedObject: {fileID: 1090473386909453685}
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5407381020559663836}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+      addedObject: {fileID: 8212609808273636250}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 5945981016465004686}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+      addedObject: {fileID: 2932146958343778105}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 3137091282399828809}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
+      addedObject: {fileID: 2340456587973165667}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 823991167332292306}
-  m_SourcePrefab: {fileID: 100100000, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
---- !u!4 &5016031204418835459 stripped
+      addedObject: {fileID: 8245217750835509192}
+  m_SourcePrefab: {fileID: 100100000, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
+--- !u!4 &4973409956631690357 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
-  m_PrefabInstance: {fileID: 4762060385137570792}
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
+  m_PrefabInstance: {fileID: 4796231881778617246}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &5681103331982347961 stripped
+--- !u!1 &5642670230772410063 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: c728544cfaf264a0c95f00ba46ef3de5, type: 3}
-  m_PrefabInstance: {fileID: 4762060385137570792}
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 6d5c19d91671a45568fe4d70e73c312c, type: 3}
+  m_PrefabInstance: {fileID: 4796231881778617246}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &5407381020559663836
+--- !u!114 &8212609808273636250
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5681103331982347961}
+  m_GameObject: {fileID: 5642670230772410063}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: aa66c33017eb544989d00dd336c4d901, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Chessboard
   tileMaterial: {fileID: 2100000, guid: 24d97214586844de587e800ff310cd57, type: 2}
-  m_tileSize: 1.067
-  yOffset: 1.55
-  boardCenter: {x: -4.42, y: 0, z: -4.55}
---- !u!54 &5945981016465004686
+  m_tileSize: 0.0375
+  yOffset: 0.055
+  boardCenter: {x: -0.15, y: 0, z: -0.15}
+--- !u!54 &2932146958343778105
 Rigidbody:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5681103331982347961}
+  m_GameObject: {fileID: 5642670230772410063}
   serializedVersion: 5
   m_Mass: 1
   m_LinearDamping: 0
@@ -228,13 +224,13 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &3137091282399828809
+--- !u!114 &2340456587973165667
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5681103331982347961}
+  m_GameObject: {fileID: 5642670230772410063}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0ad34abafad169848a38072baa96cdb2, type: 3}
@@ -302,7 +298,7 @@ MonoBehaviour:
   m_StartingInteractionStrengthFilters: []
   m_AutoFindParentInteractableInHierarchy: 0
   m_ParentInteractableObject: {fileID: 0}
-  m_AttachTransform: {fileID: 0}
+  m_AttachTransform: {fileID: 1090473386909453685}
   m_SecondaryAttachTransform: {fileID: 0}
   m_UseDynamicAttach: 0
   m_MatchAttachPosition: 1
@@ -357,13 +353,13 @@ MonoBehaviour:
   m_LimitAngularVelocity: 0
   m_MaxLinearVelocityDelta: 10
   m_MaxAngularVelocityDelta: 20
---- !u!114 &823991167332292306
+--- !u!114 &8245217750835509192
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5681103331982347961}
+  m_GameObject: {fileID: 5642670230772410063}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b309761041ee54265b7f9a8c0f373dab, type: 3}

@@ -11,7 +11,7 @@ namespace ARChess.Scripts.Project
         [Header("Chess Size")]
         [SerializeField]
         [Tooltip("Overall size of the chessboard")]
-        [Range(0f, 1f)]
+        [Range(0f, 2f)]
         public float initialChessboardSize = 0.06f;
         
         [Header("Tutorials")]

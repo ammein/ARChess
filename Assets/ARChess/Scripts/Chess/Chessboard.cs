@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Diagnostics;
+using ARChess.Scripts.Lights;
 using UnityEngine;
+using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
@@ -40,10 +42,9 @@ namespace ARChess.Scripts.Chess
         [Tooltip("Board Center of the chessboard")]
         private Vector3 boardCenter = Vector3.zero;
         
+        private GameObject _directionalLight;
+        private AmbientLightEstimation _ambientLightEstimation;
         public BoxCollider ChessCollider => chessCollider;
-
-        private bool _updateLocation;
-        private Vector2 _location;
 
         public GameObject AttachObject
         {
@@ -63,6 +64,13 @@ namespace ARChess.Scripts.Chess
             ChessAttach = GameObject.Find("Chess Attach");
             ChessVisuals = GameObject.Find("Chess Visuals");
             currentCamera = Camera.main;
+            
+            // Find Light
+            _directionalLight = FindAnyObjectByType<Light>().transform.gameObject;
+            if(_directionalLight != null)
+                _ambientLightEstimation = _directionalLight.GetComponent<AmbientLightEstimation>();
+            
+            // Generate All Tiles
             GenerateAllTiles(m_tileSize);
         }
 
@@ -74,11 +82,10 @@ namespace ARChess.Scripts.Chess
 
         private void Update()
         {
-            if (!currentCamera)
-            {
-                LogThis("No Camera Assigned", this);
-                return;
-            }
+            if (!_directionalLight) return;
+            // Lights follow board
+            _directionalLight.transform.position = gameObject.transform.position + _ambientLightEstimation.DynamicLightPosition;
+            _directionalLight.transform.rotation = gameObject.transform.rotation * Quaternion.Euler(_ambientLightEstimation.DynamicLightRotation);   
         }
 
         public void ChessInteract(Vector2 position)
