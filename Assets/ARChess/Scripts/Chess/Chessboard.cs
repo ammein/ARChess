@@ -65,13 +65,16 @@ namespace ARChess.Scripts.Chess
             ChessVisuals = GameObject.Find("Chess Visuals");
             currentCamera = Camera.main;
             
-            // Find Light
-            _directionalLight = FindAnyObjectByType<Light>().transform.gameObject;
-            if(_directionalLight != null)
-                _ambientLightEstimation = _directionalLight.GetComponent<AmbientLightEstimation>();
-            
             // Generate All Tiles
             GenerateAllTiles(m_tileSize);
+        }
+
+        private void Start()
+        {
+            // Find Light
+            _directionalLight = FindAnyObjectByType<Light>().transform.gameObject;
+            if(_directionalLight is not null)
+                _ambientLightEstimation = _directionalLight.GetComponent<AmbientLightEstimation>();
         }
 
         [Conditional("UNITY_EDITOR")]
@@ -82,10 +85,12 @@ namespace ARChess.Scripts.Chess
 
         private void Update()
         {
-            if (!_directionalLight) return;
-            // Lights follow board
-            _directionalLight.transform.position = gameObject.transform.position + _ambientLightEstimation.DynamicLightPosition;
-            _directionalLight.transform.rotation = gameObject.transform.rotation * Quaternion.Euler(_ambientLightEstimation.DynamicLightRotation);   
+            if (_directionalLight is not null && _ambientLightEstimation is not null)
+            {
+                // Lights follow board
+                _directionalLight.transform.position = gameObject.transform.position + _ambientLightEstimation.DynamicLightPosition;
+                _directionalLight.transform.rotation = gameObject.transform.rotation * Quaternion.Euler(_ambientLightEstimation.DynamicLightRotation);   
+            }
         }
 
         public void ChessInteract(Vector2 position)
@@ -246,22 +251,10 @@ namespace ARChess.Scripts.Chess
             
             tileBounds.transform.SetParent(ChessTiles.transform);
             
-            tileBounds.AddComponent<MeshFilter>().mesh = tileObject.GetComponent<MeshFilter>().mesh;
-            tileBounds.AddComponent<MeshRenderer>().material = tileMaterial;
-            
             Mesh mesh = tileObject.GetComponent<MeshFilter>().mesh;
             
-            // Assign UV
-            // Reference: https://docs.unity3d.com/ScriptReference/Mesh-uv.html?ampDeviceId=d4ea89ad-4dee-4f88-952c-b59ece6145dc&ampSessionId=1775090412449&ampTimestamp=1775178649783
-            Vector3[] vertices = mesh.vertices;
-            Vector2[] uvs = new Vector2[vertices.Length];
-
-            for (int i = 0; i < uvs.Length; i++)
-            {
-                // Apply vertices and centerized the UV so that the effect "Render Objects" apply material correctly
-                uvs[i] = new Vector2(vertices[i].x + (float)0.5, vertices[i].z + (float)0.5);
-            }
-            mesh.uv = uvs;
+            tileBounds.AddComponent<MeshFilter>().mesh = mesh;
+            tileBounds.AddComponent<MeshRenderer>().material = tileMaterial;
             
             // Whenever the camera is assign to "Tile" layer, the object will change the layer into Tile
             tileBounds.layer = LayerMask.NameToLayer("Tile");
@@ -300,13 +293,22 @@ namespace ARChess.Scripts.Chess
 
             // Assign Index on vertices like (0 -> 1 -> 2) & (1 -> 3 -> 2)
             int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
+            
+            // Define UV coordinates (matching the same approach as GenerateBoundsBoxCollider)
+            Vector2[] uvs = new Vector2[4];
+            uvs[0] = new Vector2(0f, 0f);  // Bottom-left
+            uvs[1] = new Vector2(0f, 1f);  // Top-left
+            uvs[2] = new Vector2(1f, 0f);  // Bottom-right
+            uvs[3] = new Vector2(1f, 1f);  // Top-right
 
             // Assign to mesh
             mesh.vertices = vertices;
             mesh.triangles = tris;
+            mesh.uv = uvs;
 
             // Set a height for the tiles
             mesh.RecalculateNormals();
+            mesh.RecalculateTangents(); // Ensure the edges of the UV is calculated so that emissive is affected on tangents space
             mesh.RecalculateBounds(); // Ensure the bounds are recalculated
 
             return tileObject;

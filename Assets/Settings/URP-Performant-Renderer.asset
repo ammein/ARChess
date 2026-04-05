@@ -22,14 +22,14 @@ MonoBehaviour:
         serializedVersion: 2
         m_Bits: 512
       PassNames: []
-    overrideMaterial: {fileID: 2100000, guid: b997f1821f8214ffeb9799b2a58f3a2f, type: 2}
+    overrideMaterial: {fileID: 2100000, guid: 1f088c97491584ea4a1b54bd7ee50be9, type: 2}
     overrideMaterialPassIndex: 0
     overrideShader: {fileID: 4800000, guid: 6c26d1d3b8b5c441e8f9eb7fe84cddf4, type: 3}
     overrideShaderPassIndex: 0
     overrideMode: 1
-    overrideDepthState: 0
-    depthCompareFunction: 2
-    enableWrite: 0
+    overrideDepthState: 1
+    depthCompareFunction: 4
+    enableWrite: 1
     stencilSettings:
       overrideStencilState: 0
       stencilReference: 0
