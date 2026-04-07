@@ -25,15 +25,14 @@ namespace ARChess.Scripts.UI
         public Color inactiveTextColor;
         
         [Header("Icon")]
-        [Tooltip("GameObject that has AnimatedImage (Lottie) Component to switch icon states")]
-        public GameObject lottieIcon;
         [Tooltip("GameObject that has RawImage/Image Component to switch button states")]
         public GameObject Icon;
-        [Tooltip("For Lottie Icon Local Scale (Useful to adjust when the rlottie component inverted your lottie animation. This will help to inverted your scale by adjusting Y axis or X axis)")]
-        public Vector3 LottieIconScale = new Vector3(2f, -2f, 2f);
+        public GameObject AnimatedIcon;
 
         private RawImage _iconImage;
         private Toggle _toggle;
+        private GameObject _animatedIconImage;
+        private AnimatedImage _animatedIcon;
 
         private void Awake()
         {
@@ -72,22 +71,51 @@ namespace ARChess.Scripts.UI
         }
         
         private void ScanIconSprite(bool isOn) {
-            AnimatedImage lottie = lottieIcon.GetComponent<AnimatedImage>();
-            if (isOn)
+            Icon.SetActive(!isOn);
+            AnimatedIcon.SetActive(isOn);
+            
+            _animatedIconImage = _animatedIcon == null && _animatedIconImage == null ? AnimatedIcon : _animatedIconImage;
+            _animatedIconImage.TryGetComponent(out _animatedIcon);
+
+            // If found _animatedIcon, Run Play/Stop Immediately
+            if (_animatedIcon != null)
             {
-                lottieIcon.SetActive(true);
-                lottie.Play();
-                Icon.SetActive(false);
-                lottieIcon.transform.localScale = LottieIconScale;
+                LottiePlay(isOn);
             }
-            else
+            // Else find recursive children on wherever it might have "AnimatedImage" and assign to the variable so that it would only run recursive once.
+            else if (_animatedIcon == null)
             {
-                lottieIcon.transform.localScale = new Vector3(0, 0, 0);
-                lottie.Stop();
-                lottieIcon.SetActive(false);
-                Icon.SetActive(true);
+                FindAnimatedIconInChildren(_animatedIconImage, 0, isOn);
             }
         }
+
+        private void FindAnimatedIconInChildren(GameObject currentGameObject, int childIndex, bool isOn)
+        {
+            while (!_animatedIcon)
+            {
+                GameObject childGameObject = currentGameObject.transform.GetChild(childIndex).gameObject;
+                if (childGameObject.TryGetComponent(out _animatedIcon))
+                {
+                    LottiePlay(isOn);
+                    _animatedIconImage = childGameObject;
+                    break;
+                }
+                
+                // Recurse find in next children
+                if(childGameObject.transform.childCount > 0) FindAnimatedIconInChildren(childGameObject , 0, isOn);
+
+                childIndex++;
+            }
+        }
+
+        private void LottiePlay(bool isOn)
+        {
+            if (isOn)
+                _animatedIcon.Play();
+            else
+                _animatedIcon.Stop();
+        }
+        
         private Sprite BackgroundIconSprite(bool isOn) => isOn ? backgroundToggleOn : backgroundToggleOff;
         private string ChangeToggleText(bool isOn) => isOn ? buttonText.text.Replace("OFF", "ON") : buttonText.text.Replace("ON", "OFF");
         private Color ChangeTextColor(bool isOn) => isOn ? activeTextColor : inactiveTextColor;
