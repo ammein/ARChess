@@ -12,7 +12,6 @@ namespace ARChess.Scripts.UI
         private Toggle _toggle;
         
         [Header("UI References")]
-        public UnityEngine.UI.Image backgroundImage;
         public GameObject iconLottie;
         public GameObject icon;
         
@@ -27,7 +26,7 @@ namespace ARChess.Scripts.UI
         private Texture _jsonImage;
         private XRLoader _loader;
         private XRCameraSubsystem _cameraSubsystem;
-        
+        private UnityEngine.UI.Image _backgroundImage;
         
         private void Awake()
         {
@@ -38,6 +37,8 @@ namespace ARChess.Scripts.UI
                     _toggle = toggle;
                 }
             }
+            
+            _backgroundImage = GetComponent<UnityEngine.UI.Image>();
         }
 
         private void Start()
@@ -60,18 +61,18 @@ namespace ARChess.Scripts.UI
         
         private void SwitchLight(bool isOn)
         {
-            if (_toggle.isOn && backgroundImage.sprite != lightOn)
+            if (_toggle.isOn && _backgroundImage.sprite != lightOn)
             {
-                backgroundImage.sprite = lightOn;
+                _backgroundImage.sprite = lightOn;
                 icon.SetActive(false);
-                iconLottie.transform.localScale = new Vector3(2, -2, 2);
+                iconLottie.SetActive(true);
                 EnableCameraTorch(isOn);
             }
-            else if(!_toggle.isOn && backgroundImage.sprite != lightOff)
+            else if(!_toggle.isOn && _backgroundImage.sprite != lightOff)
             {
-                backgroundImage.sprite = lightOff;
+                _backgroundImage.sprite = lightOff;
                 icon.SetActive(true);
-                iconLottie.transform.localScale = new Vector3(0, 0, 0);
+                iconLottie.SetActive(false);
                 EnableCameraTorch(isOn);
             }
         }

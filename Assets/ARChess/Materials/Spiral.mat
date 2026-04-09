@@ -26,6 +26,7 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _RECEIVE_SHADOWS_OFF
+  - _SPECULAR_SETUP
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords: []
   m_LightmapFlags: 0
@@ -77,7 +78,7 @@ Material:
     - _SrcBlendAlpha: 1
     - _Surface: 1
     - _Width: 0.05
-    - _WorkflowMode: 1
+    - _WorkflowMode: 0
     - _ZTest: 4
     - _ZWrite: 0
     - _ZWriteControl: 0

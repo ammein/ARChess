@@ -1,3 +1,4 @@
+using System;
 using LottiePlugin.UI;
 using UnityEngine;
 using UnityEngine.UI;
@@ -93,6 +94,7 @@ namespace ARChess.Scripts.UI
         {
             while (!_animatedIcon)
             {
+                if (currentGameObject.transform.GetChild(childIndex) == null) break;
                 GameObject childGameObject = currentGameObject.transform.GetChild(childIndex).gameObject;
                 if (childGameObject.TryGetComponent(out _animatedIcon))
                 {
@@ -111,7 +113,20 @@ namespace ARChess.Scripts.UI
         private void LottiePlay(bool isOn)
         {
             if (isOn)
-                _animatedIcon.Play();
+            {
+                try
+                {
+                    _animatedIcon.Play();
+                }
+                catch (NullReferenceException e)
+                {
+                    if (e.InnerException != null)
+                    {
+                        _animatedIcon.Stop();
+                        _animatedIcon.Play();
+                    }
+                }
+            }
             else
                 _animatedIcon.Stop();
         }
