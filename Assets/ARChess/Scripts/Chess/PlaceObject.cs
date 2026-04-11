@@ -1,5 +1,6 @@
 using System;
 using ARChess.Scripts.Project;
+using ARChess.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -30,8 +31,18 @@ namespace ARChess.Scripts.Chess
         /// <summary>
         /// Event invoked after an object is spawned.
         /// </summary>
-        /// <seealso cref="ClonePrefab"/>
-        public event Action<GameObject> ObjectSpawned;
+        public event Action<GameObject> objectSpawned;
+        
+        bool _invoked = false;
+
+        private void Update()
+        {
+            if (objectSpawned != null && m_ObjectInstance && !_invoked)
+            {
+                objectSpawned.Invoke(m_ObjectInstance);   
+                _invoked = true;
+            }
+        }
 
         // ReSharper disable Unity.PerformanceAnalysis
         public GameObject ClonePrefab(Vector3 positionPose, Vector3 spawnNormal)
@@ -44,8 +55,6 @@ namespace ARChess.Scripts.Chess
             m_ObjectInstance = Instantiate(prefab);
             
             Positioning(forward, positionPose, spawnNormal);
-
-            ObjectSpawned?.Invoke(m_ObjectInstance);
 
             return m_ObjectInstance;
         }

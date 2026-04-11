@@ -42,6 +42,12 @@ namespace ARChess.Scripts.Chess
             set => m_ARInteractor = value;
         }
 
+        public bool AttemptSpawn
+        {
+            get => m_AttemptSpawn;
+            set => m_AttemptSpawn = value;
+        }
+
         [Header("Input Actions")]
         [SerializeField] 
         [Tooltip("For Spawn Chess Input")]

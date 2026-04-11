@@ -16,6 +16,7 @@ namespace ARChess.Scripts.Project
         
         [Header("Tutorials")]
         public bool tutorialsEnabled = true;
+        public bool tutorialPlayed = false;
 
         [Header("AR Settings")]
         [Tooltip("For using dynamic lighting from real world source for your scene.")]
@@ -24,6 +25,8 @@ namespace ARChess.Scripts.Project
         [Header("Scene Settings")]
         [Tooltip("Main Scene Video Loaded")]
         public bool mainSceneVideoLoaded;
+        
+        
 
         // Add a method to reset values if needed
         public void ResetToDefaults()
@@ -32,6 +35,7 @@ namespace ARChess.Scripts.Project
             initialChessboardSize = 0.06f;
             tutorialsEnabled = true;
             dynamicLighting = false;
+            tutorialPlayed = false;
         }
     }
 }

@@ -1,12 +1,8 @@
-using System;
 using System.Collections;
-using System.Diagnostics;
 using ARChess.Scripts.Lights;
 using UnityEngine;
-using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
-using Debug = UnityEngine.Debug;
-using Object = UnityEngine.Object;
+using ARChess.Scripts.Utility;
 
 namespace ARChess.Scripts.Chess
 {
@@ -77,12 +73,6 @@ namespace ARChess.Scripts.Chess
                 _ambientLightEstimation = _directionalLight.GetComponent<AmbientLightEstimation>();
         }
 
-        [Conditional("UNITY_EDITOR")]
-        private void LogThis(string message, Object context)
-        {
-            Debug.Log(message, context);
-        }
-
         private void Update()
         {
             if (_directionalLight is not null && _ambientLightEstimation is not null)
@@ -112,7 +102,7 @@ namespace ARChess.Scripts.Chess
                 // If we're hovering a tile after not hovering any tiles
                 if (currentHover == -Vector2Int.one)
                 {
-                    LogThis($"Tile {hitPosition.x},{hitPosition.y} hit", this);
+                    Log.LogThis($"Tile {hitPosition.x},{hitPosition.y} hit", this);
                     currentHover = hitPosition;
                     // Change Layer to "Hover"
                     tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
@@ -121,7 +111,7 @@ namespace ARChess.Scripts.Chess
 
                 // If we were already hovering a tile, change the previous one
                 if (currentHover == hitPosition) return;
-                LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
+                Log.LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
                 tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
                 tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
                 currentHover = hitPosition;
