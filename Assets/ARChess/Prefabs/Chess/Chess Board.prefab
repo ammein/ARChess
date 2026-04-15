@@ -202,8 +202,9 @@ MonoBehaviour:
   - {fileID: 7115448765077416073, guid: 1c083058503cb4411b2fd20d445c0340, type: 3}
   - {fileID: 3242298463453353761, guid: 3eccf7f3bd20c4bdeb1f3d9325867e56, type: 3}
   teamMaterials:
-  - {fileID: 2100000, guid: 889faf953c99b47d2a635c9351abdfbe, type: 2}
-  - {fileID: 2100000, guid: 05149bbb8711c4b709f0b581f19e0a32, type: 2}
+  - {fileID: 2100000, guid: 9bc0ded8b6f1d4f69870209e1d5fdff5, type: 2}
+  - {fileID: 2100000, guid: cc725ccf75797402790105f173c672be, type: 2}
+  durationMaterialAppear: 2
   m_tileSize: 0.0375
   yOffset: 0.055
   boardCenter: {x: -0.15, y: 0, z: -0.15}

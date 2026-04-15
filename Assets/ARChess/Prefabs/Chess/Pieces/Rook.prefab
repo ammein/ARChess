@@ -81,3 +81,6 @@ MonoBehaviour:
   currentX: 0
   currentY: 0
   type: 0
+  waitDuration: 1
+  duration: 1
+  remap: {x: 0, y: 0.65}

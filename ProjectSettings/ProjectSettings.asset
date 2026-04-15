@@ -148,7 +148,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 1.0.6
+  bundleVersion: 1.0.7
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -950,7 +950,13 @@ PlayerSettings:
   XboxOneOverrideIdentityName: 
   XboxOneOverrideIdentityPublisher: 
   vrEditorSettings: {}
-  cloudServicesEnabled: {}
+  cloudServicesEnabled:
+    Build: 0
+    Game Performance: 0
+    Legacy Analytics: 0
+    Purchasing: 0
+    UDP: 0
+    Unity Ads: 0
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 
@@ -972,10 +978,10 @@ PlayerSettings:
   captureStartupLogs: {}
   activeInputHandler: 1
   windowsGamepadBackendHint: 0
-  cloudProjectId: 2b267c4c-98f9-477c-ab5a-93b0aedabb28
+  cloudProjectId: 19495f31-e9ff-4a10-a818-5a8c2a348d89
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
-  projectName: AR Chess
+  projectName: ARChess 2025-07-09_16-04-20
   organizationId: ammein
   cloudEnabled: 0
   legacyClampBlendShapeWeights: 0

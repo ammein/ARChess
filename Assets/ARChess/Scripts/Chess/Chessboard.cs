@@ -17,7 +17,6 @@ namespace ARChess.Scripts.Chess
         [SerializeField] private GameObject[] prefabs;
         [SerializeField] private Material[] teamMaterials;
         
-        
         // LOGIC
         private ChessPiece[,] chessPieces;
         private const int TILE_COUNT_X = 8;
@@ -47,6 +46,7 @@ namespace ARChess.Scripts.Chess
         
         private GameObject _directionalLight;
         private AmbientLightEstimation _ambientLightEstimation;
+        
         public BoxCollider ChessCollider => chessCollider;
 
         public GameObject AttachObject
@@ -76,6 +76,9 @@ namespace ARChess.Scripts.Chess
             
             // Position All Pieces
             PositionAllPieces();
+            
+            // Animate Pieces to appear
+            AnimateAllPiece();
         }
 
         private void Start()
@@ -371,6 +374,7 @@ namespace ARChess.Scripts.Chess
             
             cp.type = type;
             cp.team = team;
+            
             cp.GetComponent<MeshRenderer>().material = teamMaterials[team];
             
             return cp;
@@ -389,6 +393,17 @@ namespace ARChess.Scripts.Chess
             chessPieces[x, y].currentX = x;
             chessPieces[x, y].currentY = y;
             chessPieces[x, y].transform.position = GetTileCenter(x, y);
+        }
+
+
+        private void AnimateAllPiece()
+        {
+            for (int x = 0; x < TILE_COUNT_X; x++)
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                    if (chessPieces[x, y] != null)
+                    {
+                        chessPieces[x, y].AppearPiece("_Progress");   
+                    }
         }
 
         private Vector3 GetTileCenter(int x, int y)
