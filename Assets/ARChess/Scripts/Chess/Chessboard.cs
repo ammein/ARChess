@@ -1,4 +1,5 @@
 using System.Collections;
+using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -11,8 +12,13 @@ namespace ARChess.Scripts.Chess
         [Header("Art Stuff")] 
         [SerializeField] 
         private Material tileMaterial;
+
+        [Header("Prefabs & Materials")]
+        [SerializeField] private GameObject[] prefabs;
+        [SerializeField] private Material[] teamMaterials;
         
         // LOGIC
+        private ChessPiece[,] chessPieces;
         private const int TILE_COUNT_X = 8;
         private const int TILE_COUNT_Y = 8;
         private GameObject[,] tiles;
@@ -40,6 +46,7 @@ namespace ARChess.Scripts.Chess
         
         private GameObject _directionalLight;
         private AmbientLightEstimation _ambientLightEstimation;
+        
         public BoxCollider ChessCollider => chessCollider;
 
         public GameObject AttachObject
@@ -63,19 +70,28 @@ namespace ARChess.Scripts.Chess
             
             // Generate All Tiles
             GenerateAllTiles(m_tileSize);
+            
+            // Spawn All Pieces
+            SpawnAllPieces();
+            
+            // Position All Pieces
+            PositionAllPieces();
+            
+            // Animate Pieces to appear
+            AnimateAllPiece();
         }
 
         private void Start()
         {
             // Find Light
             _directionalLight = FindAnyObjectByType<Light>().transform.gameObject;
-            if(_directionalLight is not null)
+            if(_directionalLight)
                 _ambientLightEstimation = _directionalLight.GetComponent<AmbientLightEstimation>();
         }
 
         private void Update()
         {
-            if (_directionalLight is not null && _ambientLightEstimation is not null)
+            if (_directionalLight && _ambientLightEstimation)
             {
                 // Lights follow board
                 _directionalLight.transform.position = gameObject.transform.position + _ambientLightEstimation.DynamicLightPosition;
@@ -194,7 +210,6 @@ namespace ARChess.Scripts.Chess
 
             yield return null;
         }
-        
 
         private void AddChessBound(GameObject[,] allTiles, int tileCountX, int tileCountY)
         {
@@ -233,7 +248,6 @@ namespace ARChess.Scripts.Chess
             
             chessCollider.providesContacts = true;
         }
-
 
         private void GenerateBoundsBoxCollider(GameObject tileObject, int x, int y)
         {
@@ -303,19 +317,7 @@ namespace ARChess.Scripts.Chess
 
             return tileObject;
         }
-
-
-        // Operations
-        private Vector2Int LookupTileIndex(GameObject hitInfo)
-        {
-            for (int x = 0; x < TILE_COUNT_X; x++)
-                for (int y = 0; y < TILE_COUNT_Y; y++)
-                    if (tilesBounds[x, y] == hitInfo)
-                        return new Vector2Int(x, y);
-
-            return -Vector2Int.one; // Invalid
-        }
-
+        
         public void ToggleContact(bool toggle)
         {
             if (tilesBounds.Length == 0) return;
@@ -328,5 +330,100 @@ namespace ARChess.Scripts.Chess
             }
             
         }
+                
+        private void SpawnAllPieces()
+        {
+            chessPieces = new ChessPiece[TILE_COUNT_X, TILE_COUNT_Y];
+
+            int whiteTeam = 0, blackTeam = 1;
+            
+            // White team
+            chessPieces[0, 0] = SpawnSinglePiece(ChessPieceType.Rook, whiteTeam);
+            chessPieces[1, 0] = SpawnSinglePiece(ChessPieceType.Knight, whiteTeam);
+            chessPieces[2, 0] = SpawnSinglePiece(ChessPieceType.Bishop, whiteTeam);
+            chessPieces[3, 0] = SpawnSinglePiece(ChessPieceType.Queen, whiteTeam);
+            chessPieces[4, 0] = SpawnSinglePiece(ChessPieceType.King, whiteTeam);
+            chessPieces[5, 0] = SpawnSinglePiece(ChessPieceType.Bishop, whiteTeam);
+            chessPieces[6, 0] = SpawnSinglePiece(ChessPieceType.Knight, whiteTeam);
+            chessPieces[7, 0] = SpawnSinglePiece(ChessPieceType.Rook, whiteTeam);
+
+            for (int i = 0; i < TILE_COUNT_X; i++)
+            {
+                chessPieces[i, 1] =  SpawnSinglePiece(ChessPieceType.Pawn, whiteTeam);
+            }
+            
+            // Black team
+            chessPieces[0, 7] = SpawnSinglePiece(ChessPieceType.Rook, blackTeam);
+            chessPieces[1, 7] = SpawnSinglePiece(ChessPieceType.Knight, blackTeam);
+            chessPieces[2, 7] = SpawnSinglePiece(ChessPieceType.Bishop, blackTeam);
+            chessPieces[3, 7] = SpawnSinglePiece(ChessPieceType.Queen, blackTeam);
+            chessPieces[4, 7] = SpawnSinglePiece(ChessPieceType.King, blackTeam);
+            chessPieces[5, 7] = SpawnSinglePiece(ChessPieceType.Bishop, blackTeam);
+            chessPieces[6, 7] = SpawnSinglePiece(ChessPieceType.Knight, blackTeam);
+            chessPieces[7, 7] = SpawnSinglePiece(ChessPieceType.Rook, blackTeam);
+
+            for (int i = 0; i < TILE_COUNT_X; i++)
+            {
+                chessPieces[i, 6] =  SpawnSinglePiece(ChessPieceType.Pawn, blackTeam);
+            }
+        }
+
+        private ChessPiece SpawnSinglePiece(ChessPieceType type, int team)
+        {
+            ChessPiece cp = Instantiate(prefabs[(int)type - 1], transform).GetComponent<ChessPiece>();
+            
+            cp.type = type;
+            cp.team = team;
+            
+            cp.GetComponent<MeshRenderer>().material = teamMaterials[team];
+            
+            return cp;
+        }
+
+        private void PositionAllPieces()
+        {
+            for (int x = 0; x < TILE_COUNT_X; x++)
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                    if (chessPieces[x, y] != null)
+                        PositionSinglePiece(x, y, true);
+        }
+
+        private void PositionSinglePiece(int x, int y, bool force = false)
+        {
+            chessPieces[x, y].currentX = x;
+            chessPieces[x, y].currentY = y;
+            chessPieces[x, y].transform.position = GetTileCenter(x, y);
+        }
+
+
+        private void AnimateAllPiece()
+        {
+            for (int x = 0; x < TILE_COUNT_X; x++)
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                    if (chessPieces[x, y] != null)
+                    {
+                        chessPieces[x, y].AppearPiece("_Progress");   
+                    }
+        }
+
+        private Vector3 GetTileCenter(int x, int y)
+        {
+            float halfWidth = ((float)TILE_COUNT_X * m_tileSize) / 2f;
+            float halfHeight = ((float)TILE_COUNT_Y * m_tileSize) / 2f;
+            
+            return new Vector3((x * m_tileSize) - halfWidth, yOffset, (y * m_tileSize) - halfHeight) - bounds + new Vector3(m_tileSize / 2, 0, m_tileSize / 2);
+        }
+
+        // Operations
+        private Vector2Int LookupTileIndex(GameObject hitInfo)
+        {
+            for (int x = 0; x < TILE_COUNT_X; x++)
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                    if (tilesBounds[x, y] == hitInfo)
+                        return new Vector2Int(x, y);
+
+            return -Vector2Int.one; // Invalid
+        }
+
     }
 }
