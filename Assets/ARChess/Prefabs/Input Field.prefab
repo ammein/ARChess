@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 'Label:'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
-  m_sharedMaterial: {fileID: 4618375234957978584, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
+  m_sharedMaterial: {fileID: 5071182274991821100, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -265,7 +265,7 @@ MonoBehaviour:
   m_CaretWidth: 1
   m_ReadOnly: 0
   m_RichText: 1
-  m_GlobalFontAsset: {fileID: 11400000, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
+  m_GlobalFontAsset: {fileID: 11400000, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
   m_OnFocusSelectAll: 1
   m_ResetOnDeActivation: 1
   m_KeepTextSelectionVisible: 0
@@ -394,8 +394,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u200B"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
-  m_sharedMaterial: {fileID: 4618375234957978584, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
+  m_sharedMaterial: {fileID: 5071182274991821100, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -532,8 +532,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Placeholder
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
-  m_sharedMaterial: {fileID: 4618375234957978584, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
+  m_sharedMaterial: {fileID: 5071182274991821100, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

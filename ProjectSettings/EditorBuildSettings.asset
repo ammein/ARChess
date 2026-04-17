@@ -12,15 +12,15 @@ EditorBuildSettings:
     path: Assets/ARChess/Scenes/ARScene.unity
     guid: 4755b35b590504809a7525fd2109c2e2
   m_configObjects:
-    AR Foundation RemoteARFoundationRemoteLoaderSettings: {fileID: 11400000, guid: cb1baa6cc18d949429e3b118a292e41a, type: 2}
-    AR Foundation RemoteARFoundationRemoteSessionRecordsData: {fileID: 11400000, guid: a30fa407a42784ea58852a09a27962a0, type: 2}
+    AR Foundation RemoteARFoundationRemoteLoaderSettings: {fileID: 11400000, guid: 627a7da91a015481b8127960079a1b32, type: 2}
+    AR Foundation RemoteARFoundationRemoteSessionRecordsData: {fileID: 11400000, guid: 6aa0922c0138c4372bdd1304cbe14dc9, type: 2}
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 6fbd7e27749b04683a28b11d88faabda, type: 2}
-    UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 6ee72d15cf39dd748a13eac57397b9af, type: 2}
-    UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: 0465d33c6aee55f44b0237db8b0e0259, type: 2}
+    UnityEditor.XR.ARCore.ARCoreSettings: {fileID: 11400000, guid: 48504021ed9e04d22b2a6d4f3493848c, type: 2}
+    UnityEditor.XR.ARKit.ARKitSettings: {fileID: 11400000, guid: e5733a9dce7ee4f3897474f94e34bd22, type: 2}
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings: {fileID: 11400000, guid: af43aac49539d4d1ea5d3e6413513a7a, type: 2}
-    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: c199e683398494f32b4cde18e73ab731, type: 2}
+    com.unity.xr.arfoundation.simulation_settings: {fileID: 11400000, guid: d5904f8bdec344cc28b058711cb2927a, type: 2}
     com.unity.xr.magicleap.magic_leap_settings: {fileID: 11400000, guid: 0b53a025a635a4393ba0b49822242280, type: 2}
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 3fd4fc0127790db4bae83f7b77da8d45, type: 2}
-    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: a88172cac51104121a17702394702f5a, type: 2}
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 81ecbbcbc32a14d0198d7aa1d966dec3, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: c5f0c1d360a71497899638872d436791, type: 2}
   m_UseUCBPForAssetBundles: 0

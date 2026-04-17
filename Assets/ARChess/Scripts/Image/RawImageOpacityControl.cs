@@ -34,9 +34,7 @@ namespace ARChess.Scripts.Image
 
         private void AssignColor(UnityEngine.UI.Image targetImage)
         {
-            Color color = targetImage.color;
-            color.a = opacity;
-            targetImage.color = color;
+            targetImage.fillAmount = opacity;
         }
     }
 }

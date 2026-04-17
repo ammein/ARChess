@@ -67,7 +67,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_FontData:
-    m_Font: {fileID: 12800000, guid: 0166e20653159413dbb38c898fd21b5d, type: 3}
+    m_Font: {fileID: 12800000, guid: 5fea7481dffd14b42a7c45e2541b8f4b, type: 3}
     m_FontSize: 12
     m_FontStyle: 0
     m_BestFit: 0
@@ -229,7 +229,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: ac1ba8e81f63c4cdf819d754f9017c3b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3f97819f7c7d74065bbf0eca5abc5fa7, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -362,16 +362,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 6876715540291907429}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f48470c02dd9f43969d6b0e2124cd7cf, type: 3}
+  m_Script: {fileID: 11500000, guid: ef9a400942862496ab0aa7d1ba006bd0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.UI.ToggleCheckbox
-  backgroundOn: {fileID: 21300000, guid: 9fa33a367162a4d76aad1a76bf3ddadf, type: 3}
-  backgroundOff: {fileID: 21300000, guid: ac1ba8e81f63c4cdf819d754f9017c3b, type: 3}
+  backgroundOn: {fileID: 21300000, guid: db4a334ab07894547b3745aaa35cfbfd, type: 3}
+  backgroundOff: {fileID: 21300000, guid: 3f97819f7c7d74065bbf0eca5abc5fa7, type: 3}
   iconRawImage: {fileID: 0}
-  iconImage: {fileID: 0}
+  iconImage: {fileID: 1425145432283443628}
   iconActiveColor: {r: 0, g: 0, b: 0, a: 0}
   iconInactiveColor: {r: 0, g: 0, b: 0, a: 0}
-  text: {fileID: 0}
+  text: {fileID: 5518563869547570385}
   textMeshPro: {fileID: 0}
   textMeshProUGUI: {fileID: 0}
   textActiveColor: {r: 0, g: 0, b: 0, a: 0}
@@ -443,7 +443,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: eb1a2bb4125094ae9a208c49379840ce, type: 3}
+  m_Sprite: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1

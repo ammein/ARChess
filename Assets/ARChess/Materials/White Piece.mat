@@ -8,16 +8,13 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: White Piece
-  m_Shader: {fileID: -6465566751694194690, guid: a3b2642b1542448b78de4959da6ab969, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: de7d5b3a60c504e54a8bd5e33a310eb1, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _ALPHATEST_ON
   - _APPEARANCE_STATE_DISSAPEAR
-  m_InvalidKeywords:
-  - APPEAR
-  - APPEARANCE_STATE_APPEAR
-  - APPEARANCE_STATE_DISSAPEAR
+  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0

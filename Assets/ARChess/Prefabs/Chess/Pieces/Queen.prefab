@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &7961888199756961240
+--- !u!1001 &5163538892288449647
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -8,47 +8,47 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 0.00076058815
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalRotation.y
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - target: {fileID: 919132149155446097, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       propertyPath: m_Name
       value: Queen
       objectReference: {fileID: 0}
@@ -56,31 +56,30 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1717033086418301904}
-  m_SourcePrefab: {fileID: 100100000, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
---- !u!1 &7115448765077416073 stripped
+      addedObject: {fileID: -1329542189770529402}
+  m_SourcePrefab: {fileID: 100100000, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
+--- !u!1 &5434149931290550590 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0c570b1d39dc1433dbf764454aca0714, type: 3}
-  m_PrefabInstance: {fileID: 7961888199756961240}
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 3b83c8b86422145bcb00c2d032a99473, type: 3}
+  m_PrefabInstance: {fileID: 5163538892288449647}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1717033086418301904
+--- !u!114 &-1329542189770529402
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7115448765077416073}
+  m_GameObject: {fileID: 5434149931290550590}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2b8370caa09f4aa49b5a5db29a0b7f7, type: 3}
+  m_Script: {fileID: 11500000, guid: 44e4f87479af0487aaa6a3cba04703ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Chess.Pieces.Queen
   team: 0
   currentX: 0
   currentY: 0
   type: 0
-  waitDuration: 1
+  waitDuration: 2.5
   duration: 2
-  remap: {x: 0, y: 0.65}

@@ -69,9 +69,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 3239328064754543239}
   - {fileID: 6430467231883994016}
-  - {fileID: 5104708765570255592}
   - {fileID: -3660328115424617209}
-  m_RendererFeatureMap: 87eaa552b667f42ca0233c98e09b3d59e84aa38d9391d746079dbde6f8e633cd
+  m_RendererFeatureMap: 87eaa552b667f42ca0233c98e09b3d59079dbde6f8e633cd
   m_UseNativeRenderPass: 0
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
@@ -113,29 +112,6 @@ MonoBehaviour:
   m_Name: ARBackgroundRendererFeature
   m_EditorClassIdentifier: 
   m_Active: 1
---- !u!114 &5104708765570255592
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 980a78cc4df543b29a2663be288cd2f5, type: 3}
-  m_Name: UniversalBlurFeature
-  m_EditorClassIdentifier: Unified.Universal.Blur::Unified.UniversalBlur.Runtime.UniversalBlurFeature
-  m_Active: 1
-  iterations: 2
-  downsample: 1
-  enableMipMaps: 1
-  scale: 1
-  offset: 1
-  scaleBlurWith: 1
-  scaleReferenceSize: 1080
-  blurType: 0
-  injectionPoint: 600
-  shader: {fileID: 4800000, guid: bb11bdc2e8aaf4c80b5315f3778d7ad4, type: 3}
 --- !u!114 &6430467231883994016
 MonoBehaviour:
   m_ObjectHideFlags: 0

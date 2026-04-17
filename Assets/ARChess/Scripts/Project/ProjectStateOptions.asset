@@ -9,11 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c9e1c5623f5a246a5968a264afccc07b, type: 3}
+  m_Script: {fileID: 11500000, guid: 373856d6b226545ffb2bac4223b4d417, type: 3}
   m_Name: ProjectStateOptions
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Project.ProjectStateOptions
   playerName: Guest
   initialChessboardSize: 1
   tutorialsEnabled: 1
+  tutorialPlayed: 1
   dynamicLighting: 0
   mainSceneVideoLoaded: 0

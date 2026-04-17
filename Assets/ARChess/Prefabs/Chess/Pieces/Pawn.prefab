@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &3930555009956570108
+--- !u!1001 &7896606672329348462
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -8,47 +8,47 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.000000013832433
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalRotation.y
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalRotation.z
       value: -0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: -8679921383154817045, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - target: {fileID: 919132149155446097, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       propertyPath: m_Name
       value: Pawn
       objectReference: {fileID: 0}
@@ -56,31 +56,30 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2919508015429179959}
-  m_SourcePrefab: {fileID: 100100000, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
---- !u!1 &4201096649803226797 stripped
+      addedObject: {fileID: 3442114522208453948}
+  m_SourcePrefab: {fileID: 100100000, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
+--- !u!1 &7014084014938433599 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 4c3f0e492881049398ba7e298befb9f3, type: 3}
-  m_PrefabInstance: {fileID: 3930555009956570108}
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: cbe90750a4fbf4b389143c59be647663, type: 3}
+  m_PrefabInstance: {fileID: 7896606672329348462}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2919508015429179959
+--- !u!114 &3442114522208453948
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4201096649803226797}
+  m_GameObject: {fileID: 7014084014938433599}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25da9891c22ca489cac5d272123603bd, type: 3}
+  m_Script: {fileID: 11500000, guid: 71b4050b87b9b46d08719cb7222daf2d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Chess.Pieces.Pawn
   team: 0
   currentX: 0
   currentY: 0
   type: 0
-  waitDuration: 1
-  duration: 0.5
-  remap: {x: 0, y: 0.65}
+  waitDuration: 0.5
+  duration: 2

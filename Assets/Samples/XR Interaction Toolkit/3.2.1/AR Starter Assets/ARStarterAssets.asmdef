@@ -10,7 +10,9 @@
         "Unity.XR.Interaction.Toolkit.Samples.StarterAssets"
     ],
     "includePlatforms": [],
-    "excludePlatforms": [],
+    "excludePlatforms": [
+        "iOS"
+    ],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],

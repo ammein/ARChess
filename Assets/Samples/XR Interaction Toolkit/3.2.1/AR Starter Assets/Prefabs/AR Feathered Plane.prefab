@@ -54,7 +54,7 @@ MeshCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 5
   m_Convex: 0
   m_CookingOptions: 30
@@ -92,7 +92,7 @@ MeshRenderer:
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d5774351bc3ae4ad393dc1d142ff4235, type: 2}
+  - {fileID: 2100000, guid: af4bf4aa2a8bd4a64a2f2b3def4eb4db, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -153,7 +153,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1585201990951412}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4694583967bd9483f9841409d278f46f, type: 3}
+  m_Script: {fileID: 11500000, guid: 7d79f9413f6f64bf8b53fb03fd25375c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_FeatheringWidth: 0.2

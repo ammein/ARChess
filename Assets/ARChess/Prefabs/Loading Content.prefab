@@ -132,7 +132,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 24981e94c4a4b449a9b9c75c3eaa19d2, type: 3}
+  m_Texture: {fileID: 2800000, guid: b30a84dbf86434424a23109dc0d54b1e, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -162,10 +162,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 3653819413907551595}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8062be91d98d947c69adec4143a42a2b, type: 3}
+  m_Script: {fileID: 11500000, guid: af1f4ffef6e414ab494c10e890db8818, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.RawImageOpacityControl
-  opacity: 0.2
+  opacity: 0
 --- !u!114 &4882131432643863231
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -252,7 +252,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: ac1ba8e81f63c4cdf819d754f9017c3b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 3f97819f7c7d74065bbf0eca5abc5fa7, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -327,8 +327,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 9fa33a367162a4d76aad1a76bf3ddadf, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 21300000, guid: db4a334ab07894547b3745aaa35cfbfd, type: 3}
+  m_Type: 3
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 0
@@ -468,8 +468,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Loading
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
-  m_sharedMaterial: {fileID: 4618375234957978584, guid: 17d847996d1cb41f7a9aae87c412aeaf, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
+  m_sharedMaterial: {fileID: 5071182274991821100, guid: 5d04b77ebf196462590a1d41410447df, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
