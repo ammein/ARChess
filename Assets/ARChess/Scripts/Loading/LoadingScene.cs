@@ -14,14 +14,12 @@ namespace ARChess.Scripts.Loading
         public RawImageOpacityControl backgroundOpacityControl;
         public TextMeshProUGUI loadingText;
         
-        [Header("Controls")]
+        [Header("Loading Controls")]
         [SerializeField]
-        [Tooltip("Delay in seconds before loading scene")]
-        private float beforeLoadDelay = 1.5f;
-        [SerializeField]
-        [Tooltip("Delay in seconds after loading scene")]
-        private float afterLoadDelay = 1.5f;
-        [SerializeField]
+        [Tooltip("The loading animation duration for progress bar")]
+        private float loadingDuration;
+        [SerializeField] [Tooltip("The starting animation duration for progress bar")]
+        private float startingDuration;
         [Range(0f, 1f)]
         [Tooltip("Animation speed between ellipsis text changes")]
         private float animationDotSpeed = 0.5f; // Time between dot changes
@@ -77,13 +75,32 @@ namespace ARChess.Scripts.Loading
                 {
                     loadingText.text = loadingTextString;
                     var progress = Mathf.Clamp01(operation.progress / .9f);
-                    loadingBarFill.fillAmount = progress;
-
-                    if (loadingBarFill.fillAmount >= .9f)
+                    
+                    // If progress loaded
+                    if (progress >= .9f)
                     {
-                        yield return new WaitForSeconds(beforeLoadDelay);
+                        // Add delay for loading duration on finished loaded scene
+                        var animateTime = 0f;
+                        while (animateTime < loadingDuration)
+                        {
+                            var t = animateTime / loadingDuration;
+                            loadingBarFill.fillAmount = t;
+                            animateTime += Time.deltaTime;
+                            yield return null;
+                        }
+                        
                         _textLoadingState = enteringTextString;
-                        yield return new WaitForSeconds(afterLoadDelay);
+                        loadingText.text = _textLoadingState;
+
+                        // Add delay for starting duration
+                        var animateStartingTime = 0f;
+                        while (animateStartingTime < startingDuration)
+                        {
+                            var t = animateStartingTime / startingDuration;
+                            animateStartingTime += Time.deltaTime;
+                            yield return null;
+                        }
+                        
                         operation.allowSceneActivation = true;
                         backgroundOpacityControl.opacity = 0.0f;
                         StopCoroutine(_ellipsisCoroutine);

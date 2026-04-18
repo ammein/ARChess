@@ -121,6 +121,11 @@ namespace ARChess.Scripts.UI
             {
                 StartCoaching();
             }
+
+            if (!enable && _stepsList.Count > 0)
+            {
+                _stepsList[0].stepObject.SetActive(false);
+            }
         }
 
         void Start()
