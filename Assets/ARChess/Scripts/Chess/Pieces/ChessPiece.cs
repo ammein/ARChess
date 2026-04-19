@@ -73,7 +73,7 @@ namespace ARChess.Scripts.Chess.Pieces
             yield return new WaitForEndOfFrame();
             // Set enum as a float value instead of keyword
             SetKeyWord("_APPEARANCE_STATE", Appearance.Appear);
-            CheckShaderKeywordState();
+            CheckShaderKeywordState("_APPEARANCE_STATE");
             yield return new WaitForSeconds(waitDuration);
             float time = 0;
             while (time < duration)
@@ -116,7 +116,7 @@ namespace ARChess.Scripts.Chess.Pieces
         }
 
         
-        void CheckShaderKeywordState()
+        void CheckShaderKeywordState(string keyword = "")
         {
             // Get the instance of the Shader class that the material uses
             var shader = _renderer.material.shader;
@@ -132,13 +132,31 @@ namespace ARChess.Scripts.Chess.Pieces
                 // then Unity uses the global keyword state
                 if (localKeyword.isOverridable && Shader.IsKeywordEnabled(localKeyword.name))
                 {
-                    Log.LogThis("Local keyword with name of " + localKeyword.name + " is overridden by a global keyword, and is enabled", this);
+                    var log = "Local keyword with name of <color=\"yellow\">" + localKeyword.name +
+                                 "</color> is overridden by a global keyword, and is <color=\"green\">enabled</color>";
+                    if (keyword.Length > 0)
+                    {
+                        if(localKeyword.name.Contains(keyword))
+                            Log.LogThis(log, this);
+                        return;
+                    }
+                    
+                    Log.LogThis(log, this);
                 }
                 // Otherwise, Unity uses the local keyword state
                 else
                 {
                     var state = _renderer.material.IsKeywordEnabled(localKeyword) ? "enabled" : "disabled";
-                    Log.LogThis("Local keyword with name of " + localKeyword.name + " is " + state, this);
+                    var color = _renderer.material.IsKeywordEnabled(localKeyword) ? "green" : "red";
+                    var log = $"Local keyword with name of <color=\"yellow\">{localKeyword.name}</color> is <color=\"{color}\">{state}</color>";
+                    if (keyword.Length > 0)
+                    {
+                        if(localKeyword.name.Contains(keyword))
+                            Log.LogThis(log, this);
+                        return;
+                    }
+                    
+                    Log.LogThis(log, this);
                 }            
             }
         }

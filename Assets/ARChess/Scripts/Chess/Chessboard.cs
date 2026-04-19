@@ -19,6 +19,7 @@ namespace ARChess.Scripts.Chess
         
         // LOGIC
         private ChessPiece[,] chessPieces;
+        private ChessPiece currentlyDragging;
         private const int TILE_COUNT_X = 8;
         private const int TILE_COUNT_Y = 8;
         private GameObject[,] tiles;
@@ -99,15 +100,15 @@ namespace ARChess.Scripts.Chess
             }
         }
 
-        public void ChessInteract(Vector2 position)
+        public void ChessInteract(Vector2 position, bool interact)
         {
             Ray ray = currentCamera.ScreenPointToRay(new Vector3(position.x, position.y, 0));
-            HitTile(ray, Info);
+            HitTile(ray, Info, interact);
         }
 
         public RaycastHit Info { get; set; }
 
-        private void HitTile(Ray ray, RaycastHit info)
+        private void HitTile(Ray ray, RaycastHit info, bool touched)
         {
             // To prevent raycast to infinite distance, we have to make the endpoint only react to Tile or 100 max distance
             if (Physics.Raycast(ray, out info, 100, LayerMask.GetMask("Tile", "Selected", "Bound Selected", "Visual Tile")))
@@ -126,14 +127,44 @@ namespace ARChess.Scripts.Chess
                 }
 
                 // If we were already hovering a tile, change the previous one
-                if (currentHover == hitPosition) return;
-                Log.LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
-                tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
-                currentHover = hitPosition;
-                // Change Layer to "Hover"
-                tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
-                tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");
+                if (currentHover != hitPosition)
+                {
+                    Log.LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
+                    tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
+                    tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
+                    currentHover = hitPosition;
+                    // Change Layer to "Hover"
+                    tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
+                    tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");    
+                }
+
+                if (touched)
+                {
+                    Log.LogThis($"Screen Touched: {touched}", this);
+                    if (chessPieces[hitPosition.x, hitPosition.y] != null)
+                    {
+                        // Is it our turn?
+                        if (true)
+                        {
+                            currentlyDragging = chessPieces[hitPosition.x, hitPosition.y];
+                        }
+                    }
+                }
+
+                if (currentlyDragging != null && !touched)
+                {
+                    Log.LogThis($"Screen Touched Released: {touched}", this);
+                    
+                    Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
+                    
+                    bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
+                    if (!validMove)
+                    {
+                        currentlyDragging.transform.position = GetTileCenter(previousPosition.x, previousPosition.y);
+                        currentlyDragging = null;
+                    }
+                }
+                
             }
             else
             {
@@ -401,9 +432,7 @@ namespace ARChess.Scripts.Chess
             for (int x = 0; x < TILE_COUNT_X; x++)
                 for (int y = 0; y < TILE_COUNT_Y; y++)
                     if (chessPieces[x, y] != null)
-                    {
-                        chessPieces[x, y].AppearPiece("_Progress");   
-                    }
+                        chessPieces[x, y].AppearPiece("_Progress");
         }
 
         private Vector3 GetTileCenter(int x, int y)
@@ -423,6 +452,18 @@ namespace ARChess.Scripts.Chess
                         return new Vector2Int(x, y);
 
             return -Vector2Int.one; // Invalid
+        }
+        
+        private bool MoveTo(ChessPiece cp, int x, int y)
+        {
+            Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
+            
+            chessPieces[x, y] = cp;
+            chessPieces[previousPosition.x, previousPosition.y] = null;
+            
+            PositionSinglePiece(x, y);
+
+            return true;
         }
 
     }

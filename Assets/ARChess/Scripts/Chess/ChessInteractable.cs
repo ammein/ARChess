@@ -23,8 +23,9 @@ namespace ARChess.Scripts.Chess
         bool m_AttemptSpawn;
         bool m_AttemptHadSelection;
         bool m_EverHadSelection;
-        private bool _mAttemptEdit = false;
+        private bool _mAttemptEdit;
         private Chessboard m_Chessboard;
+        private Vector2 lastTouchPosition = Vector2.zero;
         
         [Header("Raycast Settings")]
         [SerializeField]
@@ -56,6 +57,9 @@ namespace ARChess.Scripts.Chess
         [SerializeField]
         [Tooltip("For Spawn Chess Input in XR Simulation")]
         InputActionReference m_SimulationObjectInput;
+        [SerializeField]
+        [Tooltip("For Spawn Press & Release Input")]
+        InputActionReference m_pressAndReleaseInput;
 
         /// <summary>
         /// The input used to trigger spawn, if <see cref="spawnTriggerType"/> is set to <see cref="InputAction"/>.
@@ -82,17 +86,23 @@ namespace ARChess.Scripts.Chess
             #else
             m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
             #endif
+            
+            m_pressAndReleaseInput.action.performed += SpawnOrEdit;
+            m_pressAndReleaseInput.action.canceled += SpawnOrEdit;
         }
 
         void OnDisable()
         {
             #if UNITY_EDITOR && AR_COMPANION
-            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit; 
+            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit;
             #elif UNITY_EDITOR
             m_SimulationObjectInput.action.performed -= SpawnOrEdit;
             #else
-            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit; 
+            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit;
             #endif
+            
+            m_pressAndReleaseInput.action.performed -= SpawnOrEdit;
+            m_pressAndReleaseInput.action.canceled -= SpawnOrEdit;
         }
 
         void Awake()
@@ -117,31 +127,47 @@ namespace ARChess.Scripts.Chess
 
         private void SpawnOrEdit(InputAction.CallbackContext obj)
         {
+            var touched = true;
+            
+            // Save lastTouchPosition if the action is not a button
+            if (obj.action.type != InputActionType.Button)
+            {
+                lastTouchPosition = obj.ReadValue<Vector2>();
+            }
+
+            // If the button is released, make 'touched' to false
+            if (obj.phase == InputActionPhase.Canceled)
+            {
+                touched = false;  
+            }
+            
             if (!_mAttemptEdit)
             {
-                ChessInteractive(obj);
+                m_AttemptSpawn = true;
+                ChessInteractive(lastTouchPosition, touched);
             }
             else
             {
-                ChessPlace(obj);   
+                m_AttemptSpawn = false;
+                ChessPlace(lastTouchPosition, touched);   
             }
         }
 
-        private void ChessInteractive(InputAction.CallbackContext obj)
+        private void ChessInteractive(Vector2 position, bool touched)
         {
             // Don't spawn the object if the tap was over screen space UI.
-            if (IsPointerOverUIObject(obj.ReadValue<Vector2>())) return;
+            if (IsPointerOverUIObject(position)) return;
             if (!m_ObjectInstance && !m_Chessboard) return;
-            m_Chessboard.ChessInteract(obj.ReadValue<Vector2>());
+            m_Chessboard.ChessInteract(position, touched);
         }
 
-        private void ChessPlace(InputAction.CallbackContext obj)
+        private void ChessPlace(Vector2 position, bool touched)
         {
             // Don't spawn the object if the tap was over screen space UI.
-            if (IsPointerOverUIObject(obj.ReadValue<Vector2>())) return;
+            if (IsPointerOverUIObject(position)) return;
             List<ARRaycastHit> hits = new List<ARRaycastHit>();
             // Check if raycast value hits on AR Plane
-            if (raycastManager.Raycast(obj.ReadValue<Vector2>(), hits, TrackableType.PlaneWithinPolygon))
+            if (raycastManager.Raycast(position, hits, TrackableType.PlaneWithinPolygon))
             {
                 foreach (var hit in hits)
                 {

@@ -782,6 +782,7 @@ MonoBehaviour:
   m_ARInteractor: {fileID: 459452144}
   m_ARFoundationObjectInput: {fileID: -5799998687924982782, guid: b2401c2900d924ce48e3a1cab60404ed, type: 3}
   m_SimulationObjectInput: {fileID: -5799998687924982782, guid: b2401c2900d924ce48e3a1cab60404ed, type: 3}
+  m_pressAndReleaseInput: {fileID: -5432363599215432243, guid: b2401c2900d924ce48e3a1cab60404ed, type: 3}
 --- !u!1 &371472087
 GameObject:
   m_ObjectHideFlags: 0
