@@ -198,6 +198,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Chess.Chessboard
   tileMaterial: {fileID: 2100000, guid: 8d19f7e8fe755487b889c3c554c42cab, type: 2}
+  deathSize: 0.5
+  deathDistance: 0.02
   prefabs:
   - {fileID: 7014084014938433599, guid: 3ce8bfa9967e9463b8202db064b73776, type: 3}
   - {fileID: 853143713618264420, guid: c82087933840b4a9bb0c35cdb689db3f, type: 3}
@@ -208,10 +210,9 @@ MonoBehaviour:
   teamMaterials:
   - {fileID: 2100000, guid: 02db725ab99bd422d86f8a4525459b62, type: 2}
   - {fileID: 2100000, guid: d32756e9d582446169050c19b3839353, type: 2}
-  inputActionReference: {fileID: -5432363599215432243, guid: b2401c2900d924ce48e3a1cab60404ed, type: 3}
   m_tileSize: 0.0375
   yOffset: 0.055
-  boardCenter: {x: -0.15, y: 0, z: -0.15}
+  boardCenter: {x: 0, y: 0, z: 0}
 --- !u!114 &8035476916194715064
 MonoBehaviour:
   m_ObjectHideFlags: 0

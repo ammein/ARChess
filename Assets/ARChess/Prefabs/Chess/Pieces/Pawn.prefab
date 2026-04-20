@@ -83,3 +83,5 @@ MonoBehaviour:
   type: 0
   waitDuration: 0.5
   duration: 2
+  movingDuration: 10
+  movingScale: 10

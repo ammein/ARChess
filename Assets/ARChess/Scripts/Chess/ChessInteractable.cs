@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using ARChess.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -26,6 +25,8 @@ namespace ARChess.Scripts.Chess
         private bool _mAttemptEdit;
         private Chessboard m_Chessboard;
         private Vector2 lastTouchPosition = Vector2.zero;
+        private bool holdButtonPressed;
+        private bool _grab;
         
         [Header("Raycast Settings")]
         [SerializeField]
@@ -50,13 +51,15 @@ namespace ARChess.Scripts.Chess
             set => m_AttemptSpawn = value;
         }
 
-        [Header("Input Actions")]
+        [Header("Tap Actions")]
         [SerializeField] 
         [Tooltip("For Spawn Chess Input")]
         InputActionReference m_ARFoundationObjectInput;
         [SerializeField]
         [Tooltip("For Spawn Chess Input in XR Simulation")]
         InputActionReference m_SimulationObjectInput;
+        
+        [Header("Hold Actions")]
         [SerializeField]
         [Tooltip("For Spawn Press & Release Input")]
         InputActionReference m_pressAndReleaseInput;
@@ -127,29 +130,28 @@ namespace ARChess.Scripts.Chess
 
         private void SpawnOrEdit(InputAction.CallbackContext obj)
         {
-            var touched = true;
-            
-            // Save lastTouchPosition if the action is not a button
             if (obj.action.type != InputActionType.Button)
             {
                 lastTouchPosition = obj.ReadValue<Vector2>();
             }
-
-            // If the button is released, make 'touched' to false
-            if (obj.phase == InputActionPhase.Canceled)
+            
+            if(obj.action.type == InputActionType.Button)
             {
-                touched = false;  
+                if (obj.ReadValue<float>() > 0)
+                    holdButtonPressed = true;
+                else if(obj.ReadValue<float>() == 0f || obj.canceled)
+                    holdButtonPressed = false;
             }
             
             if (!_mAttemptEdit)
             {
                 m_AttemptSpawn = true;
-                ChessInteractive(lastTouchPosition, touched);
+                ChessInteractive(lastTouchPosition, holdButtonPressed);
             }
             else
             {
                 m_AttemptSpawn = false;
-                ChessPlace(lastTouchPosition, touched);   
+                ChessPlace(lastTouchPosition, holdButtonPressed);   
             }
         }
 
@@ -199,7 +201,7 @@ namespace ARChess.Scripts.Chess
         {
             if (!m_ObjectInstance) return;
             m_ObjectInstance.TryGetComponent(out XRGrabInteractable interactable);
-            // Set Interaction Layer Mask to 'layerMask' so that it enable the grab interaction
+            // Set Interaction Layer Mask to 'layerMask'
             if (interactable && interactable.interactionLayers != LayerMask.GetMask(layerMask)) interactable.interactionLayers = LayerMask.GetMask(layerMask);
         }
 
@@ -207,7 +209,7 @@ namespace ARChess.Scripts.Chess
         {
             if (!m_ObjectInstance) return;
             m_ObjectInstance.TryGetComponent(out XRGrabInteractable interactable);
-            // Set Interaction Layer Mask to nothing so that it disable the grab interaction
+            // Set Interaction Layer Mask to index
             if (interactable && interactable.interactionLayers != layerMask) interactable.interactionLayers = layerMask;
         }
 
@@ -224,6 +226,7 @@ namespace ARChess.Scripts.Chess
                 }
                 _mAttemptEdit = true;
                 Grab("Chess");
+                _grab = true;
                 if(m_PlaceObject)
                     m_PlaceObject.ToggleContact(true);
                 if(m_Chessboard)
@@ -240,6 +243,7 @@ namespace ARChess.Scripts.Chess
                 _arPlaneManager.enabled = false;
                 _mAttemptEdit = false;
                 Grab(0);
+                _grab = false;
                 if(m_PlaceObject)
                     m_PlaceObject.ToggleContact(false);
                 if(m_Chessboard)

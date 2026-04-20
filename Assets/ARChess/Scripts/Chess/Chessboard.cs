@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
 using UnityEngine;
@@ -7,11 +8,21 @@ using ARChess.Scripts.Utility;
 
 namespace ARChess.Scripts.Chess
 {
+    public enum Piece
+    {
+        
+    }
+    
     public class Chessboard : MonoBehaviour
     {
         [Header("Art Stuff")] 
         [SerializeField] 
         private Material tileMaterial;
+        [SerializeField] 
+        [Range(0.01f, 1f)] 
+        private float deathSize = 0.3f;
+        [SerializeField]
+        private float deathDistance = 0.3f;
 
         [Header("Prefabs & Materials")]
         [SerializeField] private GameObject[] prefabs;
@@ -31,6 +42,9 @@ namespace ARChess.Scripts.Chess
         private GameObject ChessVisuals;
         private GameObject ChessAttach;
         private Vector3 bounds;
+        private bool _isDragging;
+        private List<ChessPiece> deadWhites = new List<ChessPiece>();
+        private List<ChessPiece> deadBlacks = new List<ChessPiece>();
         
         [Header("Chess Settings")]
         [SerializeField]
@@ -70,16 +84,20 @@ namespace ARChess.Scripts.Chess
             currentCamera = Camera.main;
             
             // Generate All Tiles
-            GenerateAllTiles(m_tileSize);
+            bool generated = GenerateAllTiles(m_tileSize);
+
+
+            if (generated)
+            {
+                // Spawn All Pieces
+                SpawnAllPieces();
             
-            // Spawn All Pieces
-            SpawnAllPieces();
+                // Position All Pieces
+                PositionAllPieces();
             
-            // Position All Pieces
-            PositionAllPieces();
-            
-            // Animate Pieces to appear
-            AnimateAllPiece();
+                // Animate Pieces to appear
+                AnimateAllPiece();   
+            }
         }
 
         private void Start()
@@ -140,27 +158,37 @@ namespace ARChess.Scripts.Chess
 
                 if (touched)
                 {
-                    Log.LogThis($"Screen Touched: {touched}", this);
+                    Log.LogThis($"Screen Touched", this);
                     if (chessPieces[hitPosition.x, hitPosition.y] != null)
                     {
                         // Is it our turn?
-                        if (true)
+                        if (true && currentlyDragging == null)
                         {
                             currentlyDragging = chessPieces[hitPosition.x, hitPosition.y];
                         }
                     }
-                }
-
+                } 
+                
                 if (currentlyDragging != null && !touched)
                 {
-                    Log.LogThis($"Screen Touched Released: {touched}", this);
+                    Log.LogThis($"Screen Released", this);
+                    
+                    if (tiles[hitPosition.x, hitPosition.y])
+                    {
+                        Log.LogThis($"Moving previously dragged: {currentlyDragging} to tile hitPosition: {tiles[hitPosition.x, hitPosition.y].name}", this);
+                    }
                     
                     Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
                     
                     bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
                     if (!validMove)
                     {
-                        currentlyDragging.transform.position = GetTileCenter(previousPosition.x, previousPosition.y);
+                        Log.LogThis("Invalid move",  this);
+                        currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                        currentlyDragging = null;
+                    }
+                    else
+                    {
                         currentlyDragging = null;
                     }
                 }
@@ -168,10 +196,18 @@ namespace ARChess.Scripts.Chess
             }
             else
             {
-                if (currentHover == -Vector2Int.one) return;
-                tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
-                currentHover = -Vector2Int.one;
+                if (currentHover != -Vector2Int.one)
+                {
+                    tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
+                    tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
+                    currentHover = -Vector2Int.one;   
+                }
+
+                if (currentlyDragging && !touched)
+                {
+                    currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY));
+                    currentlyDragging = null;
+                }
             }
         }
 
@@ -184,43 +220,35 @@ namespace ARChess.Scripts.Chess
             tilesBounds = new GameObject[tileCountX, tileCountY];
 
             // Calculate half the total size to center the chessboard
-            float halfWidth = ((float)tileCountX * tileSize) / 2f;
-            float halfHeight = ((float)tileCountY * tileSize) / 2f;
-            
-            bounds = new Vector3(halfWidth, 0, halfHeight) + boardCenter;
+            bounds = new Vector3(((float)tileCountX / 2f) * tileSize, 0, ((float)tileCountX / 2f) * tileSize) + boardCenter;
 
-            for (int x = 0; x < tileCountX; x++)
+            try
             {
-                for (int y = 0; y < tileCountY; y++)
+                for (int x = 0; x < tileCountX; x++)
                 {
-                    // Calculate the position to center the tiles
-                    float posX = (x * tileSize) - halfWidth + (tileSize / 2f);
-                    float posY = (y * tileSize) - halfHeight + (tileSize / 2f);
-
-                    tiles[x, y] = GenerateSingleTiles(tileSize, x, y, posX, posY);
+                    for (int y = 0; y < tileCountY; y++)
+                    {
+                        GenerateSingleTiles(tileSize, x, y);
+                    }
                 }
-            }
 
-            AddChessBound(tiles, tileCountX, tileCountY);
+                AddChessBound(tiles, tileCountX, tileCountY);
 
-            for (int x = 0; x < tileCountX; x++)
-            {
-                for (int y = 0; y < tileCountY; y++)
+                // Add Collider into XR Grab Interactable
+                XRGrabInteractable interactable = gameObject.GetComponent<XRGrabInteractable>();
+                if (interactable != null)
                 {
-                    GenerateBoundsBoxCollider(tiles[x, y], x, y);
+                    interactable.colliders.Add(ChessAttach.GetComponent<BoxCollider>());
+                    interactable.predictedVisualsTransform = ChessVisuals.transform;
+                    StartCoroutine(ReregisterInteractable(interactable));
                 }
-            }
 
-            // Add Collider into XR Grab Interactable
-            XRGrabInteractable interactable = gameObject.GetComponent<XRGrabInteractable>();
-            if (interactable != null)
+                return true;
+            }
+            catch (System.Exception)
             {
-                interactable.colliders.Add(ChessAttach.GetComponent<BoxCollider>());
-                interactable.predictedVisualsTransform = ChessVisuals.transform;
-                StartCoroutine(ReregisterInteractable(interactable));
+                return false;
             }
-
-            return true;
         }
         
         /// <summary>
@@ -280,73 +308,53 @@ namespace ARChess.Scripts.Chess
             chessCollider.providesContacts = true;
         }
 
-        private void GenerateBoundsBoxCollider(GameObject tileObject, int x, int y)
+        private void GenerateSingleTiles(float tileSize, int x, int y)
         {
-            GameObject tileBounds = new GameObject(string.Format("X:{0} Y:{1}", x, y));
-            
-            tileBounds.transform.SetParent(ChessTiles.transform);
-            
-            Mesh mesh = tileObject.GetComponent<MeshFilter>().mesh;
-            
-            tileBounds.AddComponent<MeshFilter>().mesh = mesh;
-            tileBounds.AddComponent<MeshRenderer>().material = tileMaterial;
-            
-            // Whenever the camera is assign to "Tile" layer, the object will change the layer into Tile
-            tileBounds.layer = LayerMask.NameToLayer("Tile");
-            // Add Box Collider Component
-            BoxCollider boxCollider = tileBounds.AddComponent<BoxCollider>();
-            tileBounds.transform.position = tileObject.transform.position;
-            tilesBounds[x, y] = tileBounds;
-            boxCollider.isTrigger = true;
-        }
-
-        private GameObject GenerateSingleTiles(float tileSize, int x, int y, float posX, float posY)
-        {
+            // Create Visual Tile
             GameObject tileObject = new GameObject(string.Format("Tile: ({0}, {1})", x, y));
-
-            // Set tile gameobject as children of ChessTiles gameobject
             tileObject.transform.SetParent(ChessVisuals.transform);
-            tileObject.transform.position = new Vector3(posX, 0, posY);
-            
             tileObject.layer = LayerMask.NameToLayer("Visual Tile");
 
             Mesh mesh = new Mesh();
     
-            // Add Meshes and Materials
             tileObject.AddComponent<MeshFilter>().mesh = mesh;
             tileObject.AddComponent<MeshRenderer>().material = tileMaterial;
 
-            // Calculate half the tile size
-            float halfTileSize = tileSize / 2.0f;
-
-            // Define vertices with height
             Vector3[] vertices = new Vector3[4];
-            vertices[0] = new Vector3(-halfTileSize, yOffset, -halfTileSize) - bounds; // Bottom-left
-            vertices[1] = new Vector3(-halfTileSize, yOffset, halfTileSize) - bounds;  // Top-left
-            vertices[2] = new Vector3(halfTileSize, yOffset, -halfTileSize) - bounds;   // Bottom-right
-            vertices[3] = new Vector3(halfTileSize, yOffset, halfTileSize) - bounds;    // Top-right
+            vertices[0] = new Vector3(x * tileSize , yOffset, y * tileSize) - bounds;
+            vertices[1] = new Vector3(x * tileSize, yOffset, (y + 1) * tileSize) - bounds;
+            vertices[2] = new Vector3((x + 1) * tileSize, yOffset, y * tileSize) - bounds;
+            vertices[3] = new Vector3((x + 1) * tileSize, yOffset, (y + 1) * tileSize) - bounds;
 
-            // Assign Index on vertices like (0 -> 1 -> 2) & (1 -> 3 -> 2)
             int[] tris = new int[] { 0, 1, 2, 1, 3, 2 };
-            
-            // Define UV coordinates (matching the same approach as GenerateBoundsBoxCollider)
+    
             Vector2[] uvs = new Vector2[4];
-            uvs[0] = new Vector2(0f, 0f);  // Bottom-left
-            uvs[1] = new Vector2(0f, 1f);  // Top-left
-            uvs[2] = new Vector2(1f, 0f);  // Bottom-right
-            uvs[3] = new Vector2(1f, 1f);  // Top-right
+            uvs[0] = new Vector2(0f, 0f);
+            uvs[1] = new Vector2(0f, 1f);
+            uvs[2] = new Vector2(1f, 0f);
+            uvs[3] = new Vector2(1f, 1f);
 
-            // Assign to mesh
             mesh.vertices = vertices;
             mesh.triangles = tris;
             mesh.uv = uvs;
-
-            // Set a height for the tiles
             mesh.RecalculateNormals();
-            mesh.RecalculateTangents(); // Ensure the edges of the UV is calculated so that emissive is affected on tangents space
-            mesh.RecalculateBounds(); // Ensure the bounds are recalculated
+            mesh.RecalculateTangents();
+            mesh.RecalculateBounds();
 
-            return tileObject;
+            tiles[x, y] = tileObject;
+
+            // Create Bounds Tile
+            GameObject tileBounds = new GameObject(string.Format("X:{0} Y:{1}", x, y));
+            tileBounds.transform.SetParent(ChessTiles.transform);
+            tileBounds.AddComponent<MeshFilter>().mesh = mesh;
+            tileBounds.AddComponent<MeshRenderer>().material = tileMaterial;
+            tileBounds.layer = LayerMask.NameToLayer("Tile");
+            tileBounds.transform.position = tileObject.transform.position;
+    
+            BoxCollider boxCollider = tileBounds.AddComponent<BoxCollider>();
+            boxCollider.isTrigger = true;
+    
+            tilesBounds[x, y] = tileBounds;
         }
         
         public void ToggleContact(bool toggle)
@@ -366,42 +374,48 @@ namespace ARChess.Scripts.Chess
         {
             chessPieces = new ChessPiece[TILE_COUNT_X, TILE_COUNT_Y];
 
-            int whiteTeam = 0, blackTeam = 1;
-            
-            // White team
-            chessPieces[0, 0] = SpawnSinglePiece(ChessPieceType.Rook, whiteTeam);
-            chessPieces[1, 0] = SpawnSinglePiece(ChessPieceType.Knight, whiteTeam);
-            chessPieces[2, 0] = SpawnSinglePiece(ChessPieceType.Bishop, whiteTeam);
-            chessPieces[3, 0] = SpawnSinglePiece(ChessPieceType.Queen, whiteTeam);
-            chessPieces[4, 0] = SpawnSinglePiece(ChessPieceType.King, whiteTeam);
-            chessPieces[5, 0] = SpawnSinglePiece(ChessPieceType.Bishop, whiteTeam);
-            chessPieces[6, 0] = SpawnSinglePiece(ChessPieceType.Knight, whiteTeam);
-            chessPieces[7, 0] = SpawnSinglePiece(ChessPieceType.Rook, whiteTeam);
-
-            for (int i = 0; i < TILE_COUNT_X; i++)
+            // Arrange by materials to assign team dynamically
+            for (int team = 0; team < teamMaterials.Length; team++)
             {
-                chessPieces[i, 1] =  SpawnSinglePiece(ChessPieceType.Pawn, whiteTeam);
-            }
-            
-            // Black team
-            chessPieces[0, 7] = SpawnSinglePiece(ChessPieceType.Rook, blackTeam);
-            chessPieces[1, 7] = SpawnSinglePiece(ChessPieceType.Knight, blackTeam);
-            chessPieces[2, 7] = SpawnSinglePiece(ChessPieceType.Bishop, blackTeam);
-            chessPieces[3, 7] = SpawnSinglePiece(ChessPieceType.Queen, blackTeam);
-            chessPieces[4, 7] = SpawnSinglePiece(ChessPieceType.King, blackTeam);
-            chessPieces[5, 7] = SpawnSinglePiece(ChessPieceType.Bishop, blackTeam);
-            chessPieces[6, 7] = SpawnSinglePiece(ChessPieceType.Knight, blackTeam);
-            chessPieces[7, 7] = SpawnSinglePiece(ChessPieceType.Rook, blackTeam);
-
-            for (int i = 0; i < TILE_COUNT_X; i++)
-            {
-                chessPieces[i, 6] =  SpawnSinglePiece(ChessPieceType.Pawn, blackTeam);
+                for (int x = 0; x < TILE_COUNT_X; x++)
+                {
+                    switch (x)
+                    {
+                        case 0:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Rook, team);
+                            goto default;
+                        case 1:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Knight, team);
+                            goto default;
+                        case 2:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Bishop, team);
+                            goto default;
+                        case 3:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Queen, team);
+                            goto default;
+                        case 4:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.King, team);
+                            goto default;
+                        case 5:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Bishop, team);
+                            goto default;
+                        case 6:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Knight, team);
+                            goto default;
+                        case 7:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Rook, team);
+                            goto default;
+                        default:
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 2 : 1] =  SpawnSinglePiece(ChessPieceType.Pawn, team);
+                            break;
+                    }
+                }
             }
         }
 
         private ChessPiece SpawnSinglePiece(ChessPieceType type, int team)
         {
-            ChessPiece cp = Instantiate(prefabs[(int)type - 1], transform).GetComponent<ChessPiece>();
+            ChessPiece cp = Instantiate(prefabs[(int)type - 1], ChessVisuals.transform).GetComponent<ChessPiece>();
             
             cp.type = type;
             cp.team = team;
@@ -423,9 +437,8 @@ namespace ARChess.Scripts.Chess
         {
             chessPieces[x, y].currentX = x;
             chessPieces[x, y].currentY = y;
-            chessPieces[x, y].transform.position = GetTileCenter(x, y);
+            chessPieces[x, y].SetPosition(GetTileCenter(x, y), force);
         }
-
 
         private void AnimateAllPiece()
         {
@@ -437,10 +450,7 @@ namespace ARChess.Scripts.Chess
 
         private Vector3 GetTileCenter(int x, int y)
         {
-            float halfWidth = ((float)TILE_COUNT_X * m_tileSize) / 2f;
-            float halfHeight = ((float)TILE_COUNT_Y * m_tileSize) / 2f;
-            
-            return new Vector3((x * m_tileSize) - halfWidth, yOffset, (y * m_tileSize) - halfHeight) - bounds + new Vector3(m_tileSize / 2, 0, m_tileSize / 2);
+            return new Vector3(x * m_tileSize, yOffset, y * m_tileSize) - bounds + new Vector3(m_tileSize / 2, 0, m_tileSize / 2);
         }
 
         // Operations
@@ -457,6 +467,33 @@ namespace ARChess.Scripts.Chess
         private bool MoveTo(ChessPiece cp, int x, int y)
         {
             Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
+
+            // Is there another piece in target position?
+            if (chessPieces[x, y] != null)
+            {
+                ChessPiece ocp = chessPieces[x, y];
+
+                if (cp.team == ocp.team)
+                    return false;
+                
+                // If it's the enemy team
+                if (ocp.team == 0)
+                {
+                    deadWhites.Add(ocp);
+                    ocp.SetScale(Vector3.one * deathSize);
+                    ocp.SetPosition(
+                        new Vector3(8f * m_tileSize, yOffset, -1 * m_tileSize) // Outside of bounds
+                        - bounds // Center of the board properly
+                        + new Vector3(m_tileSize / 2, 0, m_tileSize / 2) // Center of square
+                        + (Vector3.forward * deathDistance) * deadWhites.Count // Direction of the count
+                        );
+                }
+                else
+                {
+                    deadBlacks.Add(ocp);
+                    ocp.SetScale(Vector3.one * deathSize);
+                }
+            }
             
             chessPieces[x, y] = cp;
             chessPieces[previousPosition.x, previousPosition.y] = null;

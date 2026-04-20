@@ -36,14 +36,20 @@ namespace ARChess.Scripts.Chess.Pieces
         [Tooltip("The type of chess piece")]
         public ChessPieceType type;
         
-        [Header("Material Piece Shader Animation")]
+        [Header("Material Piece Appear Animation")]
         [Tooltip("Wait duration before animate")]
         public float waitDuration;
         [Tooltip("Duration of material shader for '_Appear' reference")]
         public float duration;
+
+        [Header("Lerp Animation")]
+        [Tooltip("Lerp duration to animate moving piece")]
+        public float movingDuration;
+        [Tooltip("Lerp duration to animate scale piece")]
+        public float movingScale;
     
         private Vector3 _desiredPosition;
-        private Vector3 _desiredScale;
+        private Vector3 _desiredScale = Vector3.one;
         private Renderer _renderer;
         private Coroutine _appearCoroutine;
         private Appearance _appear = Appearance.Dissappear;
@@ -57,22 +63,46 @@ namespace ARChess.Scripts.Chess.Pieces
         public void Start()
         {
             _renderer = GetComponent<Renderer>();
+            
+            // When a piece is instantiated, always set material to 'Appear' so that the transparent material shader is initialize...
+            SetKeyWord("_APPEARANCE_STATE", Appearance.Appear);
         }
 
+        private void Update()
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, _desiredPosition, Time.deltaTime * movingDuration);
+            transform.localScale = Vector3.Lerp(transform.localScale, _desiredScale, Time.deltaTime * movingScale);
+        }
+        
+        // Operations
+        public virtual void SetPosition(Vector3 position, bool force = false)
+        {
+            _desiredPosition = position;
+            
+            if(force)
+                transform.localPosition = _desiredPosition;
+        }
+        
+        public virtual void SetScale(Vector3 scale, bool force = false)
+        {
+            _desiredScale = scale;
+            
+            if(force)
+                transform.localScale = _desiredScale;
+        }
+        
+        // Animations
         public void AppearPiece(string propertyName)
         {
             if(_appearCoroutine != null)
                 StopCoroutine(_appearCoroutine);
-
-            _appear = Appearance.Appear;
+            
             _appearCoroutine = StartCoroutine(AppearPieceAnimation(propertyName));
         }
 
         private IEnumerator AppearPieceAnimation(string propertyName)
         {
             yield return new WaitForEndOfFrame();
-            // Set enum as a float value instead of keyword
-            SetKeyWord("_APPEARANCE_STATE", Appearance.Appear);
             CheckShaderKeywordState("_APPEARANCE_STATE");
             yield return new WaitForSeconds(waitDuration);
             float time = 0;
@@ -87,11 +117,14 @@ namespace ARChess.Scripts.Chess.Pieces
             _renderer.material.SetFloat(propertyName, 1f);
         }
         
+        // Utility
         private void SetKeyWord<T>(string parameterBaseName, T selectedKeyword) where T: Enum
         {
             var shader = _renderer.material.shader;
             var keywordSpace = shader.keywordSpace;
             var keywords = Enum.GetValues(typeof(T));
+            
+            _appear = Enum.Parse<Appearance>(selectedKeyword.ToString());
 
             // Step 1: Disable ALL keywords first
             foreach (LocalKeyword keyword in keywordSpace.keywords)
@@ -114,7 +147,6 @@ namespace ARChess.Scripts.Chess.Pieces
                 }
             }
         }
-
         
         void CheckShaderKeywordState(string keyword = "")
         {
