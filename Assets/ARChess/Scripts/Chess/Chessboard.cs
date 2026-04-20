@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
 using UnityEngine;
@@ -8,13 +10,17 @@ using ARChess.Scripts.Utility;
 
 namespace ARChess.Scripts.Chess
 {
-    public enum Piece
-    {
-        
-    }
-    
+
     public class Chessboard : MonoBehaviour
     {
+        [Serializable]
+        public struct Piece
+        {
+            public GameObject prefabs;
+            public ChessPiece.AppearanceState[] appearance;
+            public ChessPieceType type;
+        }
+        
         [Header("Art Stuff")] 
         [SerializeField] 
         private Material tileMaterial;
@@ -23,9 +29,11 @@ namespace ARChess.Scripts.Chess
         private float deathSize = 0.3f;
         [SerializeField]
         private float deathDistance = 0.3f;
+        [SerializeField]
+        private float dragOffset = 1.5f;
 
         [Header("Prefabs & Materials")]
-        [SerializeField] private GameObject[] prefabs;
+        [SerializeField] List<Piece> pieces = new List<Piece>();
         [SerializeField] private Material[] teamMaterials;
         
         // LOGIC
@@ -209,6 +217,23 @@ namespace ARChess.Scripts.Chess
                     currentlyDragging = null;
                 }
             }
+            
+            // If dragging a piece
+            if (currentlyDragging != null)
+            {
+                Plane horizontalPlane = new Plane(Vector3.up, Vector3.up * yOffset);
+                float distance = 0.0f;
+    
+                if (horizontalPlane.Raycast(ray, out distance))
+                {
+                    Vector3 worldPosition = ray.GetPoint(distance) + Vector3.up * dragOffset;
+        
+                    // Convert world position to local position relative to the piece's parent
+                    Vector3 localPosition = currentlyDragging.transform.parent.InverseTransformPoint(worldPosition);
+        
+                    currentlyDragging.SetPosition(localPosition);
+                }
+            }
         }
 
         // Generate the board
@@ -382,42 +407,51 @@ namespace ARChess.Scripts.Chess
                     switch (x)
                     {
                         case 0:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Rook, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.Rook), team);
                             goto default;
                         case 1:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Knight, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.Knight), team);
                             goto default;
                         case 2:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Bishop, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.Bishop), team);
                             goto default;
                         case 3:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Queen, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.Queen), team);
                             goto default;
                         case 4:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.King, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.King), team);
                             goto default;
                         case 5:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Bishop, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.Bishop), team);
                             goto default;
                         case 6:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Knight, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.Knight), team);
                             goto default;
                         case 7:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(ChessPieceType.Rook, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 1 : 0] = SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.Rook), team);
                             goto default;
                         default:
-                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 2 : 1] =  SpawnSinglePiece(ChessPieceType.Pawn, team);
+                            chessPieces[x, team > 0 ? TILE_COUNT_Y - 2 : 1] =  SpawnSinglePiece(pieces.Find(x => x.type == ChessPieceType.Pawn), team);
                             break;
                     }
                 }
             }
         }
 
-        private ChessPiece SpawnSinglePiece(ChessPieceType type, int team)
+        private ChessPiece SpawnSinglePiece(Piece piece, int team)
         {
-            ChessPiece cp = Instantiate(prefabs[(int)type - 1], ChessVisuals.transform).GetComponent<ChessPiece>();
+            ChessPiece cp = Instantiate(piece.prefabs, ChessVisuals.transform).GetComponent<ChessPiece>();
+            List<ChessPiece.AppearanceState> appearance = new List<ChessPiece.AppearanceState>();
+            ChessPiece.AppearanceState[] appearanceState = piece.appearance;
+
+            foreach (ChessPiece.AppearanceState state in appearanceState)
+            {
+                Log.LogThis($"Piece: {piece.prefabs.gameObject.name}\nAppearance: {state.appearance} \nDuration: {state.duration}", this);
+                appearance.Add(state);
+            }
+            cp.appearance = appearance;
             
-            cp.type = type;
+            cp.type = piece.type;
             cp.team = team;
             
             cp.GetComponent<MeshRenderer>().material = teamMaterials[team];
@@ -445,7 +479,12 @@ namespace ARChess.Scripts.Chess
             for (int x = 0; x < TILE_COUNT_X; x++)
                 for (int y = 0; y < TILE_COUNT_Y; y++)
                     if (chessPieces[x, y] != null)
-                        chessPieces[x, y].AppearPiece("_Progress");
+                    {
+                        float duration = chessPieces[x, y].appearance
+                            .Find(match => match.appearance.Equals(Appearance.Appear)).duration;
+                        chessPieces[x, y].AppearPiece("_Progress", duration, b => {});
+                    }
+                        
         }
 
         private Vector3 GetTileCenter(int x, int y)
@@ -480,18 +519,42 @@ namespace ARChess.Scripts.Chess
                 if (ocp.team == 0)
                 {
                     deadWhites.Add(ocp);
-                    ocp.SetScale(Vector3.one * deathSize);
-                    ocp.SetPosition(
-                        new Vector3(8f * m_tileSize, yOffset, -1 * m_tileSize) // Outside of bounds
-                        - bounds // Center of the board properly
-                        + new Vector3(m_tileSize / 2, 0, m_tileSize / 2) // Center of square
-                        + (Vector3.forward * deathDistance) * deadWhites.Count // Direction of the count
-                        );
+                    float destroyedDuration = ocp.appearance.Find(match => match.appearance.Equals(Appearance.Destroyed)).duration;
+                    ocp.DestroyPiece("_Progress", destroyedDuration, b =>
+                    {
+                        if (b)
+                        {
+                            ocp.SetScale(Vector3.one * deathSize);
+                            ocp.SetPosition(
+                                new Vector3(8f * m_tileSize, yOffset, -1f * m_tileSize) // Outside of bounds
+                                - bounds // Center of the board properly
+                                + new Vector3(m_tileSize / 2, 0, m_tileSize / 2) // Center of square
+                                + (Vector3.forward * deathDistance) * deadWhites.Count // Direction of the count
+                            );
+                            float appearDuration = ocp.appearance.Find(match => match.appearance.Equals(Appearance.Appear)).duration;
+                            ocp.AppearPiece("_Progress", appearDuration, b => {});
+                        }
+                    });
                 }
                 else
                 {
                     deadBlacks.Add(ocp);
-                    ocp.SetScale(Vector3.one * deathSize);
+                    float destroyedDuration = ocp.appearance.Find(match => match.appearance.Equals(Appearance.Destroyed)).duration;
+                    ocp.DestroyPiece("_Progress", destroyedDuration, b =>
+                    {
+                        if (b)
+                        {
+                            ocp.SetScale(Vector3.one * deathSize);
+                            ocp.SetPosition(
+                                new Vector3(-1f * m_tileSize, yOffset, 8f * m_tileSize) // Outside of bounds
+                                - bounds // Center of the board properly
+                                + new Vector3(m_tileSize / 2, 0, m_tileSize / 2) // Center of square
+                                + (Vector3.back * deathDistance) * deadBlacks.Count // Direction of the count
+                            );
+                            float appearDuration = ocp.appearance.Find(match => match.appearance.Equals(Appearance.Appear)).duration;
+                            ocp.AppearPiece("_Progress", appearDuration, b => {});
+                        }
+                    });
                 }
             }
             

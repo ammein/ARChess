@@ -200,13 +200,62 @@ MonoBehaviour:
   tileMaterial: {fileID: 2100000, guid: 8d19f7e8fe755487b889c3c554c42cab, type: 2}
   deathSize: 0.5
   deathDistance: 0.02
-  prefabs:
-  - {fileID: 7014084014938433599, guid: 3ce8bfa9967e9463b8202db064b73776, type: 3}
-  - {fileID: 853143713618264420, guid: c82087933840b4a9bb0c35cdb689db3f, type: 3}
-  - {fileID: 6959614969642995436, guid: ee594bd0674d54e0f8ea136babf88b06, type: 3}
-  - {fileID: 393098336855661126, guid: aab313244b8754b22bb74ff1bfba7452, type: 3}
-  - {fileID: 5434149931290550590, guid: 9ec3fb058d60241938429b56f19e9956, type: 3}
-  - {fileID: 8319739882674849552, guid: 86cf7b52d997c4de9bc22ebdf1ff899b, type: 3}
+  dragOffset: 0.1
+  pieces:
+  - prefabs: {fileID: 853143713618264420, guid: c82087933840b4a9bb0c35cdb689db3f, type: 3}
+    appearance:
+    - appearance: 0
+      duration: 1.5
+    - appearance: 1
+      duration: 1
+    - appearance: 2
+      duration: 0.5
+    type: 2
+  - prefabs: {fileID: 6959614969642995436, guid: ee594bd0674d54e0f8ea136babf88b06, type: 3}
+    appearance:
+    - appearance: 0
+      duration: 1.5
+    - appearance: 1
+      duration: 1.4
+    - appearance: 0
+      duration: 0.5
+    type: 3
+  - prefabs: {fileID: 393098336855661126, guid: aab313244b8754b22bb74ff1bfba7452, type: 3}
+    appearance:
+    - appearance: 0
+      duration: 1.5
+    - appearance: 1
+      duration: 1.8
+    - appearance: 2
+      duration: 0.5
+    type: 4
+  - prefabs: {fileID: 5434149931290550590, guid: 9ec3fb058d60241938429b56f19e9956, type: 3}
+    appearance:
+    - appearance: 0
+      duration: 1.5
+    - appearance: 1
+      duration: 2
+    - appearance: 2
+      duration: 0.5
+    type: 5
+  - prefabs: {fileID: 6959614969642995436, guid: ee594bd0674d54e0f8ea136babf88b06, type: 3}
+    appearance:
+    - appearance: 0
+      duration: 1.5
+    - appearance: 1
+      duration: 2
+    - appearance: 2
+      duration: 0.5
+    type: 6
+  - prefabs: {fileID: 7014084014938433599, guid: 3ce8bfa9967e9463b8202db064b73776, type: 3}
+    appearance:
+    - appearance: 0
+      duration: 1.5
+    - appearance: 1
+      duration: 0.5
+    - appearance: 2
+      duration: 0.5
+    type: 1
   teamMaterials:
   - {fileID: 2100000, guid: 02db725ab99bd422d86f8a4525459b62, type: 2}
   - {fileID: 2100000, guid: d32756e9d582446169050c19b3839353, type: 2}

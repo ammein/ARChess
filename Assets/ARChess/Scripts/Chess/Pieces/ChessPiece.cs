@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using ARChess.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,12 +20,20 @@ namespace ARChess.Scripts.Chess.Pieces
     
     public enum Appearance
     {
-        Dissappear = 0,
-        Appear = 1
+        Disappear = 0,
+        Appear = 1,
+        Destroyed = 2
     }
 
     public class ChessPiece : MonoBehaviour
     {
+
+        [Serializable]
+        public class AppearanceState
+        {
+            public Appearance appearance;
+            public float duration;
+        }
         
         [Header("Chess Piece")]
         [Tooltip("The index of team piece")]
@@ -35,12 +44,8 @@ namespace ARChess.Scripts.Chess.Pieces
         public int currentY;
         [Tooltip("The type of chess piece")]
         public ChessPieceType type;
-        
-        [Header("Material Piece Appear Animation")]
-        [Tooltip("Wait duration before animate")]
-        public float waitDuration;
-        [Tooltip("Duration of material shader for '_Appear' reference")]
-        public float duration;
+        [HideInInspector]
+        public List<AppearanceState> appearance = new List<AppearanceState>();
 
         [Header("Lerp Animation")]
         [Tooltip("Lerp duration to animate moving piece")]
@@ -52,9 +57,11 @@ namespace ARChess.Scripts.Chess.Pieces
         private Vector3 _desiredScale = Vector3.one;
         private Renderer _renderer;
         private Coroutine _appearCoroutine;
-        private Appearance _appear = Appearance.Dissappear;
+        private Coroutine _disappearCoroutine;
+        private Coroutine _destroyedCoroutine;
+        private Appearance _appear = Appearance.Disappear;
 
-        public Appearance Appearance
+        public Appearance GetAppearance
         {
             get => _appear;
             set => _appear = value;
@@ -92,19 +99,19 @@ namespace ARChess.Scripts.Chess.Pieces
         }
         
         // Animations
-        public void AppearPiece(string propertyName)
+        public void AppearPiece(string propertyName, float duration, System.Action<bool> callback)
         {
             if(_appearCoroutine != null)
                 StopCoroutine(_appearCoroutine);
             
-            _appearCoroutine = StartCoroutine(AppearPieceAnimation(propertyName));
+            _appearCoroutine = StartCoroutine(AppearPieceAnimation(propertyName,  duration, callback));
         }
 
-        private IEnumerator AppearPieceAnimation(string propertyName)
+        private IEnumerator AppearPieceAnimation(string propertyName, float duration, System.Action<bool> callback)
         {
+            callback?.Invoke(false);
             yield return new WaitForEndOfFrame();
             CheckShaderKeywordState("_APPEARANCE_STATE");
-            yield return new WaitForSeconds(waitDuration);
             float time = 0;
             while (time < duration)
             {
@@ -115,6 +122,61 @@ namespace ARChess.Scripts.Chess.Pieces
             }
             
             _renderer.material.SetFloat(propertyName, 1f);
+            
+            callback?.Invoke(true);
+        }
+
+        public void DisappearPiece(string propertyName, float duration, System.Action<bool> callback)
+        {
+            if(_disappearCoroutine != null)
+                StopCoroutine(_disappearCoroutine);
+            
+            _disappearCoroutine = StartCoroutine(DisappearPieceAnimation(propertyName, duration, callback));
+        }
+
+        private IEnumerator DisappearPieceAnimation(string propertyName, float duration, System.Action<bool> callback)
+        {
+            callback?.Invoke(false);
+            yield return new WaitForEndOfFrame();
+            CheckShaderKeywordState("_APPEARANCE_STATE");
+            float time = 0;
+            while (time < duration)
+            {
+                float lerpValue = Mathf.Lerp(1f, 0f, time / duration);
+                _renderer.material.SetFloat(propertyName, Mathf.Clamp(lerpValue, 0f, 1f));
+                time += Time.deltaTime;
+                yield return null;
+            }
+            _renderer.material.SetFloat(propertyName, 0f);
+            
+            callback?.Invoke(true);
+        }
+
+        public void DestroyPiece(string propertyName, float duration, System.Action<bool> callback)
+        {
+            if(_destroyedCoroutine != null)
+                StopCoroutine(_destroyedCoroutine);
+
+            _destroyedCoroutine = StartCoroutine(DestroyPieceAnimation(propertyName, duration, callback));
+        }
+
+        private IEnumerator DestroyPieceAnimation(string propertyName, float duration, System.Action<bool> callback)
+        {
+            callback?.Invoke(false);
+            yield return new WaitForEndOfFrame();
+            CheckShaderKeywordState("_APPEARANCE_STATE");
+            float time = 0;
+            while (time < duration)
+            {
+                float lerpValue = Mathf.Lerp(1f, 0f, time / duration);
+                _renderer.material.SetFloat(propertyName, Mathf.Clamp(lerpValue, 0f, 1f));
+                time += Time.deltaTime;
+                yield return null;
+            }
+            
+            _renderer.material.SetFloat(propertyName, 0f);
+
+            callback?.Invoke(true);
         }
         
         // Utility
