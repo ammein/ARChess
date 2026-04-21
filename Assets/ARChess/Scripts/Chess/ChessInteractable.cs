@@ -25,8 +25,8 @@ namespace ARChess.Scripts.Chess
         private bool _mAttemptEdit;
         private Chessboard m_Chessboard;
         private Vector2 lastTouchPosition = Vector2.zero;
-        private bool holdButtonPressed;
-        private bool _grab;
+        private bool _holdButtonPressed;
+        private bool _isDragging;
         
         [Header("Raycast Settings")]
         [SerializeField]
@@ -83,29 +83,34 @@ namespace ARChess.Scripts.Chess
         void OnEnable()
         {
             #if UNITY_EDITOR && AR_COMPANION
-            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.Enable();
             #elif UNITY_EDITOR
-            m_SimulationObjectInput.action.performed += SpawnOrEdit;
+            m_SimulationObjectInput.action.Enable();
             #else
-            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.Enable();
             #endif
-            
-            m_pressAndReleaseInput.action.performed += SpawnOrEdit;
-            m_pressAndReleaseInput.action.canceled += SpawnOrEdit;
+
+            m_pressAndReleaseInput.action.Enable();
         }
 
         void OnDisable()
         {
             #if UNITY_EDITOR && AR_COMPANION
-            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit;
+            m_ARFoundationObjectInput.action.Disable();
             #elif UNITY_EDITOR
-            m_SimulationObjectInput.action.performed -= SpawnOrEdit;
+            m_SimulationObjectInput.action.Disable();
             #else
-            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit;
+            m_ARFoundationObjectInput.action.Disable();
             #endif
             
-            m_pressAndReleaseInput.action.performed -= SpawnOrEdit;
-            m_pressAndReleaseInput.action.canceled -= SpawnOrEdit;
+            m_pressAndReleaseInput.action.Disable();
+        }
+
+        private void OnDestroy()
+        {
+            m_pressAndReleaseInput.action.Dispose();
+            m_ARFoundationObjectInput.action.Dispose();
+            m_SimulationObjectInput.action.Dispose();
         }
 
         void Awake()
@@ -126,32 +131,73 @@ namespace ARChess.Scripts.Chess
                 Debug.LogError("Missing AR Interactor reference, disabling component.", this);
                 enabled = false;
             }
+            
+#if UNITY_EDITOR && AR_COMPANION
+            m_ARFoundationObjectInput.action.started += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.canceled += SpawnOrEdit;
+#elif UNITY_EDITOR
+            m_SimulationObjectInput.action.started += SpawnOrEdit;
+            m_SimulationObjectInput.action.performed += SpawnOrEdit;
+            m_SimulationObjectInput.action.canceled += SpawnOrEdit;
+#else
+            m_ARFoundationObjectInput.action.started += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.canceled += SpawnOrEdit;
+#endif
+            m_pressAndReleaseInput.action.started += SpawnOrEdit;
+            m_pressAndReleaseInput.action.performed += SpawnOrEdit;
+            m_pressAndReleaseInput.action.canceled += SpawnOrEdit;
+        }
+
+        private void Update()
+        {
+#if UNITY_EDITOR && AR_COMPANION
+            if (m_ARFoundationObjectInput.action.WasPerformedThisFrame() || m_ARFoundationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+#elif UNITY_EDITOR
+            if (m_SimulationObjectInput.action.WasPerformedThisFrame() || m_SimulationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+#else
+            if (m_ARFoundationObjectInput.action.WasPerformedThisFrame() || m_ARFoundationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+#endif
+            {
+                if (!_mAttemptEdit)
+                {
+                    m_AttemptSpawn = true;
+                    ChessInteractive(lastTouchPosition, _holdButtonPressed);
+                }
+                else
+                {
+                    m_AttemptSpawn = false;
+                    ChessPlace(lastTouchPosition, _holdButtonPressed);   
+                }   
+            }
         }
 
         private void SpawnOrEdit(InputAction.CallbackContext obj)
         {
-            if (obj.action.type != InputActionType.Button)
+            if (obj.action.type is InputActionType.Value && obj.action.phase is InputActionPhase.Performed)
             {
                 lastTouchPosition = obj.ReadValue<Vector2>();
             }
-            
-            if(obj.action.type == InputActionType.Button)
+
+            if (obj.action.type is InputActionType.PassThrough)
             {
-                if (obj.ReadValue<float>() > 0)
-                    holdButtonPressed = true;
-                else if(obj.ReadValue<float>() == 0f || obj.canceled)
-                    holdButtonPressed = false;
-            }
-            
-            if (!_mAttemptEdit)
-            {
-                m_AttemptSpawn = true;
-                ChessInteractive(lastTouchPosition, holdButtonPressed);
-            }
-            else
-            {
-                m_AttemptSpawn = false;
-                ChessPlace(lastTouchPosition, holdButtonPressed);   
+                if (obj.action.WasReleasedThisFrame())
+                    obj.action.Disable();
+                else if(obj.action.WasPressedThisFrame())
+                    obj.action.Enable();
+
+                if (obj.canceled)
+                {
+                    _holdButtonPressed = false;
+                    _isDragging = false;
+                }
+                
+                if (obj.action.inProgress && obj.action.WasPerformedThisFrame())
+                {
+                    _holdButtonPressed = true;
+                    _isDragging = true;
+                }
             }
         }
 
@@ -226,7 +272,6 @@ namespace ARChess.Scripts.Chess
                 }
                 _mAttemptEdit = true;
                 Grab("Chess");
-                _grab = true;
                 if(m_PlaceObject)
                     m_PlaceObject.ToggleContact(true);
                 if(m_Chessboard)
@@ -243,7 +288,6 @@ namespace ARChess.Scripts.Chess
                 _arPlaneManager.enabled = false;
                 _mAttemptEdit = false;
                 Grab(0);
-                _grab = false;
                 if(m_PlaceObject)
                     m_PlaceObject.ToggleContact(false);
                 if(m_Chessboard)

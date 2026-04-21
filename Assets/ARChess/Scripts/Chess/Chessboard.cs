@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
 using UnityEngine;
@@ -36,6 +35,19 @@ namespace ARChess.Scripts.Chess
         [SerializeField] List<Piece> pieces = new List<Piece>();
         [SerializeField] private Material[] teamMaterials;
         
+        [Header("Chess Settings")]
+        [SerializeField]
+        [Tooltip("Tile size of the chessboard")]
+        private float m_tileSize = 1;
+
+        [SerializeField] 
+        [Tooltip("Y Offset of the chessboard")]
+        private float yOffset = 0f;
+        
+        [SerializeField]
+        [Tooltip("Board Center of the chessboard")]
+        private Vector3 boardCenter = Vector3.zero;
+        
         // LOGIC
         private ChessPiece[,] chessPieces;
         private ChessPiece currentlyDragging;
@@ -53,20 +65,6 @@ namespace ARChess.Scripts.Chess
         private bool _isDragging;
         private List<ChessPiece> deadWhites = new List<ChessPiece>();
         private List<ChessPiece> deadBlacks = new List<ChessPiece>();
-        
-        [Header("Chess Settings")]
-        [SerializeField]
-        [Tooltip("Tile size of the chessboard")]
-        private float m_tileSize = 1;
-
-        [SerializeField] 
-        [Tooltip("Y Offset of the chessboard")]
-        private float yOffset = 0f;
-        
-        [SerializeField]
-        [Tooltip("Board Center of the chessboard")]
-        private Vector3 boardCenter = Vector3.zero;
-        
         private GameObject _directionalLight;
         private AmbientLightEstimation _ambientLightEstimation;
         
@@ -166,26 +164,18 @@ namespace ARChess.Scripts.Chess
 
                 if (touched)
                 {
-                    Log.LogThis($"Screen Touched", this);
-                    if (chessPieces[hitPosition.x, hitPosition.y] != null)
+                    if (chessPieces[hitPosition.x, hitPosition.y])
                     {
                         // Is it our turn?
-                        if (true && currentlyDragging == null)
+                        if (true && !currentlyDragging)
                         {
                             currentlyDragging = chessPieces[hitPosition.x, hitPosition.y];
                         }
                     }
                 } 
                 
-                if (currentlyDragging != null && !touched)
+                if (currentlyDragging && !touched)
                 {
-                    Log.LogThis($"Screen Released", this);
-                    
-                    if (tiles[hitPosition.x, hitPosition.y])
-                    {
-                        Log.LogThis($"Moving previously dragged: {currentlyDragging} to tile hitPosition: {tiles[hitPosition.x, hitPosition.y].name}", this);
-                    }
-                    
                     Vector2Int previousPosition = new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
                     
                     bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
@@ -219,9 +209,14 @@ namespace ARChess.Scripts.Chess
             }
             
             // If dragging a piece
-            if (currentlyDragging != null)
+            if (currentlyDragging)
             {
-                Plane horizontalPlane = new Plane(Vector3.up, Vector3.up * yOffset);
+                // Get the cell's world position
+                Vector3 cellLocalPos = GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY);
+                Vector3 cellWorldPos = currentlyDragging.transform.parent.TransformPoint(cellLocalPos);
+    
+                // Create plane at the cell's Y level
+                Plane horizontalPlane = new Plane(Vector3.up, new Vector3(0, cellWorldPos.y, 0));
                 float distance = 0.0f;
     
                 if (horizontalPlane.Raycast(ray, out distance))
@@ -446,7 +441,6 @@ namespace ARChess.Scripts.Chess
 
             foreach (ChessPiece.AppearanceState state in appearanceState)
             {
-                Log.LogThis($"Piece: {piece.prefabs.gameObject.name}\nAppearance: {state.appearance} \nDuration: {state.duration}", this);
                 appearance.Add(state);
             }
             cp.appearance = appearance;
