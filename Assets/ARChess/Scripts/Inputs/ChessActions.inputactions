@@ -14,6 +14,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "ActiveTouch",
+                    "type": "PassThrough",
+                    "id": "4e597829-b6eb-40a5-ba35-ef6d84f917d9",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "Hold",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -30,7 +39,7 @@
                 },
                 {
                     "name": "One Modifier",
-                    "id": "2b6cc00a-c0e4-4a5a-9764-e6fb2e2d2a21",
+                    "id": "3fbe3bf4-2e74-4b59-b13d-8519dafaf5f6",
                     "path": "OneModifier",
                     "interactions": "",
                     "processors": "",
@@ -41,7 +50,7 @@
                 },
                 {
                     "name": "modifier",
-                    "id": "af97dbf4-6016-459f-a1ae-672bedb24482",
+                    "id": "7365a295-0ba9-4067-a2a7-0dc06aa6a75f",
                     "path": "<Touchscreen>/Press",
                     "interactions": "",
                     "processors": "",
@@ -52,7 +61,7 @@
                 },
                 {
                     "name": "binding",
-                    "id": "2ffb10cd-1814-4bdf-9c6d-77f582bc1167",
+                    "id": "a4f642bd-bd16-487e-9750-966596bbbf57",
                     "path": "<Touchscreen>/position",
                     "interactions": "",
                     "processors": "",
@@ -63,7 +72,7 @@
                 },
                 {
                     "name": "One Modifier",
-                    "id": "9b9a2303-f0d8-4185-95c9-04d890d65071",
+                    "id": "a3a92d2d-3def-4cfd-859d-483b5370b89c",
                     "path": "OneModifier",
                     "interactions": "",
                     "processors": "",
@@ -74,7 +83,7 @@
                 },
                 {
                     "name": "modifier",
-                    "id": "08ea83d5-6fc4-419c-ae70-2fb80cf367f6",
+                    "id": "c05565f3-f3bf-4248-8280-d4cdfb4108c2",
                     "path": "<Mouse>/press",
                     "interactions": "",
                     "processors": "",
@@ -85,12 +94,89 @@
                 },
                 {
                     "name": "binding",
-                    "id": "613e3c90-83d9-4798-a597-a89616008cc2",
+                    "id": "0235cb33-7b1a-4b9c-8961-468d4163c48d",
                     "path": "<Mouse>/position",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "TouchPosition",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "",
+                    "id": "73e79df7-6785-4451-b5a0-71388511b2cd",
+                    "path": "<Touchscreen (AR Foundation Remote)>/{press}",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActiveTouch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "One Modifier",
+                    "id": "522c9572-6d11-4fcd-bbc0-55847db9a44a",
+                    "path": "OneModifier",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActiveTouch",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "214f3135-8b47-408e-8bf9-09e03acf67ba",
+                    "path": "<Mouse>/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActiveTouch",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "b9d0f3be-dcb9-4a96-81f8-e12431717b7e",
+                    "path": "<Mouse>/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActiveTouch",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "One Modifier",
+                    "id": "6d5dfe01-6af3-4db3-a169-137b84f11dbe",
+                    "path": "OneModifier(overrideModifiersNeedToBePressedFirst=true)",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActiveTouch",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "0a7e9fdc-3dfb-424a-a2c8-4c29fa2c25f1",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActiveTouch",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "4503a457-4b1b-4a24-a396-d37e86407765",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ActiveTouch",
                     "isComposite": false,
                     "isPartOfComposite": true
                 }

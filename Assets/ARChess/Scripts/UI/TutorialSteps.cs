@@ -124,7 +124,8 @@ namespace ARChess.Scripts.UI
 
             if (!enable && _stepsList.Count > 0)
             {
-                _stepsList[0].stepObject.SetActive(false);
+                foreach (Step step in _stepsList) 
+                    step.stepObject.SetActive(false);
             }
         }
 
@@ -251,7 +252,6 @@ namespace ARChess.Scripts.UI
             
             // If Tap
             int startingStep = m_AllGoalsFinished ? 1 : 0;
-
             m_CurrentGoal = m_OnboardingGoals.Dequeue();
             m_AllGoalsFinished = false;
             m_CurrentGoalIndex = startingStep;

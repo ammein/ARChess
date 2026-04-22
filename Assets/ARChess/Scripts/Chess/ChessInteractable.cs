@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using ARChess.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -23,8 +24,11 @@ namespace ARChess.Scripts.Chess
         bool m_AttemptSpawn;
         bool m_AttemptHadSelection;
         bool m_EverHadSelection;
-        private bool _mAttemptEdit = false;
+        private bool _mAttemptEdit;
         private Chessboard m_Chessboard;
+        private Vector2 lastTouchPosition = Vector2.zero;
+        private bool _holdButtonPressed;
+        private bool _isDragging;
         
         [Header("Raycast Settings")]
         [SerializeField]
@@ -49,13 +53,18 @@ namespace ARChess.Scripts.Chess
             set => m_AttemptSpawn = value;
         }
 
-        [Header("Input Actions")]
+        [Header("Tap Actions")]
         [SerializeField] 
         [Tooltip("For Spawn Chess Input")]
         InputActionReference m_ARFoundationObjectInput;
         [SerializeField]
         [Tooltip("For Spawn Chess Input in XR Simulation")]
         InputActionReference m_SimulationObjectInput;
+        
+        [Header("Hold Actions")]
+        [SerializeField]
+        [Tooltip("For Spawn Press & Release Input")]
+        InputActionReference m_pressAndReleaseInput;
 
         /// <summary>
         /// The input used to trigger spawn, if <see cref="spawnTriggerType"/> is set to <see cref="InputAction"/>.
@@ -76,23 +85,34 @@ namespace ARChess.Scripts.Chess
         void OnEnable()
         {
             #if UNITY_EDITOR && AR_COMPANION
-            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.Enable();
             #elif UNITY_EDITOR
-            m_SimulationObjectInput.action.performed += SpawnOrEdit;
+            m_SimulationObjectInput.action.Enable();
             #else
-            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.Enable();
             #endif
+
+            m_pressAndReleaseInput.action.Enable();
         }
 
         void OnDisable()
         {
             #if UNITY_EDITOR && AR_COMPANION
-            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit; 
+            m_ARFoundationObjectInput.action.Disable();
             #elif UNITY_EDITOR
-            m_SimulationObjectInput.action.performed -= SpawnOrEdit;
+            m_SimulationObjectInput.action.Disable();
             #else
-            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit; 
+            m_ARFoundationObjectInput.action.Disable();
             #endif
+            
+            m_pressAndReleaseInput.action.Disable();
+        }
+
+        private void OnDestroy()
+        {
+            m_pressAndReleaseInput.action.Dispose();
+            m_ARFoundationObjectInput.action.Dispose();
+            m_SimulationObjectInput.action.Dispose();
         }
 
         void Awake()
@@ -113,35 +133,91 @@ namespace ARChess.Scripts.Chess
                 Debug.LogError("Missing AR Interactor reference, disabling component.", this);
                 enabled = false;
             }
+            
+#if UNITY_EDITOR && AR_COMPANION
+            m_ARFoundationObjectInput.action.started += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.canceled += SpawnOrEdit;
+#elif UNITY_EDITOR
+            m_SimulationObjectInput.action.started += SpawnOrEdit;
+            m_SimulationObjectInput.action.performed += SpawnOrEdit;
+            m_SimulationObjectInput.action.canceled += SpawnOrEdit;
+#else
+            m_ARFoundationObjectInput.action.started += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.canceled += SpawnOrEdit;
+#endif
+            m_pressAndReleaseInput.action.started += SpawnOrEdit;
+            m_pressAndReleaseInput.action.performed += SpawnOrEdit;
+            m_pressAndReleaseInput.action.canceled += SpawnOrEdit;
+        }
+
+        private void Update()
+        {
+#if UNITY_EDITOR && AR_COMPANION
+            if (m_ARFoundationObjectInput.action.WasPerformedThisFrame() || m_ARFoundationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+#elif UNITY_EDITOR
+            if (m_SimulationObjectInput.action.WasPerformedThisFrame() || m_SimulationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+#else
+            if (m_ARFoundationObjectInput.action.WasPerformedThisFrame() || m_ARFoundationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+#endif
+            {
+                if (!_mAttemptEdit)
+                {
+                    m_AttemptSpawn = true;
+                    ChessInteractive(lastTouchPosition, _holdButtonPressed);
+                }
+                else
+                {
+                    m_AttemptSpawn = false;
+                    ChessPlace(lastTouchPosition, _holdButtonPressed);   
+                }   
+            }
         }
 
         private void SpawnOrEdit(InputAction.CallbackContext obj)
         {
-            if (!_mAttemptEdit)
+            if (obj.action.type is InputActionType.Value && obj.action.phase is InputActionPhase.Performed)
             {
-                ChessInteractive(obj);
+                lastTouchPosition = obj.ReadValue<Vector2>();
             }
-            else
+
+            if (obj.action.type is InputActionType.PassThrough)
             {
-                ChessPlace(obj);   
+                if (obj.action.WasReleasedThisFrame())
+                    obj.action.Disable();
+                else if(obj.action.WasPressedThisFrame())
+                    obj.action.Enable();
+
+                if (obj.canceled)
+                {
+                    _holdButtonPressed = false;
+                    _isDragging = false;
+                }
+                
+                if (obj.action.inProgress && obj.action.WasPerformedThisFrame())
+                {
+                    _holdButtonPressed = true;
+                    _isDragging = true;
+                }
             }
         }
 
-        private void ChessInteractive(InputAction.CallbackContext obj)
+        private void ChessInteractive(Vector2 position, bool touched)
         {
             // Don't spawn the object if the tap was over screen space UI.
-            if (IsPointerOverUIObject(obj.ReadValue<Vector2>())) return;
+            if (IsPointerOverUIObject(position)) return;
             if (!m_ObjectInstance && !m_Chessboard) return;
-            m_Chessboard.ChessInteract(obj.ReadValue<Vector2>());
+            m_Chessboard.ChessInteract(position, touched);
         }
 
-        private void ChessPlace(InputAction.CallbackContext obj)
+        private void ChessPlace(Vector2 position, bool touched)
         {
             // Don't spawn the object if the tap was over screen space UI.
-            if (IsPointerOverUIObject(obj.ReadValue<Vector2>())) return;
+            if (IsPointerOverUIObject(position)) return;
             List<ARRaycastHit> hits = new List<ARRaycastHit>();
             // Check if raycast value hits on AR Plane
-            if (raycastManager.Raycast(obj.ReadValue<Vector2>(), hits, TrackableType.PlaneWithinPolygon))
+            if (raycastManager.Raycast(position, hits, TrackableType.PlaneWithinPolygon))
             {
                 foreach (var hit in hits)
                 {
@@ -162,10 +238,17 @@ namespace ARChess.Scripts.Chess
         // Helper function to check if a pointer is over a UI element
         private bool IsPointerOverUIObject(Vector2 touchPosition)
         {
-            PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
-            eventDataCurrentPosition.position = new Vector2(touchPosition.x, touchPosition.y);
+            PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current)
+            {
+                position = touchPosition
+            };
             List<RaycastResult> results = new List<RaycastResult>();
             EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+            
+            for (var i = 0 ; i < results.Count; i++)
+                if (results[i].gameObject.layer.Equals(LayerMask.NameToLayer("Ignore Raycast")))
+                    return false;
+            
             return results.Count > 0;
         }
 
@@ -173,7 +256,7 @@ namespace ARChess.Scripts.Chess
         {
             if (!m_ObjectInstance) return;
             m_ObjectInstance.TryGetComponent(out XRGrabInteractable interactable);
-            // Set Interaction Layer Mask to 'layerMask' so that it enable the grab interaction
+            // Set Interaction Layer Mask to 'layerMask'
             if (interactable && interactable.interactionLayers != LayerMask.GetMask(layerMask)) interactable.interactionLayers = LayerMask.GetMask(layerMask);
         }
 
@@ -181,7 +264,7 @@ namespace ARChess.Scripts.Chess
         {
             if (!m_ObjectInstance) return;
             m_ObjectInstance.TryGetComponent(out XRGrabInteractable interactable);
-            // Set Interaction Layer Mask to nothing so that it disable the grab interaction
+            // Set Interaction Layer Mask to index
             if (interactable && interactable.interactionLayers != layerMask) interactable.interactionLayers = layerMask;
         }
 

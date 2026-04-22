@@ -15,6 +15,11 @@ namespace ARChess.Scripts.Chess
         [Tooltip("The prefab to spawn")]
         private GameObject prefab;
         
+        [Header("Chess Settings")]
+        [SerializeField]
+        [Tooltip("Starting Team to play")]
+        private ChessTeam startingTeam;
+        
         private GameObject m_ObjectInstance;
         
         [Header("Project Setting")]
@@ -47,9 +52,13 @@ namespace ARChess.Scripts.Chess
         // ReSharper disable Unity.PerformanceAnalysis
         public GameObject ClonePrefab(Vector3 positionPose, Vector3 spawnNormal)
         {
-            
+            startingTeam = globalProjectStateOptions.team;
+            if (prefab.TryGetComponent(out Chessboard chessboard))
+            {
+                chessboard.startingTeam = startingTeam;
+            }
             var facePosition = Camera.main.transform.position;
-            var forward = facePosition - positionPose;
+            var forward = -(facePosition - positionPose);  // Have to negate forward position to let the chess piece player towards camera
             
             // Instantiate object with prefab using same position and rotation
             m_ObjectInstance = Instantiate(prefab);
@@ -72,7 +81,8 @@ namespace ARChess.Scripts.Chess
 
         public void Positioning(Vector3 positionPose, Vector3 spawnNormal)
         {
-            Positioning(Camera.main.transform.position - positionPose, positionPose, spawnNormal);
+            // Have to negate forward position to let the chess piece player towards camera
+            Positioning(-(Camera.main.transform.position - positionPose), positionPose, spawnNormal);
         }
 
         public void ToggleContact(bool toggle)

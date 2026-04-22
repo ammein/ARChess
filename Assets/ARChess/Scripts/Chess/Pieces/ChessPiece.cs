@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using ARChess.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -19,36 +20,48 @@ namespace ARChess.Scripts.Chess.Pieces
     
     public enum Appearance
     {
-        Dissappear = 0,
-        Appear = 1
+        Disappear = 0,
+        Appear = 1,
+        Destroyed = 2
     }
 
     public class ChessPiece : MonoBehaviour
     {
+
+        [Serializable]
+        public class AppearanceState
+        {
+            public Appearance appearance;
+            public float duration;
+        }
         
         [Header("Chess Piece")]
         [Tooltip("The index of team piece")]
-        public int team;
+        public ChessTeam team;
         [Tooltip("The current X position")]
         public int currentX;
         [Tooltip("The current Y position")]
         public int currentY;
         [Tooltip("The type of chess piece")]
         public ChessPieceType type;
-        
-        [Header("Material Piece Shader Animation")]
-        [Tooltip("Wait duration before animate")]
-        public float waitDuration;
-        [Tooltip("Duration of material shader for '_Appear' reference")]
-        public float duration;
+        [HideInInspector]
+        public List<AppearanceState> appearance = new List<AppearanceState>();
+
+        [Header("Lerp Animation")]
+        [Tooltip("Lerp duration to animate moving piece")]
+        public float movingDuration;
+        [Tooltip("Lerp duration to animate scale piece")]
+        public float movingScale;
     
         private Vector3 _desiredPosition;
-        private Vector3 _desiredScale;
+        private Vector3 _desiredScale = Vector3.one;
         private Renderer _renderer;
         private Coroutine _appearCoroutine;
-        private Appearance _appear = Appearance.Dissappear;
+        private Coroutine _disappearCoroutine;
+        private Coroutine _destroyedCoroutine;
+        private Appearance _appear = Appearance.Disappear;
 
-        public Appearance Appearance
+        public Appearance GetAppearance
         {
             get => _appear;
             set => _appear = value;
@@ -57,24 +70,48 @@ namespace ARChess.Scripts.Chess.Pieces
         public void Start()
         {
             _renderer = GetComponent<Renderer>();
+            
+            // When a piece is instantiated, always set material to 'Appear' so that the transparent material shader is initialize...
+            SetKeyWord("_APPEARANCE_STATE", Appearance.Appear);
         }
 
-        public void AppearPiece(string propertyName)
+        private void Update()
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, _desiredPosition, Time.deltaTime * movingDuration);
+            transform.localScale = Vector3.Lerp(transform.localScale, _desiredScale, Time.deltaTime * movingScale);
+        }
+        
+        // Operations
+        public virtual void SetPosition(Vector3 position, bool force = false)
+        {
+            _desiredPosition = position;
+            
+            if(force)
+                transform.localPosition = _desiredPosition;
+        }
+        
+        public virtual void SetScale(Vector3 scale, bool force = false)
+        {
+            _desiredScale = scale;
+            
+            if(force)
+                transform.localScale = _desiredScale;
+        }
+        
+        // Animations
+        public void AppearPiece(string propertyName, float duration, System.Action<bool> callback)
         {
             if(_appearCoroutine != null)
                 StopCoroutine(_appearCoroutine);
-
-            _appear = Appearance.Appear;
-            _appearCoroutine = StartCoroutine(AppearPieceAnimation(propertyName));
+            
+            _appearCoroutine = StartCoroutine(AppearPieceAnimation(propertyName,  duration, callback));
         }
 
-        private IEnumerator AppearPieceAnimation(string propertyName)
+        private IEnumerator AppearPieceAnimation(string propertyName, float duration, System.Action<bool> callback)
         {
+            callback?.Invoke(false);
             yield return new WaitForEndOfFrame();
-            // Set enum as a float value instead of keyword
-            SetKeyWord("_APPEARANCE_STATE", Appearance.Appear);
-            CheckShaderKeywordState();
-            yield return new WaitForSeconds(waitDuration);
+            CheckShaderKeywordState("_APPEARANCE_STATE");
             float time = 0;
             while (time < duration)
             {
@@ -85,13 +122,71 @@ namespace ARChess.Scripts.Chess.Pieces
             }
             
             _renderer.material.SetFloat(propertyName, 1f);
+            
+            callback?.Invoke(true);
+        }
+
+        public void DisappearPiece(string propertyName, float duration, System.Action<bool> callback)
+        {
+            if(_disappearCoroutine != null)
+                StopCoroutine(_disappearCoroutine);
+            
+            _disappearCoroutine = StartCoroutine(DisappearPieceAnimation(propertyName, duration, callback));
+        }
+
+        private IEnumerator DisappearPieceAnimation(string propertyName, float duration, System.Action<bool> callback)
+        {
+            callback?.Invoke(false);
+            yield return new WaitForEndOfFrame();
+            CheckShaderKeywordState("_APPEARANCE_STATE");
+            float time = 0;
+            while (time < duration)
+            {
+                float lerpValue = Mathf.Lerp(1f, 0f, time / duration);
+                _renderer.material.SetFloat(propertyName, Mathf.Clamp(lerpValue, 0f, 1f));
+                time += Time.deltaTime;
+                yield return null;
+            }
+            _renderer.material.SetFloat(propertyName, 0f);
+            
+            callback?.Invoke(true);
+        }
+
+        public void DestroyPiece(string propertyName, float duration, System.Action<bool> callback)
+        {
+            if(_destroyedCoroutine != null)
+                StopCoroutine(_destroyedCoroutine);
+
+            _destroyedCoroutine = StartCoroutine(DestroyPieceAnimation(propertyName, duration, callback));
+        }
+
+        private IEnumerator DestroyPieceAnimation(string propertyName, float duration, System.Action<bool> callback)
+        {
+            callback?.Invoke(false);
+            yield return new WaitForEndOfFrame();
+            CheckShaderKeywordState("_APPEARANCE_STATE");
+            float time = 0;
+            while (time < duration)
+            {
+                float lerpValue = Mathf.Lerp(1f, 0f, time / duration);
+                _renderer.material.SetFloat(propertyName, Mathf.Clamp(lerpValue, 0f, 1f));
+                time += Time.deltaTime;
+                yield return null;
+            }
+            
+            _renderer.material.SetFloat(propertyName, 0f);
+
+            callback?.Invoke(true);
         }
         
+        // Utility
         private void SetKeyWord<T>(string parameterBaseName, T selectedKeyword) where T: Enum
         {
             var shader = _renderer.material.shader;
             var keywordSpace = shader.keywordSpace;
             var keywords = Enum.GetValues(typeof(T));
+            
+            _appear = Enum.Parse<Appearance>(selectedKeyword.ToString());
 
             // Step 1: Disable ALL keywords first
             foreach (LocalKeyword keyword in keywordSpace.keywords)
@@ -114,9 +209,8 @@ namespace ARChess.Scripts.Chess.Pieces
                 }
             }
         }
-
         
-        void CheckShaderKeywordState()
+        void CheckShaderKeywordState(string keyword = "")
         {
             // Get the instance of the Shader class that the material uses
             var shader = _renderer.material.shader;
@@ -132,13 +226,31 @@ namespace ARChess.Scripts.Chess.Pieces
                 // then Unity uses the global keyword state
                 if (localKeyword.isOverridable && Shader.IsKeywordEnabled(localKeyword.name))
                 {
-                    Log.LogThis("Local keyword with name of " + localKeyword.name + " is overridden by a global keyword, and is enabled", this);
+                    var log = "Local keyword with name of <color=\"yellow\">" + localKeyword.name +
+                                 "</color> is overridden by a global keyword, and is <color=\"green\">enabled</color>";
+                    if (keyword.Length > 0)
+                    {
+                        if(localKeyword.name.Contains(keyword))
+                            Log.LogThis(log, this);
+                        return;
+                    }
+                    
+                    Log.LogThis(log, this);
                 }
                 // Otherwise, Unity uses the local keyword state
                 else
                 {
                     var state = _renderer.material.IsKeywordEnabled(localKeyword) ? "enabled" : "disabled";
-                    Log.LogThis("Local keyword with name of " + localKeyword.name + " is " + state, this);
+                    var color = _renderer.material.IsKeywordEnabled(localKeyword) ? "green" : "red";
+                    var log = $"Local keyword with name of <color=\"yellow\">{localKeyword.name}</color> is <color=\"{color}\">{state}</color>";
+                    if (keyword.Length > 0)
+                    {
+                        if(localKeyword.name.Contains(keyword))
+                            Log.LogThis(log, this);
+                        return;
+                    }
+                    
+                    Log.LogThis(log, this);
                 }            
             }
         }

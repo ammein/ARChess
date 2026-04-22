@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using ARChess.Scripts.Chess;
 using ARChess.Scripts.Project;
 using TMPro;
 using UnityEngine;
@@ -53,6 +54,11 @@ namespace ARChess.Scripts.UI
         public void SetName(string playerName)
         {
             globalOptions.playerName = playerName;
+        }
+
+        public void SetTeam(string team)
+        {
+            globalOptions.team = team.Contains("white") ? ChessTeam.White : ChessTeam.Black;
         }
 
         public void ResetOptions()
