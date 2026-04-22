@@ -217,7 +217,7 @@ MonoBehaviour:
       duration: 1.5
     - appearance: 1
       duration: 1.4
-    - appearance: 0
+    - appearance: 2
       duration: 0.5
     type: 3
   - prefabs: {fileID: 393098336855661126, guid: aab313244b8754b22bb74ff1bfba7452, type: 3}
@@ -257,11 +257,14 @@ MonoBehaviour:
       duration: 0.5
     type: 1
   teamMaterials:
-  - {fileID: 2100000, guid: 02db725ab99bd422d86f8a4525459b62, type: 2}
-  - {fileID: 2100000, guid: d32756e9d582446169050c19b3839353, type: 2}
+  - material: {fileID: 2100000, guid: d32756e9d582446169050c19b3839353, type: 2}
+    team: 0
+  - material: {fileID: 2100000, guid: 02db725ab99bd422d86f8a4525459b62, type: 2}
+    team: 1
   m_tileSize: 0.0375
   yOffset: 0.055
   boardCenter: {x: 0, y: 0, z: 0}
+  startingTeam: 0
 --- !u!114 &8035476916194715064
 MonoBehaviour:
   m_ObjectHideFlags: 0

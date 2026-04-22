@@ -37,7 +37,7 @@ namespace ARChess.Scripts.Chess.Pieces
         
         [Header("Chess Piece")]
         [Tooltip("The index of team piece")]
-        public int team;
+        public ChessTeam team;
         [Tooltip("The current X position")]
         public int currentX;
         [Tooltip("The current Y position")]

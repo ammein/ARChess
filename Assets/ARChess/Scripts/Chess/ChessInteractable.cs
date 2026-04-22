@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using ARChess.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -236,10 +238,17 @@ namespace ARChess.Scripts.Chess
         // Helper function to check if a pointer is over a UI element
         private bool IsPointerOverUIObject(Vector2 touchPosition)
         {
-            PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
-            eventDataCurrentPosition.position = new Vector2(touchPosition.x, touchPosition.y);
+            PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current)
+            {
+                position = touchPosition
+            };
             List<RaycastResult> results = new List<RaycastResult>();
             EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+            
+            for (var i = 0 ; i < results.Count; i++)
+                if (results[i].gameObject.layer.Equals(LayerMask.NameToLayer("Ignore Raycast")))
+                    return false;
+            
             return results.Count > 0;
         }
 

@@ -1,3 +1,4 @@
+using ARChess.Scripts.Chess;
 using UnityEngine;
 
 namespace ARChess.Scripts.Project
@@ -7,6 +8,7 @@ namespace ARChess.Scripts.Project
     {
         [Header("Player Settings")]
         public string playerName = "Guest";
+        public ChessTeam team = ChessTeam.White;
         
         [Header("Chess Size")]
         [SerializeField]
@@ -26,12 +28,12 @@ namespace ARChess.Scripts.Project
         [Tooltip("Main Scene Video Loaded")]
         public bool mainSceneVideoLoaded;
         
-        
 
         // Add a method to reset values if needed
         public void ResetToDefaults()
         {
             playerName = "Guest";
+            team = ChessTeam.White;
             initialChessboardSize = 0.06f;
             tutorialsEnabled = true;
             dynamicLighting = false;

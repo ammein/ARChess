@@ -1,0 +1,140 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5912883847105466149
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5646254541178871209}
+  - component: {fileID: 3029134821641937041}
+  - component: {fileID: 3370582234279603339}
+  - component: {fileID: 9161553784914622653}
+  m_Layer: 5
+  m_Name: 2D Board UI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &5646254541178871209
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5912883847105466149}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 20, y: -19}
+  m_SizeDelta: {x: -40, y: 0}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &3029134821641937041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5912883847105466149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.VerticalLayoutGroup
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 2
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &3370582234279603339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5912883847105466149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
+--- !u!114 &9161553784914622653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5912883847105466149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e27ac4364fd994ba8a9d5207ffb09107, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Chess.TwoDBoard
+  borderSize: 1
+  cellSize: {x: 20, y: 20}
+  chessboard: {fileID: 8593617815743495957, guid: 1fd8bd1042b1f40cd94843b7b8d47a4b, type: 3}
+  border: {fileID: 2100000, guid: a532a606e10514f509189dbbc9c4a30f, type: 2}
+  emptyCell: {fileID: 2100000, guid: 40ce92035781e49f4acc6d28ff0d373f, type: 2}
+  startingTeam: 0
+  cellPrefabs:
+  - prefab: {fileID: 7218865388039511622, guid: 1e4b7b805e4d4458c8ff159e3a283a21, type: 3}
+    type: 0
+  - prefab: {fileID: 2729127230492465446, guid: 8210ffd896136416996eacd2e587af2f, type: 3}
+    type: 1
+  pieces:
+  - pieceSprite: {fileID: 21300000, guid: a7c4909b2a21943a3aededd8a97f6ead, type: 3}
+    type: 4
+    team: 0
+  - pieceSprite: {fileID: 21300000, guid: 15d48b5e77efc47bb995e978617bc4fb, type: 3}
+    type: 6
+    team: 0
+  - pieceSprite: {fileID: 21300000, guid: 7b1dac9a393cf4d21a8f04571dca6259, type: 3}
+    type: 3
+    team: 0
+  - pieceSprite: {fileID: 21300000, guid: 3d2e9b529d34044ed86d02dca8512235, type: 3}
+    type: 1
+    team: 0
+  - pieceSprite: {fileID: 21300000, guid: 8c1df01f384764f7092b4f6e3582b282, type: 3}
+    type: 5
+    team: 0
+  - pieceSprite: {fileID: 21300000, guid: 49e62fe92f4324932a554e6b553553f8, type: 3}
+    type: 2
+    team: 0
+  - pieceSprite: {fileID: 21300000, guid: 2724704ae15354f169eea6b1316a52a3, type: 3}
+    type: 4
+    team: 1
+  - pieceSprite: {fileID: 21300000, guid: 1bc2ae539adc641eaa3397ccda0eba32, type: 3}
+    type: 6
+    team: 1
+  - pieceSprite: {fileID: 21300000, guid: 86de1132f4046493990ec8a1f7c1fd6f, type: 3}
+    type: 3
+    team: 1
+  - pieceSprite: {fileID: 21300000, guid: d85651b432b7349569939c0f765bc841, type: 3}
+    type: 1
+    team: 1
+  - pieceSprite: {fileID: 21300000, guid: 2645f003c204b4856a8f8744746c7521, type: 3}
+    type: 5
+    team: 1
+  - pieceSprite: {fileID: 21300000, guid: 64d385f7a5d104ae1a11f704a968ae11, type: 3}
+    type: 2
+    team: 1
