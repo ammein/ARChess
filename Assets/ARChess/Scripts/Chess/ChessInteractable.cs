@@ -84,35 +84,43 @@ namespace ARChess.Scripts.Chess
 
         void OnEnable()
         {
-            #if UNITY_EDITOR && AR_COMPANION
-            m_ARFoundationObjectInput.action.Enable();
-            #elif UNITY_EDITOR
-            m_SimulationObjectInput.action.Enable();
-            #else
-            m_ARFoundationObjectInput.action.Enable();
-            #endif
-
-            m_pressAndReleaseInput.action.Enable();
+                        
+#if UNITY_EDITOR && AR_COMPANION
+            m_ARFoundationObjectInput.action.started += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.canceled += SpawnOrEdit;
+#elif UNITY_EDITOR
+            m_SimulationObjectInput.action.started += SpawnOrEdit;
+            m_SimulationObjectInput.action.performed += SpawnOrEdit;
+            m_SimulationObjectInput.action.canceled += SpawnOrEdit;
+#else
+            m_ARFoundationObjectInput.action.started += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
+            m_ARFoundationObjectInput.action.canceled += SpawnOrEdit;
+#endif
+            m_pressAndReleaseInput.action.started += SpawnOrEdit;
+            m_pressAndReleaseInput.action.performed += SpawnOrEdit;
+            m_pressAndReleaseInput.action.canceled += SpawnOrEdit;
         }
 
         void OnDisable()
         {
-            #if UNITY_EDITOR && AR_COMPANION
-            m_ARFoundationObjectInput.action.Disable();
-            #elif UNITY_EDITOR
-            m_SimulationObjectInput.action.Disable();
-            #else
-            m_ARFoundationObjectInput.action.Disable();
-            #endif
-            
-            m_pressAndReleaseInput.action.Disable();
-        }
-
-        private void OnDestroy()
-        {
-            m_pressAndReleaseInput.action.Dispose();
-            m_ARFoundationObjectInput.action.Dispose();
-            m_SimulationObjectInput.action.Dispose();
+#if UNITY_EDITOR && AR_COMPANION
+            m_ARFoundationObjectInput.action.started -= SpawnOrEdit;
+            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit;
+            m_ARFoundationObjectInput.action.canceled -= SpawnOrEdit;
+#elif UNITY_EDITOR
+            m_SimulationObjectInput.action.started -= SpawnOrEdit;
+            m_SimulationObjectInput.action.performed -= SpawnOrEdit;
+            m_SimulationObjectInput.action.canceled -= SpawnOrEdit;
+#else
+            m_ARFoundationObjectInput.action.started -= SpawnOrEdit;
+            m_ARFoundationObjectInput.action.performed -= SpawnOrEdit;
+            m_ARFoundationObjectInput.action.canceled -= SpawnOrEdit;
+#endif
+            m_pressAndReleaseInput.action.started -= SpawnOrEdit;
+            m_pressAndReleaseInput.action.performed -= SpawnOrEdit;
+            m_pressAndReleaseInput.action.canceled -= SpawnOrEdit;
         }
 
         void Awake()
@@ -133,23 +141,6 @@ namespace ARChess.Scripts.Chess
                 Debug.LogError("Missing AR Interactor reference, disabling component.", this);
                 enabled = false;
             }
-            
-#if UNITY_EDITOR && AR_COMPANION
-            m_ARFoundationObjectInput.action.started += SpawnOrEdit;
-            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
-            m_ARFoundationObjectInput.action.canceled += SpawnOrEdit;
-#elif UNITY_EDITOR
-            m_SimulationObjectInput.action.started += SpawnOrEdit;
-            m_SimulationObjectInput.action.performed += SpawnOrEdit;
-            m_SimulationObjectInput.action.canceled += SpawnOrEdit;
-#else
-            m_ARFoundationObjectInput.action.started += SpawnOrEdit;
-            m_ARFoundationObjectInput.action.performed += SpawnOrEdit;
-            m_ARFoundationObjectInput.action.canceled += SpawnOrEdit;
-#endif
-            m_pressAndReleaseInput.action.started += SpawnOrEdit;
-            m_pressAndReleaseInput.action.performed += SpawnOrEdit;
-            m_pressAndReleaseInput.action.canceled += SpawnOrEdit;
         }
 
         private void Update()

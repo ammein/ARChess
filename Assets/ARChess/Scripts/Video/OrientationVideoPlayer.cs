@@ -13,7 +13,8 @@ namespace ARChess.Scripts.Video
                 Debug.LogError("VideoPlayer is not attached to a VideoPlayer.");
             }
         }
-        // Update is called once per frame
+        
+        
         private void Update()
         {
             var video =  GetComponent<VideoPlayer>();
