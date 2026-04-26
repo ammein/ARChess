@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
 using UnityEngine;
@@ -56,6 +57,7 @@ namespace ARChess.Scripts.Chess
         // LOGIC
         private ChessPiece[,] chessPieces;
         private ChessPiece currentlyDragging;
+        private List<Vector2Int> availableMoves = new List<Vector2Int>();
         private const int TILE_COUNT_X = 8;
         private const int TILE_COUNT_Y = 8;
         private GameObject[,] tiles;
@@ -88,6 +90,8 @@ namespace ARChess.Scripts.Chess
         }
 
         public Vector2 TileCount => new(TILE_COUNT_X, TILE_COUNT_Y);
+        
+        public List<TeamMaterials> PieceMaterials => teamMaterials;
 
         private void Awake()
         {
@@ -171,7 +175,7 @@ namespace ARChess.Scripts.Chess
         {
             // To prevent raycast to infinite distance, we have to make the endpoint only react to Tile or 100 max distance
             if (Physics.Raycast(ray, out info, 100,
-                    LayerMask.GetMask("Tile", "Selected", "Bound Selected", "Visual Tile")))
+                    LayerMask.GetMask("Tile", "Selected", "Bound Selected", "Visual Tile", "Highlight")))
             {
                 // Get the indexes of the tile I've hit
                 Vector2Int hitPosition = LookupTileIndex(info.collider.gameObject);
@@ -191,7 +195,7 @@ namespace ARChess.Scripts.Chess
                 {
                     Log.LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
                     tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                    tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
+                    tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") :  LayerMask.NameToLayer("Visual Tile");
                     currentHover = hitPosition;
                     // Change Layer to "Hover"
                     tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
@@ -206,6 +210,11 @@ namespace ARChess.Scripts.Chess
                         if (true && !currentlyDragging)
                         {
                             currentlyDragging = chessPieces[hitPosition.x, hitPosition.y];
+                            
+                            // Get a list of where I can go, highlight tiles as well
+                            availableMoves = currentlyDragging.GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
+
+                            HighlightTiles();
                         }
                     }
                 }
@@ -214,18 +223,13 @@ namespace ARChess.Scripts.Chess
                 {
                     Vector2Int previousPosition =
                         new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
-
+                    
                     bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
                     if (!validMove)
-                    {
-                        Log.LogThis("Invalid move", this);
                         currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
-                        currentlyDragging = null;
-                    }
-                    else
-                    {
-                        currentlyDragging = null;
-                    }
+                    
+                    currentlyDragging = null;
+                    RemoveHighlightTiles();
                 }
             }
             else
@@ -233,7 +237,7 @@ namespace ARChess.Scripts.Chess
                 if (currentHover != -Vector2Int.one)
                 {
                     tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                    tiles[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Visual Tile");
+                    tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") :  LayerMask.NameToLayer("Visual Tile");
                     currentHover = -Vector2Int.one;
                 }
 
@@ -242,6 +246,7 @@ namespace ARChess.Scripts.Chess
                     currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX,
                         currentlyDragging.currentY));
                     currentlyDragging = null;
+                    RemoveHighlightTiles();
                 }
             }
 
@@ -266,6 +271,20 @@ namespace ARChess.Scripts.Chess
                     currentlyDragging.SetPosition(localPosition);
                 }
             }
+        }
+
+        private void HighlightTiles()
+        {
+            for (int i = 0; i < availableMoves.Count; i++)
+                tiles[availableMoves[i].x, availableMoves[i].y].layer = LayerMask.NameToLayer("Highlight");
+        }
+        
+        private void RemoveHighlightTiles()
+        {
+            for (int i = 0; i < availableMoves.Count; i++)
+                tiles[availableMoves[i].x, availableMoves[i].y].layer = LayerMask.NameToLayer("Tile");
+            
+            availableMoves.Clear();
         }
 
         // Generate the board
@@ -432,23 +451,19 @@ namespace ARChess.Scripts.Chess
         {
             chessPieces = new ChessPiece[TILE_COUNT_X, TILE_COUNT_Y];
 
-            ChessTeam checkTeam = startingTeam;
-
             // Arrange by materials to assign team dynamically
             for (int team = 0; team < teamMaterials.Count; team++)
             {
-                if(team > 0) checkTeam = startingTeam == ChessTeam.White ? ChessTeam.Black : ChessTeam.White;
-
                 // Always iterate through all X positions
                 for (int x = 0; x < TILE_COUNT_X; x++)
                 {
-                    AssignPieceType(x, team, checkTeam);   
+                    AssignPieceType(x, teamMaterials[team].team);   
                 }
             }
         }
 
 
-        private void AssignPieceType(int x, int team, ChessTeam checkTeam)
+        private void AssignPieceType(int x, ChessTeam checkTeam)
         {
             // Check if this is the starting team to determine Y position
             bool isStartingTeam = (checkTeam == startingTeam);
@@ -519,6 +534,10 @@ namespace ARChess.Scripts.Chess
 
             cp.type = piece.type;
             cp.team = team;
+            
+            // If don't match on first team, rotate local rotation
+            if(team != startingTeam)
+                cp.transform.localRotation = Quaternion.Euler(0, 180f, 0);
 
             cp.GetComponent<MeshRenderer>().material = teamMaterial;
             if (cp.gameObject.transform.childCount > 0)
@@ -574,6 +593,11 @@ namespace ARChess.Scripts.Chess
         }
 
         // Operations
+        private bool ContainsValidMove(ref List<Vector2Int> moves, Vector2 pos)
+        {
+            return moves.Any(t => Mathf.Approximately(t.x, pos.x) && Mathf.Approximately(t.y, pos.y));
+        }
+        
         private Vector2Int LookupTileIndex(GameObject hitInfo)
         {
             for (int x = 0; x < TILE_COUNT_X; x++)
@@ -586,6 +610,9 @@ namespace ARChess.Scripts.Chess
 
         private bool MoveTo(ChessPiece cp, int x, int y)
         {
+            if (!ContainsValidMove(ref availableMoves, new Vector2Int(x, y)))
+                return false;
+            
             Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
 
             // Is there another piece in target position?

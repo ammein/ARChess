@@ -5,27 +5,27 @@ namespace ARChess.Scripts.Video
 {
     public class OrientationVideoPlayer : MonoBehaviour
     {
+        private VideoPlayer _video;
 
         private void Awake()
         {
+            _video = GetComponent<VideoPlayer>();
             if (GetComponent<VideoPlayer>() == null)
             {
                 Debug.LogError("VideoPlayer is not attached to a VideoPlayer.");
             }
         }
         
-        
         private void Update()
         {
-            var video =  GetComponent<VideoPlayer>();
-            if (!video) return;
+            if (!_video) return;
             if (Screen.orientation == ScreenOrientation.LandscapeLeft || Screen.orientation == ScreenOrientation.LandscapeRight )
             {
-                video.aspectRatio = VideoAspectRatio.Stretch;
+                _video.aspectRatio = VideoAspectRatio.Stretch;
             }
             else
             {
-                video.aspectRatio = VideoAspectRatio.NoScaling;
+                _video.aspectRatio = VideoAspectRatio.NoScaling;
             }
         }
     }

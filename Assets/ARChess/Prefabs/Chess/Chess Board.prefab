@@ -238,7 +238,7 @@ MonoBehaviour:
     - appearance: 2
       duration: 0.5
     type: 5
-  - prefabs: {fileID: 6959614969642995436, guid: ee594bd0674d54e0f8ea136babf88b06, type: 3}
+  - prefabs: {fileID: 8319739882674849552, guid: 86cf7b52d997c4de9bc22ebdf1ff899b, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5

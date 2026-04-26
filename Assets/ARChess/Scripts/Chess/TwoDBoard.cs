@@ -63,14 +63,16 @@ namespace ARChess.Scripts.Chess
 
         private void Update()
         {
-            chessboard = FindFirstObjectByType<Chessboard>();
-            if (!_subscribed && chessboard != null)
+            if(!chessboard)
+                chessboard = FindFirstObjectByType<Chessboard>();
+            
+            if (!_subscribed && chessboard)
             {
                 chessboard.objectPlaced += ObjectPlaced;
                 _subscribed = true;
             }
     
-            if (chessboard != null && chessboard.TileCount.x > 0 && !_generated)
+            if (chessboard&& chessboard.TileCount.x > 0 && !_generated)
                 StartTiles();
         }
 

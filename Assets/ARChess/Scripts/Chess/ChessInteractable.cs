@@ -4,6 +4,7 @@ using ARChess.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
 #if AR_FOUNDATION_REMOTE_INSTALLED
@@ -29,6 +30,7 @@ namespace ARChess.Scripts.Chess
         private Vector2 lastTouchPosition = Vector2.zero;
         private bool _holdButtonPressed;
         private bool _isDragging;
+        private bool _isPinching;
         
         [Header("Raycast Settings")]
         [SerializeField]
@@ -65,6 +67,11 @@ namespace ARChess.Scripts.Chess
         [SerializeField]
         [Tooltip("For Spawn Press & Release Input")]
         InputActionReference m_pressAndReleaseInput;
+        
+        [Header("Touch Count Actions")]
+        [SerializeField]
+        [Tooltip("For Touch Count Actions")]
+        InputActionReference m_TouchCount;
 
         /// <summary>
         /// The input used to trigger spawn, if <see cref="spawnTriggerType"/> is set to <see cref="InputAction"/>.
@@ -101,6 +108,10 @@ namespace ARChess.Scripts.Chess
             m_pressAndReleaseInput.action.started += SpawnOrEdit;
             m_pressAndReleaseInput.action.performed += SpawnOrEdit;
             m_pressAndReleaseInput.action.canceled += SpawnOrEdit;
+            
+            m_TouchCount.action.started += SpawnOrEdit;
+            m_TouchCount.action.performed += SpawnOrEdit;
+            m_TouchCount.action.canceled += SpawnOrEdit;
         }
 
         void OnDisable()
@@ -121,6 +132,10 @@ namespace ARChess.Scripts.Chess
             m_pressAndReleaseInput.action.started -= SpawnOrEdit;
             m_pressAndReleaseInput.action.performed -= SpawnOrEdit;
             m_pressAndReleaseInput.action.canceled -= SpawnOrEdit;
+            
+            m_TouchCount.action.started -= SpawnOrEdit;
+            m_TouchCount.action.performed -= SpawnOrEdit;
+            m_TouchCount.action.canceled -= SpawnOrEdit;
         }
 
         void Awake()
@@ -168,29 +183,42 @@ namespace ARChess.Scripts.Chess
 
         private void SpawnOrEdit(InputAction.CallbackContext obj)
         {
-            if (obj.action.type is InputActionType.Value && obj.action.phase is InputActionPhase.Performed)
+            if (obj.control.GetType() == typeof(IntegerControl) && obj.performed)
             {
-                lastTouchPosition = obj.ReadValue<Vector2>();
+                if(obj.ReadValue<int>() > 1)
+                    _isPinching = true;
+                else
+                    _isPinching = false;
+
+                return;
             }
 
-            if (obj.action.type is InputActionType.PassThrough)
+            if (obj.control.GetType() != typeof(IntegerControl) && !_isPinching)
             {
-                if (obj.action.WasReleasedThisFrame())
-                    obj.action.Disable();
-                else if(obj.action.WasPressedThisFrame())
-                    obj.action.Enable();
+                if (obj.action.type is InputActionType.Value && obj.action.phase is InputActionPhase.Performed && !_isPinching)
+                {
+                    lastTouchPosition = obj.ReadValue<Vector2>();
+                }
 
-                if (obj.canceled)
+                if (obj.action.type is InputActionType.PassThrough)
                 {
-                    _holdButtonPressed = false;
-                    _isDragging = false;
-                }
+                    if (obj.action.WasReleasedThisFrame())
+                        obj.action.Disable();
+                    else if(obj.action.WasPressedThisFrame())
+                        obj.action.Enable();
+
+                    if (obj.canceled)
+                    {
+                        _holdButtonPressed = false;
+                        _isDragging = false;
+                    }
                 
-                if (obj.action.inProgress && obj.action.WasPerformedThisFrame())
-                {
-                    _holdButtonPressed = true;
-                    _isDragging = true;
-                }
+                    if (obj.action.inProgress && obj.action.WasPerformedThisFrame())
+                    {
+                        _holdButtonPressed = true;
+                        _isDragging = true;
+                    }
+                }   
             }
         }
 
@@ -214,9 +242,13 @@ namespace ARChess.Scripts.Chess
                 {
                     if (hit.trackable is not ARPlane arPlane)
                         return;
-                 
-                    if(m_ObjectInstance)
-                        m_PlaceObject.Positioning(hit.pose.position, arPlane.normal);
+
+                    if (m_ObjectInstance)
+                    {
+                        Log.LogThis($"Pinching: {_isPinching}", this);
+                        if(!_isPinching)
+                            m_PlaceObject.Positioning(hit.pose.position, arPlane.normal);
+                    }
                     else
                     {
                         m_ObjectInstance = m_PlaceObject.ClonePrefab(hit.pose.position, arPlane.normal);

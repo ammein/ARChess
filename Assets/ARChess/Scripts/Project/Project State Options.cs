@@ -27,7 +27,6 @@ namespace ARChess.Scripts.Project
         [Header("Scene Settings")]
         [Tooltip("Main Scene Video Loaded")]
         public bool mainSceneVideoLoaded;
-        
 
         // Add a method to reset values if needed
         public void ResetToDefaults()
