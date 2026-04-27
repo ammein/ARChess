@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ARChess.Scripts.Project;
 using ARChess.Scripts.Utility;
 using UnityEngine;
@@ -15,22 +16,24 @@ namespace ARChess.Scripts.Chess
         [Tooltip("The prefab to spawn")]
         private GameObject prefab;
         
-        [Header("Chess Settings")]
-        [SerializeField]
-        [Tooltip("Starting Team to play")]
-        private ChessTeam startingTeam;
-        
-        private GameObject m_ObjectInstance;
-        
         [Header("Project Setting")]
         [SerializeField]
         [Tooltip("Project State Options")]
         private ProjectStateOptions globalProjectStateOptions;
+        
+        private ChessTeam startingTeam;
+        private GameObject m_ObjectInstance;
 
         public GameObject ObjectInstance
         {
             get => m_ObjectInstance;
             set => m_ObjectInstance = value;
+        }
+
+        public ChessTeam StartingTeam
+        {
+            get => startingTeam;
+            set => startingTeam = value;
         }
         
         /// <summary>

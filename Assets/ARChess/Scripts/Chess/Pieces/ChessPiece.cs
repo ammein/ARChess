@@ -80,6 +80,12 @@ namespace ARChess.Scripts.Chess.Pieces
             transform.localPosition = Vector3.Lerp(transform.localPosition, _desiredPosition, Time.deltaTime * movingDuration);
             transform.localScale = Vector3.Lerp(transform.localScale, _desiredScale, Time.deltaTime * movingScale);
         }
+
+        public virtual List<Vector2Int> GetAvailableMoves(ref ChessPiece[,] board, int tileCountX, int tileCountY, ChessTeam startingTeam)
+        {
+            List<Vector2Int> r = new List<Vector2Int>();
+            return r;
+        }
         
         // Operations
         public virtual void SetPosition(Vector3 position, bool force = false)

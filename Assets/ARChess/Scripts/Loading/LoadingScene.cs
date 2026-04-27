@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using ARChess.Scripts.Image;
 using TMPro;
@@ -29,6 +30,12 @@ namespace ARChess.Scripts.Loading
         private int _dotCount;
         private Coroutine _ellipsisCoroutine;
         private string _textLoadingState;
+
+        public void Start()
+        {
+            // Make sure it runs only in 30FPS. Chess Mobile Game don't have to take too much framerate.
+            Application.targetFrameRate = 30;
+        }
 
         public void LoadScene(int id)
         {

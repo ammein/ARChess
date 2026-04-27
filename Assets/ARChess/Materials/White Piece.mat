@@ -51,7 +51,7 @@ Material:
     - _APPEARANCE_STATE: 0
     - _AlphaClip: 1
     - _AlphaToMask: 1
-    - _Ambient_Occlusion: 1
+    - _Ambient_Occlusion: 0.552
     - _Appear: 0
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
@@ -65,10 +65,10 @@ Material:
     - _Edge_Glow: 20
     - _Edge_Width: 0.011
     - _Glass_Noise_Scale: 258
-    - _Glass_Thin: 2.74
-    - _Metallic: 1
+    - _Glass_Thin: 0.1
+    - _Metallic: 0.444
     - _Noise_Scale: 85
-    - _Normal_Strength: 0.196
+    - _Normal_Strength: 0.241
     - _Progress: 0
     - _QueueControl: 0
     - _QueueOffset: 0
@@ -88,9 +88,9 @@ Material:
     - _Destroyed_Position_Remap: {r: 0, g: 1, b: 0, a: 0}
     - _Disappear_Position_Remap: {r: -1, g: 5, b: 0, a: 0}
     - _Edge_Color: {r: 0, g: 2.5796254, b: 2.9960787, a: 1}
-    - _Glass_Color: {r: 0, g: 3.2067192, b: 29.508846, a: 1}
+    - _Glass_Color: {r: 0, g: 16, b: 13.396858, a: 1}
     - _Position_Remap: {r: -0.01, g: 15, b: 0, a: 0}
-    - _Specular_Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Specular_Color: {r: 0.16037738, g: 0.16037738, b: 0.16037738, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &6558940532204403332

@@ -2169,6 +2169,34 @@ PrefabInstance:
       propertyPath: m_Name
       value: Dynamic Lighting
       objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 728003192}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetDynamicLighting
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ARChess.Scripts.UI.MenuEvents, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 1391653427168595636, guid: dfad4c5df052c4dd7ac9d921951fafb1, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -4764,6 +4792,34 @@ PrefabInstance:
       propertyPath: m_Name
       value: Show Tutorials
       objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 728003192}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetTutorials
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ARChess.Scripts.UI.MenuEvents, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 8003863681133596636, guid: 4f49a0c358a2d4ec48a5e55a35d9f7e5, type: 3}
+      propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 1391653427168595636, guid: dfad4c5df052c4dd7ac9d921951fafb1, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -5499,6 +5555,62 @@ PrefabInstance:
     - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
       propertyPath: m_Transition
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 728003192}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SetName
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 11400000, guid: 1f891a6ddf5e14389b11da62ab79509f, type: 2}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: set_name
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ARChess.Scripts.UI.MenuEvents, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ARChess.Scripts.Project.ProjectStateOptions, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnEndEdit.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921919757592878434, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
+      propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 8709914250838168585, guid: 7c4fb4b4a2e4e4480a402c20ca89d174, type: 3}
       propertyPath: m_Name

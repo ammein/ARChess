@@ -4,7 +4,7 @@ using Debug = UnityEngine.Debug;
 
 namespace ARChess.Scripts.Utility
 {
-    public class Log
+    public static class Log
     {
         [Conditional("UNITY_EDITOR")]
         public static void LogThis(string message, Object context)
