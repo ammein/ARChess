@@ -27,32 +27,37 @@ float fire(float2 n) {
     return noise(n) + noise(n * 2.1) * .6 + noise(n * 5.4) * .42;
 }
 
-float3 getLine(float3 col, float2 fc, float2x2 mtx, float time, float shift){
-    float t = time;
-    float2 uv = mul(mtx, fc);
-    
-    uv.x += uv.y < .5 ? 23.0 + t * .35 : -11.0 + t * .3;    
-    uv.y = abs(uv.y - shift);
-    uv *= 5.0;
-    
-    float q = fire(uv - t * .013) / 2.0;
-    float2 r = float2(fire(uv + q / 2.0 + t - uv.x - uv.y), fire(uv + q - t));
-    float3 color = float3(1.0 / (pow(float3(0.5, 0.0, .1) + 1.61, float3(4.0, 4.0, 4.0))));
-    
-    float grad = pow((r.y + r.y) * max(.0, uv.y) + .1, 4.0);
-    color = ramp(grad);
-    color /= (1.50 + max(float3(0, 0, 0), color));
-    
-    if(color.b < .00000005)
-        color = float3(.0, .0 , .0);
-    
-    return lerp(col, color, color.b);
+float square_tunnel(float2 uv) {
+    float2 p = -1.0 + 2.0 * uv;
+    float2 t = p*p*p*p;
+    return max(t.x, t.y);
 }
 
-void magic_float(float2 uv, float2x2 mtx1, float2x2 mtx2, float time, float2 shift, out float3 Magic ){
-    float3 color = float3(0., 0., 0.);
-    color = getLine(color, uv, mtx1, time, shift.x);
-    color = getLine(color, uv, mtx2, time, shift.y);
-    Magic = color;
+float3 portal(float2 uv, float t)
+{
+    // create a fire texture
+    float q = noise(uv + t);
+    float f = fire(uv - (t * .934) - q);
+    
+    float sq = square_tunnel(uv);
+
+    // apply fire everywhere to only select pixels
+    float grad = f * (1. - (sq * 2. -1.));
+
+    // can't really explain what this is doing
+    grad = max(0., (1. - grad)/grad);
+
+    // adjust fade
+    grad /= (1. + grad);
+    
+    // add colour
+    float3 portal = float3((grad * grad * grad), (grad * grad), grad); 
+    
+    return portal;
+}
+
+void magic_float(float2 uv, float time, out float3 Magic ){
+    float p = portal(uv, time);
+    Magic = p;
 }
 #endif //MYHLSLINCLUDE_INCLUDED
