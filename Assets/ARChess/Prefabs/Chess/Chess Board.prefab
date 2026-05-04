@@ -264,7 +264,7 @@ MonoBehaviour:
   m_tileSize: 0.0375
   yOffset: 0.055
   boardCenter: {x: 0, y: 0, z: 0}
-  startingTeam: 0
+  projectStateOptions: {fileID: 11400000, guid: 1f891a6ddf5e14389b11da62ab79509f, type: 2}
 --- !u!114 &8035476916194715064
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,11 +407,11 @@ MonoBehaviour:
   m_SmoothPosition: 0
   m_SmoothPositionAmount: 8
   m_TightenPosition: 0.1
-  m_TrackRotation: 1
+  m_TrackRotation: 0
   m_SmoothRotation: 0
   m_SmoothRotationAmount: 8
   m_TightenRotation: 0.1
-  m_TrackScale: 1
+  m_TrackScale: 0
   m_SmoothScale: 0
   m_SmoothScaleAmount: 8
   m_TightenScale: 0.1

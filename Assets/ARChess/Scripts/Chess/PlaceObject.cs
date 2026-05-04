@@ -2,7 +2,9 @@ using System;
 using System.Linq;
 using ARChess.Scripts.Project;
 using ARChess.Scripts.Utility;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace ARChess.Scripts.Chess
@@ -21,27 +23,29 @@ namespace ARChess.Scripts.Chess
         [Tooltip("Project State Options")]
         private ProjectStateOptions globalProjectStateOptions;
         
+        [Header("UI Settings")]
+        [SerializeField]
+        [Tooltip("The gameobject to enable matchmaking")]
+        private GameObject yourTurn;
+        [SerializeField]
+        [Tooltip("The gameobject to change player text")]
+        private TextMeshProUGUI playerText;
+        [SerializeField]
+        [Tooltip("The gameobject to change team text")]
+        private TextMeshProUGUI teamText;
+        [SerializeField]
+        [Tooltip("End Game Game Object")]
+        private GameObject endGame;
+        
         private ChessTeam startingTeam;
         private GameObject m_ObjectInstance;
-
-        public GameObject ObjectInstance
-        {
-            get => m_ObjectInstance;
-            set => m_ObjectInstance = value;
-        }
-
-        public ChessTeam StartingTeam
-        {
-            get => startingTeam;
-            set => startingTeam = value;
-        }
         
         /// <summary>
         /// Event invoked after an object is spawned.
         /// </summary>
         public event Action<GameObject> objectSpawned;
         
-        bool _invoked = false;
+        private bool _invoked;
 
         private void Update()
         {
@@ -50,6 +54,40 @@ namespace ARChess.Scripts.Chess
                 objectSpawned.Invoke(m_ObjectInstance);   
                 _invoked = true;
             }
+
+            // End Game
+            if (!m_ObjectInstance || !_invoked) return;
+            if (!m_ObjectInstance.TryGetComponent(out Chessboard chessboard)) return;
+            
+            switch (chessboard.EndGame)
+            {
+                case true:
+                    endGame.SetActive(true);
+                    playerText.text = chessboard.playerWins;
+                    teamText.text = chessboard.teamWins;
+                    break;
+                case false:
+                    endGame.SetActive(false);
+                    break;
+            }
+        }
+
+        public void ResetGame()
+        {
+            if(endGame.activeInHierarchy)
+                if(m_ObjectInstance.TryGetComponent(out Chessboard chessboard))
+                    chessboard.OnResetButton();
+        }
+
+        public void EndGame()
+        {
+            if (m_ObjectInstance && m_ObjectInstance.TryGetComponent(out Chessboard chessboard))
+            {
+                chessboard.EndGame = false;
+                chessboard.yourTurnUI.gameObject.SetActive(false);
+            }
+            
+            endGame.SetActive(false);
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
@@ -59,8 +97,10 @@ namespace ARChess.Scripts.Chess
             if (prefab.TryGetComponent(out Chessboard chessboard))
             {
                 chessboard.startingTeam = startingTeam;
+                if(yourTurn != null)
+                    chessboard.yourTurnUI = yourTurn;
             }
-            var facePosition = Camera.main.transform.position;
+            var facePosition = Camera.main!.transform.position;
             var forward = -(facePosition - positionPose);  // Have to negate forward position to let the chess piece player towards camera
             
             // Instantiate object with prefab using same position and rotation

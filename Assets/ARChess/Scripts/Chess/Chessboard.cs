@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
+using ARChess.Scripts.Project;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using ARChess.Scripts.Utility;
+using TMPro;
 
 namespace ARChess.Scripts.Chess
 {
@@ -45,9 +47,21 @@ namespace ARChess.Scripts.Chess
 
         [SerializeField] [Tooltip("Board Center of the chessboard")]
         private Vector3 boardCenter = Vector3.zero;
+        
+        [SerializeField] [Tooltip("Project State Options")]
+        private ProjectStateOptions projectStateOptions;
 
         [HideInInspector]
         public ChessTeam startingTeam;
+        
+        [HideInInspector]
+        public GameObject yourTurnUI;
+        
+        [HideInInspector]
+        public string playerWins = "";
+        
+        [HideInInspector]
+        public string teamWins = "";
 
         /// <summary>
         /// Event invoked after a piece is MoveTo
@@ -90,6 +104,10 @@ namespace ARChess.Scripts.Chess
             set => m_tileSize = value;
         }
 
+        public bool MyTurn { get; set; }
+        
+        public bool EndGame { get; set; }
+
         public Vector2 TileCount => new(TILE_COUNT_X, TILE_COUNT_Y);
         
         public List<TeamMaterials> PieceMaterials => teamMaterials;
@@ -97,6 +115,7 @@ namespace ARChess.Scripts.Chess
         private void Awake()
         {
             isWhiteTurn = true;
+            MyTurn = startingTeam == ChessTeam.White;
             try
             {
                 ChessTiles = GameObject.Find("All Chess Tiles");
@@ -163,6 +182,16 @@ namespace ARChess.Scripts.Chess
                 _directionalLight.transform.rotation = gameObject.transform.rotation *
                                                        Quaternion.Euler(_ambientLightEstimation.DynamicLightRotation);
             }
+            
+            EnableMatchmakingUI(MyTurn);
+        }
+
+        private void EnableMatchmakingUI(bool state)
+        {
+            if(yourTurnUI != null && yourTurnUI.activeInHierarchy != state)
+            {
+                yourTurnUI.SetActive(state);
+            }
         }
 
         public void ChessInteract(Vector2 position, bool interact)
@@ -228,10 +257,18 @@ namespace ARChess.Scripts.Chess
                     Vector2Int previousPosition =
                         new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
                     
-                    bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
-                    if (!validMove)
-                        currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                    var validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
                     
+                    switch (validMove)
+                    {
+                        case false:
+                            currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                            break;
+                        case true:
+                            MyTurn = currentlyDragging.team != startingTeam;
+                            break;
+                    }
+
                     currentlyDragging = null;
                     RemoveHighlightTiles();
                 }
@@ -602,17 +639,42 @@ namespace ARChess.Scripts.Chess
 
         private void DisplayVictory(ChessTeam team)
         {
-            
+            EndGame = true;
+            teamWins = team.ToString() + " team wins!";
+            playerWins = startingTeam == team ? projectStateOptions.playerName : "Your Opponent";
         }
 
         public void OnResetButton()
         {
+            EndGame = false;
             
-        }
+            // Fields reset
+            currentlyDragging = null;
+            availableMoves = new List<Vector2Int>();
+            
+            // Clean up
+            for(int x = 0; x < TILE_COUNT_X; x++)
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                {
+                    if (chessPieces[x, y] != null)
+                        Destroy(chessPieces[x, y].gameObject);
+                    
+                    chessPieces[x, y] = null;
+                }
+            
+            foreach (var white in deadWhites)
+                Destroy(white.gameObject);
 
-        public void OnExitButton()
-        {
+            foreach (var black in deadBlacks)
+                Destroy(black.gameObject);
             
+            deadWhites.Clear();
+            deadBlacks.Clear();
+            
+            SpawnAllPieces();
+            PositionAllPieces();
+            AnimateAllPiece();
+            isWhiteTurn = true;
         }
 
         // Operations
@@ -650,7 +712,7 @@ namespace ARChess.Scripts.Chess
                 if (ocp.team != startingTeam)
                 {
                     if (ocp.type == ChessPieceType.King)
-                        Checkmate(ocp.team);
+                        Checkmate(cp.team);
                     
                     deadWhites.Add(ocp);
                     float destroyedDuration =
@@ -675,7 +737,7 @@ namespace ARChess.Scripts.Chess
                 else
                 {
                     if (ocp.type == ChessPieceType.King)
-                        Checkmate(ocp.team);
+                        Checkmate(cp.team);
                     
                     deadBlacks.Add(ocp);
                     float destroyedDuration =

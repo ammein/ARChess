@@ -1,8 +1,6 @@
 // Inner outline shader for Match2 game cell.
 // Based on shader created by @remonvv
 // https://www.shadertoy.com/view/MdjfRK
-//
-// Thanks to t.me/ru_cocos2dx@satan_black for help
 
 // From: https://docs.unity3d.com/Packages/com.unity.shadergraph@17.6/manual/Custom-Function-Node.html#multiple-functions-and-multiple-files
 //UNITY_SHADER_NO_UPGRADE
