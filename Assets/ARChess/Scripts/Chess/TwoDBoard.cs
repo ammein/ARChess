@@ -58,7 +58,7 @@ namespace ARChess.Scripts.Chess
         private bool _generated;
         private GameObject[,] _tiles;
         private GameObject[,] _spritePieces;
-        private bool _subscribed = false;
+        private bool _subscribed;
         private Chessboard chessboard;
 
         private void Update()
@@ -113,6 +113,15 @@ namespace ARChess.Scripts.Chess
             // NOW the rect height is properly calculated
             transform.GetComponent<VerticalLayoutGroup>().spacing = -board.GetComponent<RectTransform>().rect.height;
 
+            GameObject pieceObject = GenerateParentPiece();
+            
+            // Generate Pieces
+            GeneratePieces(pieceObject);
+            _generated = true;
+        }
+
+        private GameObject GenerateParentPiece()
+        {
             // Create new parent for Piece Game Objects
             GameObject parentPiece = new GameObject("Pieces");
             parentPiece.transform.SetParent(transform);
@@ -123,9 +132,8 @@ namespace ARChess.Scripts.Chess
             fitPieces.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
             fitPieces.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             EnsureGridLayout(parentPiece.GetComponent<GridLayoutGroup>(), false);
-            // Generate Pieces
-            GeneratePieces(parentPiece);
-            _generated = true;
+            
+            return parentPiece;
         }
 
 
@@ -282,6 +290,27 @@ namespace ARChess.Scripts.Chess
                 Destroy(transform.Find("Board").gameObject);
             if(transform.Find("Pieces") != null)
                 Destroy(transform.Find("Pieces").gameObject);
+        }
+
+        public void OnReset()
+        {
+            for(int y = 0; y < chessboard.TileCount.y; y++)
+                for (int x = 0; x < chessboard.TileCount.x; x++)
+                {
+                    if (_spritePieces[x, y].GetComponent<UnityEngine.UI.Image>().sprite != null)
+                    {
+                        Destroy(_spritePieces[x, y].gameObject);
+                    }
+                    
+                    _spritePieces[x, y] = null;
+                }
+            
+            if(transform.Find("Pieces") != null)
+                Destroy(transform.Find("Pieces").gameObject);
+
+            GameObject parentPiece = GenerateParentPiece();
+            
+            GeneratePieces(parentPiece);
         }
 
         // Operations

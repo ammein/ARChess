@@ -8445,6 +8445,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 2146415796}
+        m_TargetAssemblyTypeName: ARChess.Scripts.Chess.TwoDBoard, Assembly-CSharp
+        m_MethodName: OnReset
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2143087115
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8620,6 +8632,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5912883847105466149, guid: 943e252423f8547c8a594e234b643a92, type: 3}
   m_PrefabInstance: {fileID: 2146415793}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2146415796 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9161553784914622653, guid: 943e252423f8547c8a594e234b643a92, type: 3}
+  m_PrefabInstance: {fileID: 2146415793}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2146415795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e27ac4364fd994ba8a9d5207ffb09107, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Chess.TwoDBoard
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
