@@ -8,7 +8,7 @@ using ARChess.Scripts.Project;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using ARChess.Scripts.Utility;
-using TMPro;
+using UnityEngine.Rendering;
 
 namespace ARChess.Scripts.Chess
 {

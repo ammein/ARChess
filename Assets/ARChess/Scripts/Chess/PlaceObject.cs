@@ -4,6 +4,7 @@ using ARChess.Scripts.Project;
 using ARChess.Scripts.Utility;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
@@ -39,6 +40,8 @@ namespace ARChess.Scripts.Chess
         
         private ChessTeam startingTeam;
         private GameObject m_ObjectInstance;
+        private GameObject _probeGameObject;
+        private ReflectionProbe _probeComponent;
         
         /// <summary>
         /// Event invoked after an object is spawned.
@@ -71,6 +74,32 @@ namespace ARChess.Scripts.Chess
                     break;
             }
         }
+        
+        private void InitializeProbe(Vector3 position)
+        {
+            // 1. Create a new GameObject
+            _probeGameObject = new GameObject("Runtime Reflection Probe");
+            _probeGameObject.transform.position = position;
+
+            // 2. Add the ReflectionProbe component
+            _probeComponent = _probeGameObject.AddComponent<ReflectionProbe>();
+
+            // 3. Configure for Runtime
+            _probeComponent.mode = ReflectionProbeMode.Realtime;
+            _probeComponent.refreshMode = ReflectionProbeRefreshMode.ViaScripting; // Or .EveryFrame
+            
+            // Time Slicing Mode into Individual Faces
+            // Behavior: Renders 1 cubemap face per frame (takes 6 frames total).
+            // Best For: Balance between performance and update speed.
+            // Risk: Minor visual desynchronization across faces during fast camera movements.
+            _probeComponent.timeSlicingMode = ReflectionProbeTimeSlicingMode.IndividualFaces;
+        
+            // Define probe resolution
+            _probeComponent.resolution = 64; 
+
+            // 4. Update the probe
+            _probeComponent.RenderProbe();
+        }
 
         public void ResetGame()
         {
@@ -88,6 +117,10 @@ namespace ARChess.Scripts.Chess
             }
             
             endGame.SetActive(false);
+            
+            Destroy(_probeGameObject);
+
+            Resources.UnloadUnusedAssets();
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
@@ -100,8 +133,11 @@ namespace ARChess.Scripts.Chess
                 if(yourTurn != null)
                     chessboard.yourTurnUI = yourTurn;
             }
+            
             var facePosition = Camera.main!.transform.position;
             var forward = -(facePosition - positionPose);  // Have to negate forward position to let the chess piece player towards camera
+            
+            InitializeProbe(positionPose);
             
             // Instantiate object with prefab using same position and rotation
             m_ObjectInstance = Instantiate(prefab);
@@ -120,6 +156,11 @@ namespace ARChess.Scripts.Chess
             
             // Resize Chessboard
             m_ObjectInstance.transform.localScale = new Vector3(globalProjectStateOptions.initialChessboardSize, globalProjectStateOptions.initialChessboardSize, globalProjectStateOptions.initialChessboardSize);
+            
+            // Move probe
+            if (!_probeGameObject || !_probeComponent) return;
+            _probeGameObject.transform.position = positionPose;
+            _probeComponent.RenderProbe();
         }
 
         public void Positioning(Vector3 positionPose, Vector3 spawnNormal)
