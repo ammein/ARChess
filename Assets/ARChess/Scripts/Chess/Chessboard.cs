@@ -9,10 +9,17 @@ using ARChess.Scripts.Project;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using ARChess.Scripts.Utility;
-using UnityEngine.Rendering;
 
 namespace ARChess.Scripts.Chess
 {
+    public enum SpecialMove
+    {
+        None = 0,
+        EnPassant,
+        Castling,
+        Promotion,
+    }
+    
     public class Chessboard : MonoBehaviour
     {
         [Serializable]
@@ -90,6 +97,9 @@ namespace ARChess.Scripts.Chess
         private GameObject _directionalLight;
         private AmbientLightEstimation _ambientLightEstimation;
         private bool isWhiteTurn;
+        
+        private SpecialMove specialMove;
+        private List<Vector2Int[]> moveList = new List<Vector2Int[]>();
 
         public BoxCollider ChessCollider => chessCollider;
 
@@ -247,6 +257,10 @@ namespace ARChess.Scripts.Chess
                             
                         // Get a list of where I can go, highlight tiles as well
                         availableMoves = currentlyDragging.GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
+                        
+                        // Get a list of special moves as well
+                        specialMove =
+                            currentlyDragging.GetSpecialMoves(ref chessPieces, ref moveList, ref availableMoves, startingTeam);
 
                         HighlightTiles();
                     }
@@ -655,7 +669,8 @@ namespace ARChess.Scripts.Chess
             
             // Fields reset
             currentlyDragging = null;
-            availableMoves = new List<Vector2Int>();
+            availableMoves.Clear();
+            moveList.Clear();
             
             // Clean up
             for(int x = 0; x < TILE_COUNT_X; x++)
@@ -680,6 +695,27 @@ namespace ARChess.Scripts.Chess
             PositionAllPieces();
             AnimateAllPiece();
             isWhiteTurn = true;
+            MyTurn = startingTeam == ChessTeam.White;
+        }
+        
+        // Special Moves
+        private void ProcessSpecialMove()
+        {
+            if (specialMove is SpecialMove.EnPassant)
+            {
+                var newMove = moveList[moveList.Count - 1];
+                ChessPiece myPawn = chessPieces[newMove[1].x, newMove[1].y];
+                var targetPawnPosition = moveList[moveList.Count - 2];
+                ChessPiece enemyPawn = chessPieces[targetPawnPosition[1].x, targetPawnPosition[1].y];
+
+                if (myPawn.currentX == enemyPawn.currentX)
+                {
+                    if (myPawn.currentY == enemyPawn.currentY - 1 || myPawn.currentY == enemyPawn.currentY + 1)
+                    {
+                        DestroyPiece(enemyPawn, enemyPawn.team != startingTeam ? ChessTeam.White : ChessTeam.Black);
+                    }
+                }
+            }
         }
 
         // Operations
@@ -698,55 +734,14 @@ namespace ARChess.Scripts.Chess
             return -Vector2Int.one; // Invalid
         }
 
-        private bool MoveTo(ChessPiece cp, int x, int y)
+        private void DestroyPiece(ChessPiece ocp, ChessTeam team)
         {
-            if (!ContainsValidMove(ref availableMoves, new Vector2Int(x, y)))
-                return false;
-            
-            Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
-
-            // Is there another piece in target position?
-            if (chessPieces[x, y] != null)
+            float destroyedDuration =
+                ocp.appearance.Find(match => match.appearance.Equals(Appearance.Destroyed)).duration;
+            switch (team)
             {
-                ChessPiece ocp = chessPieces[x, y];
-
-                if (cp.team == ocp.team)
-                    return false;
-
-                // If it's the enemy team
-                if (ocp.team != startingTeam)
-                {
-                    if (ocp.type == ChessPieceType.King)
-                        Checkmate(cp.team);
-                    
-                    deadWhites.Add(ocp);
-                    float destroyedDuration =
-                        ocp.appearance.Find(match => match.appearance.Equals(Appearance.Destroyed)).duration;
-                    ocp.DestroyPiece("_Progress", destroyedDuration, b =>
-                    {
-                        if (b)
-                        {
-                            ocp.SetScale(Vector3.one * deathSize);
-                            ocp.SetPosition(
-                                new Vector3(8f * m_tileSize, yOffset, -1f * m_tileSize) // Outside of bounds
-                                - bounds // Center of the board properly
-                                + new Vector3(m_tileSize / 2, 0, m_tileSize / 2) // Center of square
-                                + (Vector3.forward * deathDistance) * deadWhites.Count // Direction of the count
-                            );
-                            float appearDuration = ocp.appearance
-                                .Find(match => match.appearance.Equals(Appearance.Appear)).duration;
-                            ocp.AppearPiece("_Progress", appearDuration, b => { });
-                        }
-                    });
-                }
-                else
-                {
-                    if (ocp.type == ChessPieceType.King)
-                        Checkmate(cp.team);
-                    
+                case ChessTeam.Black:
                     deadBlacks.Add(ocp);
-                    float destroyedDuration =
-                        ocp.appearance.Find(match => match.appearance.Equals(Appearance.Destroyed)).duration;
                     ocp.DestroyPiece("_Progress", destroyedDuration, b =>
                     {
                         if (b)
@@ -763,7 +758,52 @@ namespace ARChess.Scripts.Chess
                             ocp.AppearPiece("_Progress", appearDuration, b => { });
                         }
                     });
-                }
+                    break;
+                
+                case ChessTeam.White:
+                    deadWhites.Add(ocp);
+                    ocp.DestroyPiece("_Progress", destroyedDuration, b =>
+                    {
+                        if (b)
+                        {
+                            ocp.SetScale(Vector3.one * deathSize);
+                            ocp.SetPosition(
+                                new Vector3(8f * m_tileSize, yOffset, -1f * m_tileSize) // Outside of bounds
+                                - bounds // Center of the board properly
+                                + new Vector3(m_tileSize / 2, 0, m_tileSize / 2) // Center of square
+                                + (Vector3.forward * deathDistance) * deadWhites.Count // Direction of the count
+                            );
+                            float appearDuration = ocp.appearance
+                                .Find(match => match.appearance.Equals(Appearance.Appear)).duration;
+                            ocp.AppearPiece("_Progress", appearDuration, b => { });
+                        }
+                    });
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(team), team, null);
+            }
+        }
+
+        private bool MoveTo(ChessPiece cp, int x, int y)
+        {
+            if (!ContainsValidMove(ref availableMoves, new Vector2Int(x, y)))
+                return false;
+            
+            Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
+
+            // Is there another piece in target position?
+            if (chessPieces[x, y] is not null)
+            {
+                ChessPiece ocp = chessPieces[x, y];
+
+                if (cp.team == ocp.team)
+                    return false;
+
+                // If it's the enemy team
+                if (ocp.type == ChessPieceType.King)
+                    Checkmate(cp.team);
+                    
+                DestroyPiece(ocp, ocp.team != startingTeam ? ChessTeam.White : ChessTeam.Black);
             }
 
             objectPlaced?.Invoke(cp, x, y);
@@ -774,6 +814,9 @@ namespace ARChess.Scripts.Chess
             PositionSinglePiece(x, y);
             
             isWhiteTurn = !isWhiteTurn;
+            moveList.Add(new Vector2Int[] {previousPosition, new Vector2Int(x, y)});
+
+            ProcessSpecialMove();
 
             return true;
         }

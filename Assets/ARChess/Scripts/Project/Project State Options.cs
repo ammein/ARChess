@@ -32,11 +32,9 @@ namespace ARChess.Scripts.Project
         public void ResetToDefaults()
         {
             playerName = "Guest";
-            team = ChessTeam.White;
             initialChessboardSize = 0.06f;
             tutorialsEnabled = true;
             dynamicLighting = false;
-            tutorialPlayed = false;
         }
     }
 }

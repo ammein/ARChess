@@ -86,6 +86,12 @@ namespace ARChess.Scripts.Chess.Pieces
             List<Vector2Int> r = new List<Vector2Int>();
             return r;
         }
+
+        public virtual SpecialMove GetSpecialMoves(ref ChessPiece[,] board, ref List<Vector2Int[]> moveList,
+            ref List<Vector2Int> availableMoves, ChessTeam startingTeam)
+        {
+            return SpecialMove.None;
+        }
         
         // Operations
         public virtual void SetPosition(Vector3 position, bool force = false)
