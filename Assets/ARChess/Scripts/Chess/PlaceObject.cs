@@ -65,9 +65,14 @@ namespace ARChess.Scripts.Chess
             {
                 m_ObjectInstance.TryGetComponent(out _chessboard);
             }
+            
+            // Check if the chess is ended
             switch (_chessboard.EndGame)
             {
                 case true:
+                    if(yourTurn.activeInHierarchy)
+                        yourTurn.SetActive(false);
+                    
                     if (!endGame.activeInHierarchy)
                     {
                         endGame.SetActive(true);
@@ -78,6 +83,10 @@ namespace ARChess.Scripts.Chess
                 case false:
                     if(endGame.activeInHierarchy)
                         endGame.SetActive(false);
+                    
+                    // Reset your turn gameObject
+                    if(!yourTurn.activeInHierarchy && _chessboard.MyTurn)
+                        yourTurn.SetActive(true);
                     break;
             }
         }
@@ -126,8 +135,6 @@ namespace ARChess.Scripts.Chess
             endGame.SetActive(false);
             
             Destroy(_probeGameObject);
-
-            Resources.UnloadUnusedAssets();
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
