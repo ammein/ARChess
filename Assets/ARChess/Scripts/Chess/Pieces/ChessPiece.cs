@@ -117,7 +117,9 @@ namespace ARChess.Scripts.Chess.Pieces
         {
             callback?.Invoke(false);
             yield return new WaitForEndOfFrame();
+#if UNITY_EDITOR
             CheckShaderKeywordState("_APPEARANCE_STATE");
+#endif
             float time = 0;
             while (time < duration)
             {
@@ -144,7 +146,9 @@ namespace ARChess.Scripts.Chess.Pieces
         {
             callback?.Invoke(false);
             yield return new WaitForEndOfFrame();
+#if UNITY_EDITOR
             CheckShaderKeywordState("_APPEARANCE_STATE");
+#endif
             float time = 0;
             while (time < duration)
             {
@@ -170,7 +174,9 @@ namespace ARChess.Scripts.Chess.Pieces
         {
             callback?.Invoke(false);
             yield return new WaitForEndOfFrame();
+#if UNITY_EDITOR
             CheckShaderKeywordState("_APPEARANCE_STATE");
+#endif
             float time = 0;
             while (time < duration)
             {
@@ -216,7 +222,8 @@ namespace ARChess.Scripts.Chess.Pieces
             }
         }
         
-        void CheckShaderKeywordState(string keyword = "")
+#if UNITY_EDITOR
+        private void CheckShaderKeywordState(string keyword = "")
         {
             // Get the instance of the Shader class that the material uses
             var shader = _renderer.material.shader;
@@ -233,14 +240,14 @@ namespace ARChess.Scripts.Chess.Pieces
                 if (localKeyword.isOverridable && Shader.IsKeywordEnabled(localKeyword.name))
                 {
                     var log = "Local keyword with name of <color=\"yellow\">" + localKeyword.name +
-                                 "</color> is overridden by a global keyword, and is <color=\"green\">enabled</color>";
+                              "</color> is overridden by a global keyword, and is <color=\"green\">enabled</color>";
                     if (keyword.Length > 0)
                     {
-                        if(localKeyword.name.Contains(keyword))
+                        if (localKeyword.name.Contains(keyword))
                             Log.LogThis(log, this);
                         return;
                     }
-                    
+
                     Log.LogThis(log, this);
                 }
                 // Otherwise, Unity uses the local keyword state
@@ -248,17 +255,19 @@ namespace ARChess.Scripts.Chess.Pieces
                 {
                     var state = _renderer.material.IsKeywordEnabled(localKeyword) ? "enabled" : "disabled";
                     var color = _renderer.material.IsKeywordEnabled(localKeyword) ? "green" : "red";
-                    var log = $"Local keyword with name of <color=\"yellow\">{localKeyword.name}</color> is <color=\"{color}\">{state}</color>";
+                    var log =
+                        $"Local keyword with name of <color=\"yellow\">{localKeyword.name}</color> is <color=\"{color}\">{state}</color>";
                     if (keyword.Length > 0)
                     {
-                        if(localKeyword.name.Contains(keyword))
+                        if (localKeyword.name.Contains(keyword))
                             Log.LogThis(log, this);
                         return;
                     }
-                    
+
                     Log.LogThis(log, this);
-                }            
+                }
             }
         }
+#endif
     }
 }

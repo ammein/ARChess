@@ -71,8 +71,8 @@ namespace ARChess.Scripts.Chess
                 chessboard.objectPlaced += ObjectPlaced;
                 _subscribed = true;
             }
-    
-            if (chessboard&& chessboard.TileCount.x > 0 && !_generated)
+            
+            if(chessboard&& chessboard.TileCount.x > 0 && !_generated)
                 StartTiles();
         }
 
@@ -87,7 +87,7 @@ namespace ARChess.Scripts.Chess
             _generated = false;
         }
 
-        private void StartTiles()
+        public void StartTiles()
         {
             Log.LogThis("Starting tiles", this);
             startingTeam = chessboard.startingTeam;

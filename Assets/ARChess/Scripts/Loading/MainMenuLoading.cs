@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Text;
 using ARChess.Scripts.Image;
 using ARChess.Scripts.Project;
 using TMPro;
@@ -51,6 +52,8 @@ namespace ARChess.Scripts.Loading
                 StartCoroutine(AnimateEllipsis());
             } else if (_projectStateOptions.mainSceneVideoLoaded && loadingScene.activeSelf && !mainScene.activeSelf)
             {
+                StartCoroutine(CheckLoad(startValue, endValue));
+                StartCoroutine(AnimateEllipsis());
                 loadingScene.SetActive(false);
                 mainScene.SetActive(true);
             }
@@ -59,11 +62,12 @@ namespace ARChess.Scripts.Loading
         private IEnumerator AnimateEllipsis()
         {
             loadingText.text = loadingTextString;
+            StringBuilder dots =  new StringBuilder();
             while (!Mathf.Approximately(loadingBarFill.fillAmount, endValue))
             {
                 // Add dots up to 3
-                string dots = new string('.', _dotCount);
-                loadingText.text += dots;
+                dots.Append('.', _dotCount);
+                loadingText.text += dots.ToString();
 
                 // Increment dot count, reset after 3
                 _dotCount++;

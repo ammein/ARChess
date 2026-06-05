@@ -42,6 +42,7 @@ namespace ARChess.Scripts.Chess
         private GameObject m_ObjectInstance;
         private GameObject _probeGameObject;
         private ReflectionProbe _probeComponent;
+        private Chessboard _chessboard;
         
         /// <summary>
         /// Event invoked after an object is spawned.
@@ -60,17 +61,23 @@ namespace ARChess.Scripts.Chess
 
             // End Game
             if (!m_ObjectInstance || !_invoked) return;
-            if (!m_ObjectInstance.TryGetComponent(out Chessboard chessboard)) return;
-            
-            switch (chessboard.EndGame)
+            if (!_chessboard)
+            {
+                m_ObjectInstance.TryGetComponent(out _chessboard);
+            }
+            switch (_chessboard.EndGame)
             {
                 case true:
-                    endGame.SetActive(true);
-                    playerText.text = chessboard.playerWins;
-                    teamText.text = chessboard.teamWins;
+                    if (!endGame.activeInHierarchy)
+                    {
+                        endGame.SetActive(true);
+                        playerText.text = _chessboard.playerWins;
+                        teamText.text = _chessboard.teamWins;
+                    }
                     break;
                 case false:
-                    endGame.SetActive(false);
+                    if(endGame.activeInHierarchy)
+                        endGame.SetActive(false);
                     break;
             }
         }

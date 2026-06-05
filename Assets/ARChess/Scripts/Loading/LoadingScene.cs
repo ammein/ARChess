@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Text;
 using ARChess.Scripts.Image;
 using TMPro;
 using UnityEngine;
@@ -48,11 +49,12 @@ namespace ARChess.Scripts.Loading
 
         private IEnumerator AnimateEllipsis()
         {
+            StringBuilder dots =  new StringBuilder();
             while (true)
             {
                 // Add dots up to 3
-                string dots = new string('.', _dotCount);
-                loadingText.text += dots;
+                dots.Append('.', _dotCount);
+                loadingText.text += dots.ToString();
 
                 // Increment dot count, reset after 3
                 _dotCount++;
@@ -72,6 +74,14 @@ namespace ARChess.Scripts.Loading
 
         private IEnumerator LoadSceneAsync(int id)
         {
+            // Remove unused assets for current scene and caching
+            Resources.UnloadUnusedAssets();
+            bool success = Caching.ClearCache();
+            if (!success)
+            {
+                Debug.Log("Unable to clear cache");
+            }
+            
             AsyncOperation operation = SceneManager.LoadSceneAsync(id);
             if (operation != null)
             {
@@ -119,9 +129,6 @@ namespace ARChess.Scripts.Loading
             // https://discussions.unity.com/t/solved-fully-reset-current-scene/727611/13
             // Unload the current scene
             yield return SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().name);
-
-            // Remove unused assets for current scene
-            yield return Resources.UnloadUnusedAssets();
         }
     }
 }

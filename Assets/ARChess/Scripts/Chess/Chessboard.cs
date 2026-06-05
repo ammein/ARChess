@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
 using ARChess.Scripts.Project;
@@ -188,7 +189,7 @@ namespace ARChess.Scripts.Chess
 
         private void EnableMatchmakingUI(bool state)
         {
-            if(yourTurnUI != null && yourTurnUI.activeInHierarchy != state)
+            if(yourTurnUI is not null && yourTurnUI.activeInHierarchy != state)
             {
                 yourTurnUI.SetActive(state);
             }
@@ -428,7 +429,7 @@ namespace ARChess.Scripts.Chess
         private void GenerateSingleTiles(float tileSize, int x, int y)
         {
             // Create Visual Tile
-            GameObject tileObject = new GameObject(string.Format("Tile: ({0}, {1})", x, y));
+            GameObject tileObject = new GameObject($"Tile: ({x}, {y})");
             tileObject.transform.SetParent(ChessVisuals.transform);
             tileObject.layer = LayerMask.NameToLayer("Visual Tile");
 
@@ -461,7 +462,7 @@ namespace ARChess.Scripts.Chess
             tiles[x, y] = tileObject;
 
             // Create Bounds Tile
-            GameObject tileBounds = new GameObject(string.Format("X:{0} Y:{1}", x, y));
+            GameObject tileBounds = new GameObject($"X:{x} Y:{y}");
             tileBounds.transform.SetParent(ChessTiles.transform);
             tileBounds.AddComponent<MeshFilter>().mesh = mesh;
             tileBounds.AddComponent<MeshRenderer>().material = tileMaterial;
@@ -640,8 +641,12 @@ namespace ARChess.Scripts.Chess
         private void DisplayVictory(ChessTeam team)
         {
             EndGame = true;
-            teamWins = team.ToString() + " team wins!";
-            playerWins = startingTeam == team ? projectStateOptions.playerName : "Your Opponent";
+            StringBuilder teamWinsString = new StringBuilder();
+            StringBuilder playerWinsString = new StringBuilder();
+            teamWinsString.AppendFormat("{0} team wins!", team.ToString());
+            playerWinsString.Append(startingTeam == team ? projectStateOptions.playerName : "Your Opponent");
+            teamWins = teamWinsString.ToString();
+            playerWins = playerWinsString.ToString();
         }
 
         public void OnResetButton()

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using ARChess.Scripts.Utility;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -161,14 +160,14 @@ namespace ARChess.Scripts.Chess
         private void Update()
         {
 #if UNITY_EDITOR && AR_COMPANION
-            if (m_ARFoundationObjectInput.action.WasPerformedThisFrame() || m_ARFoundationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+            if (m_ARFoundationObjectInput.action.WasPerformedThisFrame() || m_ARFoundationObjectInput.action.WasReleasedThisFrame() || _isDragging.Equals(true))
 #elif UNITY_EDITOR
-            if (m_SimulationObjectInput.action.WasPerformedThisFrame() || m_SimulationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+            if (m_SimulationObjectInput.action.WasPerformedThisFrame() || m_SimulationObjectInput.action.WasReleasedThisFrame() || _isDragging.Equals(true))
 #else
-            if (m_ARFoundationObjectInput.action.WasPerformedThisFrame() || m_ARFoundationObjectInput.action.WasReleasedThisFrame() || _isDragging)
+            if (m_ARFoundationObjectInput.action.WasPerformedThisFrame() || m_ARFoundationObjectInput.action.WasReleasedThisFrame() || _isDragging.Equals(true))
 #endif
             {
-                if (!_mAttemptEdit)
+                if (_mAttemptEdit.Equals(false))
                 {
                     m_AttemptSpawn = true;
                     ChessInteractive(lastTouchPosition, _holdButtonPressed);
