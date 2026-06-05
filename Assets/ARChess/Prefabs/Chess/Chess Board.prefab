@@ -202,7 +202,7 @@ MonoBehaviour:
   deathDistance: 0.02
   dragOffset: 0.1
   pieces:
-  - prefabs: {fileID: 853143713618264420, guid: c82087933840b4a9bb0c35cdb689db3f, type: 3}
+  - prefabs: {fileID: 1855450608229433149, guid: 7903db20da41842878cb18a4a61c52e6, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
@@ -211,7 +211,7 @@ MonoBehaviour:
     - appearance: 2
       duration: 0.5
     type: 2
-  - prefabs: {fileID: 6959614969642995436, guid: ee594bd0674d54e0f8ea136babf88b06, type: 3}
+  - prefabs: {fileID: 4315537594980845524, guid: 0858ebc30a45b42a38e7051ba72d7fc4, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
@@ -220,7 +220,7 @@ MonoBehaviour:
     - appearance: 2
       duration: 0.5
     type: 3
-  - prefabs: {fileID: 393098336855661126, guid: aab313244b8754b22bb74ff1bfba7452, type: 3}
+  - prefabs: {fileID: 1763362143766825556, guid: 10f0b9e5b84b040b7be223145418dca5, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
@@ -229,7 +229,7 @@ MonoBehaviour:
     - appearance: 2
       duration: 0.5
     type: 4
-  - prefabs: {fileID: 5434149931290550590, guid: 9ec3fb058d60241938429b56f19e9956, type: 3}
+  - prefabs: {fileID: 3678072596417990763, guid: c77740021e2154cd19a7ab8e7475e2d4, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
@@ -238,7 +238,7 @@ MonoBehaviour:
     - appearance: 2
       duration: 0.5
     type: 5
-  - prefabs: {fileID: 8319739882674849552, guid: 86cf7b52d997c4de9bc22ebdf1ff899b, type: 3}
+  - prefabs: {fileID: 6123722144443265574, guid: 38fd1141daeba45869ea5c46cb8edb3a, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
@@ -247,7 +247,7 @@ MonoBehaviour:
     - appearance: 2
       duration: 0.5
     type: 6
-  - prefabs: {fileID: 7014084014938433599, guid: 3ce8bfa9967e9463b8202db064b73776, type: 3}
+  - prefabs: {fileID: 8522672881098904743, guid: e5a04f9bab4da4328a72be3fabb0e977, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
@@ -264,7 +264,11 @@ MonoBehaviour:
   m_tileSize: 0.0375
   yOffset: 0.055
   boardCenter: {x: 0, y: 0, z: 0}
+  projectStateOptions: {fileID: 11400000, guid: 1f891a6ddf5e14389b11da62ab79509f, type: 2}
   startingTeam: 0
+  yourTurnUI: {fileID: 0}
+  playerWins: 
+  teamWins: 
 --- !u!114 &8035476916194715064
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,11 +411,11 @@ MonoBehaviour:
   m_SmoothPosition: 0
   m_SmoothPositionAmount: 8
   m_TightenPosition: 0.1
-  m_TrackRotation: 1
+  m_TrackRotation: 0
   m_SmoothRotation: 0
   m_SmoothRotationAmount: 8
   m_TightenRotation: 0.1
-  m_TrackScale: 1
+  m_TrackScale: 0
   m_SmoothScale: 0
   m_SmoothScaleAmount: 8
   m_TightenScale: 0.1

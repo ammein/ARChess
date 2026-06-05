@@ -20,7 +20,7 @@ namespace ARChess.Scripts.Loading
 
         void OnSceneUnloaded(Scene current)
         {
-            if (current == SceneManager.GetActiveScene())
+            if (current.Equals(SceneManager.GetActiveScene()))
             {
                 LoaderUtility.Deinitialize();
                 LoaderUtility.Initialize();

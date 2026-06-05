@@ -3,9 +3,11 @@ using UnityEngine.Video;
 
 namespace ARChess.Scripts.Video
 {
+    
     public class OrientationVideoPlayer : MonoBehaviour
     {
         private VideoPlayer _video;
+        private VideoAspectRatio _videoAspectRatio;
 
         private void Awake()
         {
@@ -19,13 +21,17 @@ namespace ARChess.Scripts.Video
         private void Update()
         {
             if (!_video) return;
-            if (Screen.orientation == ScreenOrientation.LandscapeLeft || Screen.orientation == ScreenOrientation.LandscapeRight )
+            if (_videoAspectRatio is not VideoAspectRatio.Stretch &&
+                (Screen.orientation is ScreenOrientation.LandscapeLeft ||
+                 Screen.orientation is ScreenOrientation.LandscapeRight) )
             {
                 _video.aspectRatio = VideoAspectRatio.Stretch;
+                _videoAspectRatio = VideoAspectRatio.Stretch;
             }
-            else
+            else if(_videoAspectRatio is not VideoAspectRatio.NoScaling)
             {
                 _video.aspectRatio = VideoAspectRatio.NoScaling;
+                _videoAspectRatio = VideoAspectRatio.NoScaling;
             }
         }
     }

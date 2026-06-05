@@ -36,9 +36,9 @@ namespace ARChess.Scripts.AR
         void Update()
         {
             var updatedCameraFacingDirection = m_CameraManager.currentFacingDirection;
-            if (updatedCameraFacingDirection != CameraFacingDirection.None && updatedCameraFacingDirection != m_CurrentCameraFacingDirection)
+            if (updatedCameraFacingDirection is not CameraFacingDirection.None && updatedCameraFacingDirection != m_CurrentCameraFacingDirection)
             {
-                if (updatedCameraFacingDirection == CameraFacingDirection.User)
+                if (updatedCameraFacingDirection is CameraFacingDirection.User)
                 {
                     m_CurrentCameraFacingDirection = updatedCameraFacingDirection;
                     GetComponent<ARFaceManager>().enabled = true;
@@ -49,7 +49,7 @@ namespace ARChess.Scripts.AR
                         m_Session.requestedTrackingMode = TrackingMode.RotationOnly;
                     }
                 }
-                else if (updatedCameraFacingDirection == CameraFacingDirection.World)
+                else if (updatedCameraFacingDirection is CameraFacingDirection.World)
                 {
                     m_CurrentCameraFacingDirection = updatedCameraFacingDirection;
                     GetComponent<ARFaceManager>().enabled = false;

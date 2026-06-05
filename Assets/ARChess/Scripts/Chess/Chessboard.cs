@@ -2,11 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
+using ARChess.Scripts.Project;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using ARChess.Scripts.Utility;
+using UnityEngine.Rendering;
 
 namespace ARChess.Scripts.Chess
 {
@@ -45,9 +48,21 @@ namespace ARChess.Scripts.Chess
 
         [SerializeField] [Tooltip("Board Center of the chessboard")]
         private Vector3 boardCenter = Vector3.zero;
+        
+        [SerializeField] [Tooltip("Project State Options")]
+        private ProjectStateOptions projectStateOptions;
 
         [HideInInspector]
         public ChessTeam startingTeam;
+        
+        [HideInInspector]
+        public GameObject yourTurnUI;
+        
+        [HideInInspector]
+        public string playerWins = "";
+        
+        [HideInInspector]
+        public string teamWins = "";
 
         /// <summary>
         /// Event invoked after a piece is MoveTo
@@ -74,6 +89,7 @@ namespace ARChess.Scripts.Chess
         private List<ChessPiece> deadBlacks = new List<ChessPiece>();
         private GameObject _directionalLight;
         private AmbientLightEstimation _ambientLightEstimation;
+        private bool isWhiteTurn;
 
         public BoxCollider ChessCollider => chessCollider;
 
@@ -89,12 +105,18 @@ namespace ARChess.Scripts.Chess
             set => m_tileSize = value;
         }
 
+        public bool MyTurn { get; set; }
+        
+        public bool EndGame { get; set; }
+
         public Vector2 TileCount => new(TILE_COUNT_X, TILE_COUNT_Y);
         
         public List<TeamMaterials> PieceMaterials => teamMaterials;
 
         private void Awake()
         {
+            isWhiteTurn = true;
+            MyTurn = startingTeam == ChessTeam.White;
             try
             {
                 ChessTiles = GameObject.Find("All Chess Tiles");
@@ -161,6 +183,16 @@ namespace ARChess.Scripts.Chess
                 _directionalLight.transform.rotation = gameObject.transform.rotation *
                                                        Quaternion.Euler(_ambientLightEstimation.DynamicLightRotation);
             }
+            
+            EnableMatchmakingUI(MyTurn);
+        }
+
+        private void EnableMatchmakingUI(bool state)
+        {
+            if(yourTurnUI is not null && yourTurnUI.activeInHierarchy != state)
+            {
+                yourTurnUI.SetActive(state);
+            }
         }
 
         public void ChessInteract(Vector2 position, bool interact)
@@ -201,39 +233,50 @@ namespace ARChess.Scripts.Chess
                     tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
                     tiles[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Selected");
                 }
-
-                if (touched)
+                
+                // If current touch hit the piece
+                if (touched && chessPieces[hitPosition.x, hitPosition.y])
                 {
-                    if (chessPieces[hitPosition.x, hitPosition.y])
+                    // If currentlyDragging is already dragging, cancel it...
+                    if (currentlyDragging) return;
+                        
+                    // Is it our turn?
+                    if ((chessPieces[hitPosition.x, hitPosition.y].team == ChessTeam.White && isWhiteTurn) || (chessPieces[hitPosition.x, hitPosition.y].team == ChessTeam.Black && !isWhiteTurn))
                     {
-                        // Is it our turn?
-                        if (true && !currentlyDragging)
-                        {
-                            currentlyDragging = chessPieces[hitPosition.x, hitPosition.y];
+                        currentlyDragging = chessPieces[hitPosition.x, hitPosition.y];
                             
-                            // Get a list of where I can go, highlight tiles as well
-                            availableMoves = currentlyDragging.GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
+                        // Get a list of where I can go, highlight tiles as well
+                        availableMoves = currentlyDragging.GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
 
-                            HighlightTiles();
-                        }
+                        HighlightTiles();
                     }
                 }
 
+                // If the piece is dropped, player has made move. Now do move checks...
                 if (currentlyDragging && !touched)
                 {
                     Vector2Int previousPosition =
                         new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
                     
-                    bool validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
-                    if (!validMove)
-                        currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                    var validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
                     
+                    switch (validMove)
+                    {
+                        case false:
+                            currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                            break;
+                        case true:
+                            MyTurn = currentlyDragging.team != startingTeam;
+                            break;
+                    }
+
                     currentlyDragging = null;
                     RemoveHighlightTiles();
                 }
             }
             else
             {
+                // If the current hover/selected is not valid
                 if (currentHover != -Vector2Int.one)
                 {
                     tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
@@ -241,6 +284,7 @@ namespace ARChess.Scripts.Chess
                     currentHover = -Vector2Int.one;
                 }
 
+                // Else, if it not hit the appropriate raycast, and currentlyDragging is selected AND if it is not touched anymore
                 if (currentlyDragging && !touched)
                 {
                     currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX,
@@ -250,7 +294,7 @@ namespace ARChess.Scripts.Chess
                 }
             }
 
-            // If dragging a piece
+            // If dragging a piece, animate the position of a piece
             if (currentlyDragging)
             {
                 // Get the cell's world position
@@ -302,12 +346,8 @@ namespace ARChess.Scripts.Chess
             try
             {
                 for (int x = 0; x < tileCountX; x++)
-                {
                     for (int y = 0; y < tileCountY; y++)
-                    {
                         GenerateSingleTiles(tileSize, x, y);
-                    }
-                }
 
                 AddChessBound(tiles, tileCountX, tileCountY);
 
@@ -389,7 +429,7 @@ namespace ARChess.Scripts.Chess
         private void GenerateSingleTiles(float tileSize, int x, int y)
         {
             // Create Visual Tile
-            GameObject tileObject = new GameObject(string.Format("Tile: ({0}, {1})", x, y));
+            GameObject tileObject = new GameObject($"Tile: ({x}, {y})");
             tileObject.transform.SetParent(ChessVisuals.transform);
             tileObject.layer = LayerMask.NameToLayer("Visual Tile");
 
@@ -422,7 +462,7 @@ namespace ARChess.Scripts.Chess
             tiles[x, y] = tileObject;
 
             // Create Bounds Tile
-            GameObject tileBounds = new GameObject(string.Format("X:{0} Y:{1}", x, y));
+            GameObject tileBounds = new GameObject($"X:{x} Y:{y}");
             tileBounds.transform.SetParent(ChessTiles.transform);
             tileBounds.AddComponent<MeshFilter>().mesh = mesh;
             tileBounds.AddComponent<MeshRenderer>().material = tileMaterial;
@@ -591,6 +631,56 @@ namespace ARChess.Scripts.Chess
             return new Vector3(x * m_tileSize, yOffset, y * m_tileSize) - bounds +
                    new Vector3(m_tileSize / 2, 0, m_tileSize / 2);
         }
+        
+        // Checkmate
+        private void Checkmate(ChessTeam team)
+        {
+            DisplayVictory(team);
+        }
+
+        private void DisplayVictory(ChessTeam team)
+        {
+            EndGame = true;
+            StringBuilder teamWinsString = new StringBuilder();
+            StringBuilder playerWinsString = new StringBuilder();
+            teamWinsString.AppendFormat("{0} team wins!", team.ToString());
+            playerWinsString.Append(startingTeam == team ? projectStateOptions.playerName : "Your Opponent");
+            teamWins = teamWinsString.ToString();
+            playerWins = playerWinsString.ToString();
+        }
+
+        public void OnResetButton()
+        {
+            EndGame = false;
+            
+            // Fields reset
+            currentlyDragging = null;
+            availableMoves = new List<Vector2Int>();
+            
+            // Clean up
+            for(int x = 0; x < TILE_COUNT_X; x++)
+                for (int y = 0; y < TILE_COUNT_Y; y++)
+                {
+                    if (chessPieces[x, y] != null)
+                        Destroy(chessPieces[x, y].gameObject);
+                    
+                    chessPieces[x, y] = null;
+                }
+            
+            foreach (var white in deadWhites)
+                Destroy(white.gameObject);
+
+            foreach (var black in deadBlacks)
+                Destroy(black.gameObject);
+            
+            deadWhites.Clear();
+            deadBlacks.Clear();
+            
+            SpawnAllPieces();
+            PositionAllPieces();
+            AnimateAllPiece();
+            isWhiteTurn = true;
+        }
 
         // Operations
         private bool ContainsValidMove(ref List<Vector2Int> moves, Vector2 pos)
@@ -624,8 +714,11 @@ namespace ARChess.Scripts.Chess
                     return false;
 
                 // If it's the enemy team
-                if (ocp.team == 0)
+                if (ocp.team != startingTeam)
                 {
+                    if (ocp.type == ChessPieceType.King)
+                        Checkmate(cp.team);
+                    
                     deadWhites.Add(ocp);
                     float destroyedDuration =
                         ocp.appearance.Find(match => match.appearance.Equals(Appearance.Destroyed)).duration;
@@ -648,6 +741,9 @@ namespace ARChess.Scripts.Chess
                 }
                 else
                 {
+                    if (ocp.type == ChessPieceType.King)
+                        Checkmate(cp.team);
+                    
                     deadBlacks.Add(ocp);
                     float destroyedDuration =
                         ocp.appearance.Find(match => match.appearance.Equals(Appearance.Destroyed)).duration;
@@ -676,6 +772,8 @@ namespace ARChess.Scripts.Chess
             chessPieces[previousPosition.x, previousPosition.y] = null;
 
             PositionSinglePiece(x, y);
+            
+            isWhiteTurn = !isWhiteTurn;
 
             return true;
         }
