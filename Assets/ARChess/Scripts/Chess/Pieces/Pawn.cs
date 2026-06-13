@@ -13,27 +13,30 @@ namespace ARChess.Scripts.Chess.Pieces
             int direction = (team == startingTeam) ? 1 : -1;
             
             // One in front
-            if(board[currentX, currentY + direction] == null)
+            if (!board[currentX, currentY + direction])
+            {
+                Debug.Log("One In Front - Pawn");
                 r.Add(new Vector2Int(currentX, currentY + direction));
+            }
             
             // Two in front
-            if (board[currentX, currentY + direction] == null)
+            if (!board[currentX, currentY + direction])
             {
                 // Your Team
-                if(team == startingTeam && currentY == 1 && board[currentX, currentY + direction * 2] == null)
+                if(team == startingTeam && currentY == 1 && !board[currentX, currentY + direction * 2])
                     r.Add(new Vector2Int(currentX, currentY + direction * 2));
                 
                 // Enemy Team
-                if(team != startingTeam && currentY == tileCountY - 2 && board[currentX, currentY + direction * 2] == null)
+                if(team != startingTeam && currentY == tileCountY - 2 && !board[currentX, currentY + direction * 2])
                     r.Add(new Vector2Int(currentX, currentY + direction * 2));
             }
             
             // Kill move
             if(currentX != tileCountX - 1)
-                if(board[currentX + 1, currentY + direction] != null && board[currentX + 1, currentY + direction].team != team)
+                if(board[currentX + 1, currentY + direction] && board[currentX + 1, currentY + direction].team != team)
                     r.Add(new Vector2Int(currentX + 1, currentY + direction));
             if(currentX != 0)
-                if(board[currentX - 1, currentY + direction] != null && board[currentX - 1, currentY + direction].team != team)
+                if(board[currentX - 1, currentY + direction] && board[currentX - 1, currentY + direction].team != team)
                     r.Add(new Vector2Int(currentX - 1, currentY + direction));
 
             return r;
@@ -43,6 +46,10 @@ namespace ARChess.Scripts.Chess.Pieces
             ref List<Vector2Int> availableMoves, ChessTeam startingTeam)
         {
             int direction = (team == startingTeam) ? 1 : -1;
+            
+            // Promotion
+            if ((team == ChessTeam.Black && currentY == 6) || (team == ChessTeam.White && currentY == 1))
+                return SpecialMove.Promotion;
             
             // En Passant
             if (moveList.Count > 0)

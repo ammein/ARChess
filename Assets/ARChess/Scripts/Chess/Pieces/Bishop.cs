@@ -12,7 +12,7 @@ namespace ARChess.Scripts.Chess.Pieces
             // Top Right
             for (int x = currentX + 1, y = currentY + 1; x < tileCountX && y < tileCountY; x++, y++)
             {
-                if(board[x, y] == null)
+                if(!board[x, y])
                     r.Add(new Vector2Int(x, y));
                 else
                 {
@@ -26,7 +26,7 @@ namespace ARChess.Scripts.Chess.Pieces
             // Top Left
             for (int x = currentX - 1, y = currentY + 1; x >= 0 && y < tileCountY; x--, y++)
             {
-                if(board[x, y] == null)
+                if(!board[x, y])
                     r.Add(new Vector2Int(x, y));
                 else
                 {
@@ -40,7 +40,7 @@ namespace ARChess.Scripts.Chess.Pieces
             // Bottom Right
             for (int x = currentX + 1, y = currentY - 1; x < tileCountX && y >= 0; x++, y--)
             {
-                if(board[x, y] == null)
+                if(!board[x, y])
                     r.Add(new Vector2Int(x, y));
                 else
                 {
@@ -54,7 +54,7 @@ namespace ARChess.Scripts.Chess.Pieces
             // Bottom Left
             for (int x = currentX - 1, y = currentY - 1; x >= 0 && y >= 0; x--, y--)
             {
-                if(board[x, y] == null)
+                if(!board[x, y])
                     r.Add(new Vector2Int(x, y));
                 else
                 {
