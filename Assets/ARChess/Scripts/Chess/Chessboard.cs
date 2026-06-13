@@ -237,7 +237,7 @@ namespace ARChess.Scripts.Chess
                 {
                     Log.LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
                     tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                    tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") :  LayerMask.NameToLayer("Visual Tile");
+                    tiles[currentHover.x, currentHover.y].layer = ContainsValidMove(ref availableMoves, currentHover) ? LayerMask.NameToLayer("Highlight") :  LayerMask.NameToLayer("Visual Tile");
                     currentHover = hitPosition;
                     // Change Layer to "Hover"
                     tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
@@ -294,7 +294,7 @@ namespace ARChess.Scripts.Chess
                 if (currentHover != -Vector2Int.one)
                 {
                     tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                    tiles[currentHover.x, currentHover.y].layer = (ContainsValidMove(ref availableMoves, currentHover)) ? LayerMask.NameToLayer("Highlight") :  LayerMask.NameToLayer("Visual Tile");
+                    tiles[currentHover.x, currentHover.y].layer = ContainsValidMove(ref availableMoves, currentHover) ? LayerMask.NameToLayer("Highlight") :  LayerMask.NameToLayer("Visual Tile");
                     currentHover = -Vector2Int.one;
                 }
 
@@ -573,7 +573,7 @@ namespace ARChess.Scripts.Chess
         }
 
 
-        private ChessPiece SpawnSinglePiece(Piece piece, ChessTeam team, Material teamMaterial)
+        private ChessPiece SpawnSinglePiece(Piece piece, ChessTeam team, Material teamMaterial, bool forceAppear = false)
         {
             ChessPiece cp = Instantiate(piece.prefabs, ChessVisuals.transform).GetComponent<ChessPiece>();
             List<ChessPiece.AppearanceState> appearance = new List<ChessPiece.AppearanceState>();
@@ -598,13 +598,16 @@ namespace ARChess.Scripts.Chess
                 for (int i = 0; i < cp.gameObject.transform.childCount; i++)
                     AssignChildrenMaterial(cp.GetComponent<MeshRenderer>().material,
                         cp.gameObject.transform.GetChild(i).gameObject);
+            
+            if (forceAppear)
+                cp.AppearPiece("_Progress", 0, b => { });
             return cp;
         }
 
         private void AssignChildrenMaterial(Material material, GameObject child)
         {
-            if (child.GetComponent<MeshRenderer>() != null)
-                child.GetComponent<MeshRenderer>().material = material;
+            if(child.TryGetComponent(out MeshRenderer meshRenderer))
+                meshRenderer.material = material;
 
             if (child.transform.childCount > 0)
             {
@@ -716,10 +719,89 @@ namespace ARChess.Scripts.Chess
                     }
                 }
             }
+
+            if (specialMove is SpecialMove.Promotion)
+            {
+                Vector2Int[] lastMove = moveList[moveList.Count - 1];
+                ChessPiece targetPawn = chessPieces[lastMove[1].x, lastMove[1].y];
+
+                if (targetPawn.type == ChessPieceType.Pawn)
+                {
+                    if (targetPawn.team == ChessTeam.Black && lastMove[1].y == 7)
+                    {
+                        ChessPiece newQueen = SpawnSinglePiece(pieces.Find(p => p.type == ChessPieceType.Queen), ChessTeam.Black, teamMaterials.Find(m => m.team == ChessTeam.Black).material, true);
+                        // Small movement transition
+                        newQueen.transform.position = chessPieces[lastMove[1].x, lastMove[1].y].transform.position;
+                        // Destroy piece
+                        Destroy(chessPieces[lastMove[1].x, lastMove[1].y].gameObject);
+                        // Position piece
+                        chessPieces[lastMove[1].x, lastMove[1].y] = newQueen;
+                        PositionSinglePiece(lastMove[1].x, lastMove[1].y);
+                    }
+                    
+                    if (targetPawn.team == ChessTeam.White && lastMove[1].y == 0)
+                    {
+                        ChessPiece newQueen = SpawnSinglePiece(pieces.Find(p => p.type == ChessPieceType.Queen), ChessTeam.White, teamMaterials.Find(m => m.team == ChessTeam.White).material, true);
+                        // Small movement transition
+                        newQueen.transform.position = chessPieces[lastMove[1].x, lastMove[1].y].transform.position;
+                        // Destroy piece
+                        Destroy(chessPieces[lastMove[1].x, lastMove[1].y].gameObject);
+                        // Position piece
+                        chessPieces[lastMove[1].x, lastMove[1].y] = newQueen;
+                        PositionSinglePiece(lastMove[1].x, lastMove[1].y);
+                    }
+                }
+            }
+
+            if (specialMove is SpecialMove.Castling)
+            {
+                Vector2Int[] lastMove = moveList[moveList.Count - 1];
+                
+                // Left Rook
+                if (lastMove[1].x == 2)
+                {
+                    // White Side
+                    if (lastMove[1].y == 0)
+                    {
+                        ChessPiece rook = chessPieces[0, 0];
+                        chessPieces[3, 0] = rook;
+                        PositionSinglePiece(3, 0);
+                        chessPieces[0, 0] = null;
+                    }
+                    // Black Side
+                    else if (lastMove[1].y == 7)
+                    {
+                        ChessPiece rook = chessPieces[0, 7];
+                        chessPieces[3, 7] = rook;
+                        PositionSinglePiece(3, 7);
+                        chessPieces[0, 7] = null;
+                    }
+                }
+                // Right Rook
+                else if (lastMove[1].x == 6)
+                {
+                    // White Side
+                    if (lastMove[1].y == 0)
+                    {
+                        ChessPiece rook = chessPieces[7, 0];
+                        chessPieces[5, 0] = rook;
+                        PositionSinglePiece(5, 0);
+                        chessPieces[7, 0] = null;
+                    }
+                    // Black Side
+                    else if (lastMove[1].y == 7)
+                    {
+                        ChessPiece rook = chessPieces[7, 7];
+                        chessPieces[5, 7] = rook;
+                        PositionSinglePiece(5, 7);
+                        chessPieces[7, 7] = null;
+                    }
+                }
+            }
         }
 
         // Operations
-        private bool ContainsValidMove(ref List<Vector2Int> moves, Vector2 pos)
+        private bool ContainsValidMove(ref List<Vector2Int> moves, Vector2Int pos)
         {
             return moves.Any(t => Mathf.Approximately(t.x, pos.x) && Mathf.Approximately(t.y, pos.y));
         }
@@ -751,7 +833,7 @@ namespace ARChess.Scripts.Chess
                                 new Vector3(-1f * m_tileSize, yOffset, 8f * m_tileSize) // Outside of bounds
                                 - bounds // Center of the board properly
                                 + new Vector3(m_tileSize / 2, 0, m_tileSize / 2) // Center of square
-                                + (Vector3.back * deathDistance) * deadBlacks.Count // Direction of the count
+                                + Vector3.back * (deathDistance * deadBlacks.Count) // Direction of the count
                             );
                             float appearDuration = ocp.appearance
                                 .Find(match => match.appearance.Equals(Appearance.Appear)).duration;
@@ -771,7 +853,7 @@ namespace ARChess.Scripts.Chess
                                 new Vector3(8f * m_tileSize, yOffset, -1f * m_tileSize) // Outside of bounds
                                 - bounds // Center of the board properly
                                 + new Vector3(m_tileSize / 2, 0, m_tileSize / 2) // Center of square
-                                + (Vector3.forward * deathDistance) * deadWhites.Count // Direction of the count
+                                + Vector3.forward * (deathDistance * deadWhites.Count) // Direction of the count
                             );
                             float appearDuration = ocp.appearance
                                 .Find(match => match.appearance.Equals(Appearance.Appear)).duration;
