@@ -16,7 +16,8 @@ namespace ARChess.Scripts.Chess
     public enum ChessTeam
     {
         Black,
-        White
+        White,
+        Stalemate
     }
 
     [RequireComponent(typeof(VerticalLayoutGroup))]
