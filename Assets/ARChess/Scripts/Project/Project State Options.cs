@@ -28,6 +28,12 @@ namespace ARChess.Scripts.Project
         [Tooltip("Main Scene Video Loaded")]
         public bool mainSceneVideoLoaded;
 
+        [Header("Online Settings")] [Tooltip("Online Play Settings")]
+        public string ipAddress = "127.0.0.1";
+        [HideInInspector]
+        public bool onlinePlay = false;
+        
+
         // Add a method to reset values if needed
         public void ResetToDefaults()
         {
