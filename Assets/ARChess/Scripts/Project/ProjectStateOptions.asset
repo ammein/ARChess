@@ -16,6 +16,8 @@ MonoBehaviour:
   team: 1
   initialChessboardSize: 1
   tutorialsEnabled: 1
-  tutorialPlayed: 1
+  tutorialPlayed: 0
   dynamicLighting: 0
-  mainSceneVideoLoaded: 1
+  mainSceneVideoLoaded: 0
+  ipAddress: 127.0.0.1
+  onlinePlay: 0

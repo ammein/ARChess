@@ -1,4 +1,6 @@
+using System;
 using System.Runtime.Serialization;
+using System.Text.RegularExpressions;
 using ARChess.Scripts.Chess;
 using ARChess.Scripts.Net;
 using ARChess.Scripts.Project;
@@ -39,13 +41,23 @@ namespace ARChess.Scripts.UI
         [Tooltip("Dynamic Lighting Checkbox")]
         private Toggle dynamicLighting;
         [SerializeField]
-        [OptionalField]
         [Tooltip("IP Address Field")]
         private TMP_InputField ipField;
+        
+        [SerializeField]
+        [Tooltip("Port Field")]
+        private TMP_InputField hostPortField;
+        
+        [SerializeField]
+        [Tooltip("Port Field")]
+        private TMP_InputField connectPortField;
 
         [SerializeField]
         [Tooltip("Project Options")]
         private ProjectStateOptions globalOptions;
+
+        private string IPPattern =
+            @"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
 
         private void Awake()
         {
@@ -67,7 +79,35 @@ namespace ARChess.Scripts.UI
             onlineLobbyUI.SetActive(enable);
             
             if(!enable) return;
-            ipField.text = globalOptions.ipAddress;
+            if (ipField.placeholder != null)
+            {
+                TMP_Text placeholderTextComponent = ipField.placeholder as TMP_Text;
+
+                if (placeholderTextComponent != null)
+                {
+                    placeholderTextComponent.text = globalOptions.ipAddress;
+                }
+            }
+
+            if (hostPortField.placeholder != null)
+            {
+                TMP_Text placeholderPortTextComponent = hostPortField.placeholder as TMP_Text;
+
+                if (placeholderPortTextComponent != null)
+                {
+                    placeholderPortTextComponent.text = globalOptions.port.ToString();
+                }
+            }
+            
+            if (connectPortField.placeholder != null)
+            {
+                TMP_Text placeholderPortTextComponent = connectPortField.placeholder as TMP_Text;
+
+                if (placeholderPortTextComponent != null)
+                {
+                    placeholderPortTextComponent.text = globalOptions.port.ToString();
+                }
+            }
         }
 
         public void SetDynamicLighting(bool state)
@@ -85,6 +125,15 @@ namespace ARChess.Scripts.UI
             globalOptions.playerName = playerName;
         }
 
+        public void SetIpAddress(string ipAddress)
+        {
+            if (ipField.text.Length > 0)
+            {
+                if(Regex.IsMatch(ipAddress, IPPattern))
+                    globalOptions.ipAddress = ipAddress;
+            }
+        }
+
         public void SetTeam(string team)
         {
             globalOptions.team = team.Contains("white") ? ChessTeam.White : ChessTeam.Black;
@@ -92,13 +141,32 @@ namespace ARChess.Scripts.UI
 
         public void OnOnlineHostButton()
         {
-            server.Init(8007);
-            client.Init(globalOptions.ipAddress, 8007);
+            ushort myPort = globalOptions.port;
+            if (hostPortField.text.Length > 0)
+            {
+                myPort = ushort.Parse(hostPortField.text);
+            }
+            server.Init(myPort);
+            client.Init(globalOptions.ipAddress, myPort);
+            globalOptions.team = ChessTeam.White;
         }
 
         public void OnOnlineConnectButton()
         {
-            client.Init(ipField.text, 8007);
+            if (ipField.text.Length > 0)
+            {
+                if(Regex.IsMatch(ipField.text, IPPattern))
+                    globalOptions.ipAddress = ipField.text;
+            }
+            
+            ushort myPort = globalOptions.port;
+            if (connectPortField.text.Length > 0)
+            {
+                myPort = ushort.Parse(connectPortField.text);
+            }
+            
+            client.Init(Regex.IsMatch(globalOptions.ipAddress, IPPattern) ? globalOptions.ipAddress : "127.0.0.1", myPort);
+            globalOptions.team = ChessTeam.Black;
         }
 
         public void OnHostBackButton()
@@ -106,11 +174,6 @@ namespace ARChess.Scripts.UI
             server.Shutdown();
             client.Shutdown();
             Log.LogThis("Server/Client shutdown", this);
-        }
-
-        public void SetIPAddress(string ipAddress)
-        {
-            globalOptions.ipAddress = ipAddress;
         }
 
         public void ResetOptions()
@@ -123,9 +186,13 @@ namespace ARChess.Scripts.UI
     
         public void QuitGame()
         {
-            // Reset Main Scene Video Loaded
-            globalOptions.mainSceneVideoLoaded = false;
+            globalOptions.OnQuit();
             Application.Quit();
+        }
+
+        public void OnDestroy()
+        {
+            globalOptions.OnQuit();
         }
     }
 }

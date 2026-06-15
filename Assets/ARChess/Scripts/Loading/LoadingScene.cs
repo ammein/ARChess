@@ -62,6 +62,7 @@ namespace ARChess.Scripts.Loading
                 // If we reach 3 dots, reset to 0 and remove the dots
                 if (_dotCount > 3)
                 {
+                    dots.Clear();
                     _dotCount = 0; // Reset to 0
                     loadingText.text = _textLoadingState; // Remove dots
                 }

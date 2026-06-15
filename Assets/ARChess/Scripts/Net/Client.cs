@@ -86,7 +86,7 @@ namespace ARChess.Scripts.Net
                 if (cmd == NetworkEvent.Type.Connect)
                 {
                     // SendToServer(new NetWelcome());
-                    Log.LogThis("We're connected!", this);
+                    Debug.Log("We're connected!");
                 }
                 else if (cmd == NetworkEvent.Type.Data)
                 {
