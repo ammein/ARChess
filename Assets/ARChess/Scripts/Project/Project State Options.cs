@@ -1,3 +1,4 @@
+using System;
 using ARChess.Scripts.Chess;
 using UnityEngine;
 
@@ -14,7 +15,7 @@ namespace ARChess.Scripts.Project
         [SerializeField]
         [Tooltip("Overall size of the chessboard")]
         [Range(0f, 2f)]
-        public float initialChessboardSize = 0.06f;
+        public float initialChessboardSize = 1f;
         
         [Header("Tutorials")]
         public bool tutorialsEnabled = true;
@@ -28,6 +29,15 @@ namespace ARChess.Scripts.Project
         [Tooltip("Main Scene Video Loaded")]
         public bool mainSceneVideoLoaded;
 
+        [Header("Online Settings")] [Tooltip("Ip Address")]
+        public string ipAddress = "127.0.0.1";
+        [Tooltip("Port for the Ip Address")]
+        public ushort port = 8007;
+        
+        [HideInInspector]
+        public bool onlinePlay = false;
+        
+
         // Add a method to reset values if needed
         public void ResetToDefaults()
         {
@@ -35,6 +45,15 @@ namespace ARChess.Scripts.Project
             initialChessboardSize = 0.06f;
             tutorialsEnabled = true;
             dynamicLighting = false;
+        }
+
+        public void OnQuit()
+        {
+            mainSceneVideoLoaded = false;
+            ipAddress = "127.0.0.1";
+            port = 8007;
+            onlinePlay = false;
+            tutorialPlayed = false;
         }
     }
 }
