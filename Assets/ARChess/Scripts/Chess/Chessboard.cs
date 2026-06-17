@@ -518,7 +518,6 @@ namespace ARChess.Scripts.Chess
             }
         }
 
-
         private void AssignPieceType(int x, ChessTeam checkTeam)
         {
             // Check if this is the starting team to determine Y position

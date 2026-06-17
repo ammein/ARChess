@@ -1,8 +1,11 @@
 using System;
 using System.Linq;
+using ARChess.Scripts.Net;
+using ARChess.Scripts.Net.Net_Message;
 using ARChess.Scripts.Project;
 using ARChess.Scripts.Utility;
 using TMPro;
+using Unity.Networking.Transport;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;

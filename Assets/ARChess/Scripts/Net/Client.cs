@@ -85,7 +85,7 @@ namespace ARChess.Scripts.Net
             { // Every network that has been sent ...
                 if (cmd == NetworkEvent.Type.Connect)
                 {
-                    // SendToServer(new NetWelcome());
+                    SendToServer(new NetWelcome());
                     Debug.Log("We're connected!");
                 }
                 else if (cmd == NetworkEvent.Type.Data)
@@ -97,7 +97,14 @@ namespace ARChess.Scripts.Net
                     Log.LogThis("Client got disconnected from server", this);
                     connection = default(NetworkConnection);
                     connectionDropped?.Invoke();
-                    Shutdown();
+                    
+                    Shutdown(); // This disposes the driver
+                    
+                    // --- THE MEMORY LEAKED FIX ---
+                    // Immediately exit the method so the while loop doesn't 
+                    // try to evaluate a disposed driver!
+                    return; 
+                    // ---------------
                 }
             }
         }
