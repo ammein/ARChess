@@ -127,6 +127,12 @@ namespace ARChess.Scripts.Net
                         connections[i] = default(NetworkConnection);
                         connectionDropped?.Invoke();
                         Shutdown(); // This does not happen usually, its just because we're in a two person game
+                        
+                        // --- THE THE MEMORY LEAKED FIX ---
+                        // Immediately exit the entire method. Do not allow the loop 
+                        // to evaluate connections[i] again!
+                        return; 
+                        // ---------------
                     }
                 }
             }

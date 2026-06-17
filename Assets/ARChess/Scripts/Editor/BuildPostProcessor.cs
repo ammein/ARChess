@@ -8,17 +8,23 @@ namespace ARChess.Scripts.Editor
 {
     public static class PostBuildProcessor
     {
-        [PostProcessBuild(999)] // High number ensures it runs after other plugins
+        [PostProcessBuild(999)]
         public static void OnPostProcessBuild(BuildTarget target, string pathToBuiltProject)
         {
-            // Only run for iOS builds
             if (target != BuildTarget.iOS) return;
 
             // 1. Info.plist Handling
             string plistPath = Path.Combine(pathToBuiltProject, "Info.plist");
             PlistDocument plist = new PlistDocument();
             plist.ReadFromFile(plistPath);
+            
             plist.root.SetBoolean("ITSAppUsesNonExemptEncryption", false);
+            
+            // --- NEW: Added Local Network Privacy Permission ---
+            string lanMessage = "This game requires local network access to find and connect to other players on your Wi-Fi.";
+            plist.root.SetString("NSLocalNetworkUsageDescription", lanMessage);
+            // ---------------------------------------------------
+
             plist.WriteToFile(plistPath);
 
             // 2. PBXProject Handling
@@ -30,44 +36,55 @@ namespace ARChess.Scripts.Editor
             string frameworkTarget = project.GetUnityFrameworkTargetGuid();
             string[] allTargets = { mainTarget, frameworkTarget };
 
+            // Check if we are building for the simulator
+            bool isSimulator = UnityEditor.PlayerSettings.iOS.sdkVersion == iOSSdkVersion.SimulatorSDK;
+
             foreach (string targetGuid in allTargets)
             {
                 if (string.IsNullOrEmpty(targetGuid)) continue;
 
-                // 1. Force ONLY iPhone (1=iPhone, excludes 2=iPad and 7=visionOS)
+                // Force ONLY iPhone (1=iPhone, excludes 2=iPad and 7=visionOS)
                 project.SetBuildProperty(targetGuid, "TARGETED_DEVICE_FAMILY", "1");
-
-                // 2. Clear platforms list to ONLY iOS (Removes xros, macos, catalyst)
-                project.SetBuildProperty(targetGuid, "SUPPORTED_PLATFORMS", "iphoneos iphonesimulator");
-                project.SetBuildProperty(targetGuid, "SDKROOT", "iphoneos");
-
-                // 3. Explicitly Disable the Platform-specific Flags
+                
+                // Explicitly disable alternative platform targets
                 project.SetBuildProperty(targetGuid, "SUPPORTS_XR_OS", "NO");
                 project.SetBuildProperty(targetGuid, "SUPPORTS_MACCATALYST", "NO");
                 project.SetBuildProperty(targetGuid, "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD", "NO");
                 project.SetBuildProperty(targetGuid, "IS_APPLE_SILICON_ONLY", "NO");
-
-                // 4. Force "SDK Variant" to iOS only (This often hides the "Apple Vision" label)
-                project.SetBuildProperty(targetGuid, "SDKVARIANT", "iphoneos");
-
-                // 5. Clean up Deployment Targets
-                // Use an empty string for the ones you want to hide
                 project.SetBuildProperty(targetGuid, "XROS_DEPLOYMENT_TARGET", "");
                 project.SetBuildProperty(targetGuid, "MACOSX_DEPLOYMENT_TARGET", "");
 
-                // 6. Strip RealityKit (keeping ARKit for your AR Foundation)
+                // Always strip RealityKit
                 RemoveFramework(project, targetGuid, "RealityKit.framework");
+
+                // Dynamic environment variables to clear the "SDK Not Found" issues in Xcode 26
+                if (isSimulator)
+                {
+                    project.SetBuildProperty(targetGuid, "SUPPORTED_PLATFORMS", "iphonesimulator");
+                    project.SetBuildProperty(targetGuid, "SDKROOT", "iphoneos"); 
+                    project.SetBuildProperty(targetGuid, "SDKVARIANT", "iphonesimulator");
+
+                    // Add this line to force the simulator linker to bypass missing AR symbols
+                    project.AddBuildProperty(targetGuid, "OTHER_LDFLAGS", "-Wl,-flat_namespace,-U,_UnityARKit*");
+                    project.AddBuildProperty(targetGuid, "OTHER_LDFLAGS", "-Wl,-undefined,dynamic_lookup");
+
+                    RemoveSimulatorIncompatibleFiles(project, targetGuid);
+                }
+                else
+                {
+                    project.SetBuildProperty(targetGuid, "SUPPORTED_PLATFORMS", "iphoneos");
+                    project.SetBuildProperty(targetGuid, "SDKROOT", "iphoneos");
+                    project.SetBuildProperty(targetGuid, "SDKVARIANT", "iphoneos");
+                }
             }
 
-            // 7. APPLY TO PROJECT LEVEL TOO
-            // Sometimes Unity sets these at the project level, which overrides target levels
+            // Apply platform limitations to the Project Level
             string projectGuid = project.ProjectGuid();
             project.SetBuildProperty(projectGuid, "TARGETED_DEVICE_FAMILY", "1");
-            project.SetBuildProperty(projectGuid, "SUPPORTED_PLATFORMS", "iphoneos iphonesimulator");
-
+            project.SetBuildProperty(projectGuid, "SUPPORTED_PLATFORMS", isSimulator ? "iphonesimulator" : "iphoneos");
 
             project.WriteToFile(projectPath);
-            Debug.Log("AR Build Optimized: visionOS/Mac/iPad stripped. AR Foundation (iPhone) preserved.");
+            Debug.Log($"AR Build Optimized. Mode: {(isSimulator ? "Simulator (ARKit Stripped)" : "Device")}");
         }
         
         private static void RemoveFramework(PBXProject project, string targetGuid, string framework)
@@ -75,6 +92,25 @@ namespace ARChess.Scripts.Editor
             if (project.ContainsFramework(targetGuid, framework))
             {
                 project.RemoveFrameworkFromProject(targetGuid, framework);
+            }
+        }
+
+        private static void RemoveSimulatorIncompatibleFiles(PBXProject project, string targetGuid)
+        {
+            // 1. Remove Core ARKit Binary Wrapper
+            string arkitCoreGuid = project.FindFileGuidByProjectPath("Libraries/com.unity.xr.arkit/Runtime/iOS/Xcode2600/libUnityARKit.a");
+            if (!string.IsNullOrEmpty(arkitCoreGuid))
+            {
+                project.RemoveFileFromBuild(targetGuid, arkitCoreGuid);
+                Debug.Log("Successfully unlinked libUnityARKit.a for Simulator.");
+            }
+
+            // 2. Remove ARKit Face Tracking Binary Wrapper
+            string arkitFaceGuid = project.FindFileGuidByProjectPath("Libraries/com.unity.xr.arkit/Runtime/FaceTracking/iOS/Xcode2600/libUnityARKitFaceTracking.a");
+            if (!string.IsNullOrEmpty(arkitFaceGuid))
+            {
+                project.RemoveFileFromBuild(targetGuid, arkitFaceGuid);
+                Debug.Log("Successfully unlinked libUnityARKitFaceTracking.a for Simulator.");
             }
         }
     }

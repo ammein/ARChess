@@ -1,3 +1,4 @@
+using System;
 using ARChess.Scripts.Project;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -32,6 +33,11 @@ namespace ARChess.Scripts.UI
         public void ToggleTutorial(bool value)
         {
             projectStateOptions.tutorialsEnabled = value;
+        }
+
+        public void OnDestroy()
+        {
+            projectStateOptions.OnQuit();
         }
     }
 }

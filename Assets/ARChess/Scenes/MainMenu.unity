@@ -2715,6 +2715,7 @@ MonoBehaviour:
   hostPortField: {fileID: 924236483}
   connectPortField: {fileID: 1768083925}
   globalOptions: {fileID: 11400000, guid: 1f891a6ddf5e14389b11da62ab79509f, type: 2}
+  loadingScene: {fileID: 913505927}
 --- !u!4 &728003193
 Transform:
   m_ObjectHideFlags: 0
