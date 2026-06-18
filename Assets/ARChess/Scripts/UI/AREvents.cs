@@ -35,6 +35,7 @@ namespace ARChess.Scripts.UI
             projectStateOptions.tutorialsEnabled = value;
         }
 
+        // When the scene is unloaded, reset all settings
         public void OnDestroy()
         {
             projectStateOptions.OnQuit();

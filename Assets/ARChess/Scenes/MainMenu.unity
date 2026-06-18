@@ -2683,8 +2683,6 @@ GameObject:
   m_Component:
   - component: {fileID: 728003193}
   - component: {fileID: 728003192}
-  - component: {fileID: 728003195}
-  - component: {fileID: 728003194}
   m_Layer: 0
   m_Name: Menu Events
   m_TagString: Untagged
@@ -2704,8 +2702,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e88931c2104084943a2e9cb3a4c3c145, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.UI.MenuButtons
-  server: {fileID: 728003195}
-  client: {fileID: 728003194}
   optionsUI: {fileID: 1659314783}
   onlineLobbyUI: {fileID: 1710732537}
   nameField: {fileID: 3724917967502815950}
@@ -2731,30 +2727,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &728003194
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 728003191}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a4a84b9e55554b12a3b05f4902627b3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Net.Client
---- !u!114 &728003195
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 728003191}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 446ddf826a27141cca2b7548c0031477, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Net.Server
 --- !u!1 &806752033
 GameObject:
   m_ObjectHideFlags: 0
@@ -7271,6 +7243,76 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1355847752}
   m_CullTransparentMesh: 1
+--- !u!1 &1362171113
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1362171114}
+  - component: {fileID: 1362171115}
+  - component: {fileID: 1362171117}
+  - component: {fileID: 1362171116}
+  m_Layer: 0
+  m_Name: NetworkManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1362171114
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1362171113}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 52.36511, y: -0.00003, z: 2267.5754}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1362171115
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1362171113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81e58a191aae64e0aaf8e2559782582d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkManager
+--- !u!114 &1362171116
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1362171113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a4a84b9e55554b12a3b05f4902627b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Net.Client
+--- !u!114 &1362171117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1362171113}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 446ddf826a27141cca2b7548c0031477, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Net.Server
 --- !u!1 &1385592185
 GameObject:
   m_ObjectHideFlags: 0
@@ -11164,3 +11206,4 @@ SceneRoots:
   - {fileID: 913505928}
   - {fileID: 1214458224}
   - {fileID: 728003193}
+  - {fileID: 1362171114}

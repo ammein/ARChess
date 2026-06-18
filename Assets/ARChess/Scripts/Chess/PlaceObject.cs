@@ -1,5 +1,6 @@
 using System;
-using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
 using ARChess.Scripts.Net;
 using ARChess.Scripts.Net.Net_Message;
 using ARChess.Scripts.Project;
@@ -8,7 +9,6 @@ using TMPro;
 using Unity.Networking.Transport;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Utilities;
 
 namespace ARChess.Scripts.Chess
@@ -16,7 +16,6 @@ namespace ARChess.Scripts.Chess
     
     public class PlaceObject : MonoBehaviour
     {
-    
         [Header("Place Object")]
         [SerializeField]
         [Tooltip("The prefab to spawn")]
@@ -40,12 +39,23 @@ namespace ARChess.Scripts.Chess
         [SerializeField]
         [Tooltip("End Game Game Object")]
         private GameObject endGame;
+        [SerializeField]
+        [Tooltip("Placeboard UI Container")]
+        private GameObject placeboardTextContainer;
+        [SerializeField]
+        [Tooltip("Overlay Placeboard")]
+        private GameObject overlayPlaceboard;
+        [SerializeField]
+        [Tooltip("Placeboard Text")]
+        private TMP_Text placeBoardText;
         
         private ChessTeam startingTeam;
         private GameObject m_ObjectInstance;
         private GameObject _probeGameObject;
         private ReflectionProbe _probeComponent;
         private Chessboard _chessboard;
+        private List<int> _teamPlaceFirst = new List<int>();
+        private bool startOnlinePlay;
         
         /// <summary>
         /// Event invoked after an object is spawned.
@@ -54,6 +64,11 @@ namespace ARChess.Scripts.Chess
         
         private bool _invoked;
 
+        private void Awake()
+        {
+            RegisterEvents();
+        }
+
         private void Update()
         {
             if (objectSpawned != null && m_ObjectInstance && !_invoked)
@@ -61,6 +76,10 @@ namespace ARChess.Scripts.Chess
                 objectSpawned.Invoke(m_ObjectInstance);   
                 _invoked = true;
             }
+            
+            // Place Board Online Play
+            if(globalProjectStateOptions.onlinePlay)
+                OnlineBoardPlacement();
 
             // End Game
             if (!m_ObjectInstance || !_invoked) return;
@@ -91,6 +110,75 @@ namespace ARChess.Scripts.Chess
                     if(!yourTurn.activeInHierarchy && _chessboard.MyTurn)
                         yourTurn.SetActive(true);
                     break;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            UnregisterEvents();
+            startOnlinePlay = false;
+        }
+
+        private void OnlineBoardPlacement()
+        {
+            if (!startOnlinePlay)
+            {
+                // Determine who the opponent is based on your local starting team
+                int opponentTeamId = (startingTeam == ChessTeam.White) ? 1 : 0;
+                
+                bool iHavePlaced = (m_ObjectInstance);
+                // Check if the list specifically contains the opponent's team ID
+                bool opponentHasPlaced = _teamPlaceFirst.Contains(opponentTeamId);
+
+                // --- THE SPECIFIC CONDITION ---
+                // Trigger ONLY if the opponent has placed their board, but you haven't yet
+                if (opponentHasPlaced && !iHavePlaced)
+                {
+                    if (!placeboardTextContainer.activeInHierarchy)
+                    {
+                        placeboardTextContainer.SetActive(true);
+                        overlayPlaceboard.SetActive(true);
+                        
+                        var color = overlayPlaceboard.GetComponent<UnityEngine.UI.Image>().color;
+                        color.a = 0.0f; // Clear background so they can still scan the AR environment
+                        overlayPlaceboard.GetComponent<UnityEngine.UI.Image>().color = color;
+                        
+                        ChildrenLayerMask.All(placeboardTextContainer, "Ignore Raycast");
+                        overlayPlaceboard.layer = LayerMask.NameToLayer("Ignore Raycast");
+                        placeBoardText.text = "Your opponent is waiting for you to place your board to start the game";   
+                    }
+                }
+                // Scenario B: You placed yours, but the opponent hasn't (Show dim overlay & wait text)
+                else if (iHavePlaced && !opponentHasPlaced)
+                {
+                    if (!placeboardTextContainer.activeInHierarchy || overlayPlaceboard.layer == LayerMask.NameToLayer("Ignore Raycast"))
+                    {
+                        placeboardTextContainer.SetActive(true);
+                        overlayPlaceboard.SetActive(true);
+                        
+                        var color = overlayPlaceboard.GetComponent<UnityEngine.UI.Image>().color;
+                        color.a = 0.5f; // Dim the screen since they can't do anything until opponent joins
+                        overlayPlaceboard.GetComponent<UnityEngine.UI.Image>().color = color;   
+                        
+                        ChildrenLayerMask.All(placeboardTextContainer, "UI");
+                        overlayPlaceboard.layer = LayerMask.NameToLayer("UI");
+                        placeBoardText.text = "Waiting for the opponent to place their board";   
+                    }
+                }
+                // Scenario C: You haven't placed, and opponent hasn't placed (Do absolutely nothing / Keep UI hidden)
+                // ReSharper disable once ConditionIsAlwaysTrueOrFalse
+                else if (!iHavePlaced && !opponentHasPlaced)
+                {
+                    if (placeboardTextContainer.activeInHierarchy) placeboardTextContainer.SetActive(false);
+                    if (overlayPlaceboard.activeInHierarchy) overlayPlaceboard.SetActive(false);
+                }
+            } 
+            else // startOnlinePlay is true (Both have placed)
+            {
+                // Clean up and turn off all placement overlays completely
+                if (placeboardTextContainer.activeInHierarchy) placeboardTextContainer.SetActive(false);
+                if (overlayPlaceboard.activeInHierarchy) overlayPlaceboard.SetActive(false);
+                placeBoardText.text = "";
             }
         }
         
@@ -137,7 +225,36 @@ namespace ARChess.Scripts.Chess
             
             endGame.SetActive(false);
             
+            startOnlinePlay = false;
+            
             Destroy(_probeGameObject);
+        }
+        
+        private IEnumerator TrySendBoardPlacement(ChessTeam team)
+        {
+            bool sentSuccessfully = false;
+            
+            // Loop runs until the message successfully enters the network pipeline
+            while (!sentSuccessfully)
+            {
+                // Only attempt if the client actually exists
+                if (Client.Instance)
+                {
+                    // Because SendToServer now returns a bool, this will become true 
+                    // the moment the network is ready and accepts the message.
+                    NetPlaceBoard npb = new NetPlaceBoard();
+
+                    npb.Team = (int)team;
+                    
+                    sentSuccessfully = Client.Instance.SendToServer(npb);
+                }
+                
+                // If it failed (network not ready yet), wait 0.5 seconds before trying again
+                if (!sentSuccessfully)
+                {
+                    yield return new WaitForSeconds(0.5f);
+                }
+            }
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
@@ -160,6 +277,15 @@ namespace ARChess.Scripts.Chess
             m_ObjectInstance = Instantiate(prefab);
             
             Positioning(forward, positionPose, spawnNormal);
+            
+            // Send to server to acknowledge NetPlaceBoard
+            // --- THE NEW FIX ---
+            // Start the reliable retry loop instead of a one-off send
+            if (globalProjectStateOptions.onlinePlay)
+            {
+                StartCoroutine(TrySendBoardPlacement(startingTeam));
+            }
+            // -------------------
 
             return m_ObjectInstance;
         }
@@ -191,5 +317,35 @@ namespace ARChess.Scripts.Chess
             if (!m_ObjectInstance) return;
             m_ObjectInstance.transform.Find("Chess Attach").GetComponent<BoxCollider>().providesContacts = toggle;
         }
+
+        #region Network Event Listeners
+
+        public void RegisterEvents()
+        {
+            // Listen to the NetworkManager instead of raw NetUtility
+            NetworkManager.onPlaceBoardClientEvent += OnNetworkPlaceBoard;
+        }
+
+        public void UnregisterEvents()
+        {
+            NetworkManager.onPlaceBoardClientEvent -= OnNetworkPlaceBoard;
+        }
+        
+        // Triggered by the Action in NetworkManager
+        private void OnNetworkPlaceBoard(NetPlaceBoard npb)
+        {
+            // Prevent adding duplicate teams if the network sends it twice
+            if (!_teamPlaceFirst.Contains(npb.Team))
+            {
+                _teamPlaceFirst.Add(npb.Team);
+            }
+
+            if (_teamPlaceFirst.Count == 2)
+            {
+                startOnlinePlay = true;
+            }
+        }
+
+        #endregion
     }
 }

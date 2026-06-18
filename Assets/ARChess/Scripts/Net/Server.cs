@@ -14,7 +14,13 @@ namespace ARChess.Scripts.Net
         public static Server Instance { get; set; }
         private void Awake()
         {
+            // --- THE SINGLETON PROTECTION ---
+            // If an instance already exists, do NOT overwrite it. 
+            // Just wait quietly for the NetworkManager to destroy this duplicate object.
+            if (Instance != null && Instance != this) return; 
+
             Instance = this;
+            // --------------------------------
         }
         #endregion
         
@@ -140,10 +146,22 @@ namespace ARChess.Scripts.Net
         
         public void SendToClient(NetworkConnection connection, NetMessage msg) // send only to specific client
         {
+            // 1. Prevent crash if driver or connection is dead/uninitialized
+            if (!driver.IsCreated || !connection.IsCreated) return;
+
             DataStreamWriter writer;
-            driver.BeginSend(connection, out writer); // The pipeline writes out to the "writer"
-            msg.Serialize(ref writer); // We can put our own message to the "writer"
-            driver.EndSend(writer); // Give back to the driver to send out the message...
+            int status = driver.BeginSend(connection, out writer); // The pipeline writes out to the "writer"
+            
+            // 2. ONLY serialize and send if BeginSend was successful (returns 0)
+            if (status == 0)
+            {
+                msg.Serialize(ref writer); // We can put our own message to the "writer"
+                driver.EndSend(writer); // Give back to the driver to send out the message...
+            }
+            else
+            {
+                Debug.LogWarning("Server failed to begin send. Client connection may be invalid.");
+            }
         }
         
         // Server specific

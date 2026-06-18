@@ -119,9 +119,15 @@ namespace ARChess.Scripts.Loading
                             yield return null;
                         }
                         
+                        // --- THE FIX: Stop the coroutine BEFORE activating the scene ---
+                        if (_ellipsisCoroutine != null)
+                        {
+                            StopCoroutine(_ellipsisCoroutine);
+                        }
+                        // ---------------------------------------------------------------
+
                         operation.allowSceneActivation = true;
                         backgroundOpacityControl.opacity = 0.0f;
-                        StopCoroutine(_ellipsisCoroutine);
                     }
                     yield return null;
                 }
