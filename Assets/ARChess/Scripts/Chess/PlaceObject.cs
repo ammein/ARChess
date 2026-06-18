@@ -409,12 +409,28 @@ namespace ARChess.Scripts.Chess
             // Listen to the NetworkManager instead of raw NetUtility
             NetworkManager.onPlaceBoardClientEvent += OnNetworkPlaceBoard;
             NetworkManager.onRematchClientEvent += OnNetworkRematch;
+            
+            // --- THE FIX: Listen for when the room fills up ---
+            NetworkManager.onStartGameClient += OnStartGame;
         }
 
         public void UnregisterEvents()
         {
             NetworkManager.onPlaceBoardClientEvent -= OnNetworkPlaceBoard;
             NetworkManager.onRematchClientEvent += OnNetworkRematch;
+            
+            // --- Clean it up ---
+            NetworkManager.onStartGameClient -= OnStartGame;
+        }
+        
+        private void OnStartGame()
+        {
+            // The room just filled up with both players!
+            // If I already placed my board before they joined, tell them!
+            if (m_ObjectInstance != null && globalProjectStateOptions.onlinePlay)
+            {
+                StartCoroutine(TrySendBoardPlacement(startingTeam));
+            }
         }
         
         // Triggered by the Action in NetworkManager
