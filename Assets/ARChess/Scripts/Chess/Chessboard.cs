@@ -222,8 +222,6 @@ namespace ARChess.Scripts.Chess
 
         private void OnDestroy()
         {
-            if (Server.Instance != null) Server.Instance.Shutdown();
-            if (Client.Instance != null) Client.Instance.Shutdown();
             UnRegisterEvents();
         }
 

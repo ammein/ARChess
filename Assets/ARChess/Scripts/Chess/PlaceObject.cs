@@ -74,6 +74,13 @@ namespace ARChess.Scripts.Chess
         private void Awake()
         {
             RegisterEvents();
+            
+            // Tell the script what team we are immediately so the 
+            // Update loop math doesn't get confused before we place the board!
+            if (globalProjectStateOptions != null)
+            {
+                startingTeam = globalProjectStateOptions.team;
+            }
         }
 
         private void Update()
@@ -363,7 +370,6 @@ namespace ARChess.Scripts.Chess
             Positioning(forward, positionPose, spawnNormal);
             
             // Send to server to acknowledge NetPlaceBoard
-            // --- THE NEW FIX ---
             // Start the reliable retry loop instead of a one-off send
             if (globalProjectStateOptions.onlinePlay)
             {
@@ -406,11 +412,8 @@ namespace ARChess.Scripts.Chess
 
         public void RegisterEvents()
         {
-            // Listen to the NetworkManager instead of raw NetUtility
             NetworkManager.onPlaceBoardClientEvent += OnNetworkPlaceBoard;
             NetworkManager.onRematchClientEvent += OnNetworkRematch;
-            
-            // --- THE FIX: Listen for when the room fills up ---
             NetworkManager.onStartGameClient += OnStartGame;
         }
 
@@ -418,8 +421,6 @@ namespace ARChess.Scripts.Chess
         {
             NetworkManager.onPlaceBoardClientEvent -= OnNetworkPlaceBoard;
             NetworkManager.onRematchClientEvent += OnNetworkRematch;
-            
-            // --- Clean it up ---
             NetworkManager.onStartGameClient -= OnStartGame;
         }
         
@@ -427,7 +428,7 @@ namespace ARChess.Scripts.Chess
         {
             // The room just filled up with both players!
             // If I already placed my board before they joined, tell them!
-            if (m_ObjectInstance != null && globalProjectStateOptions.onlinePlay)
+            if (m_ObjectInstance && globalProjectStateOptions.onlinePlay)
             {
                 StartCoroutine(TrySendBoardPlacement(startingTeam));
             }
