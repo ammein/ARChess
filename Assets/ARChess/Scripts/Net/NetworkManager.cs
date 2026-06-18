@@ -1,5 +1,6 @@
 using System;
 using ARChess.Scripts.Net.Net_Message;
+using ARChess.Scripts.Project;
 using Unity.Networking.Transport;
 using UnityEngine;
 
@@ -13,10 +14,13 @@ namespace ARChess.Scripts.Net
         public static event Action onStartGameClient;
         public static event Action<NetMakeMove> onMakeMoveClientEvent;
         public static event Action<NetPlaceBoard> onPlaceBoardClientEvent;
+        public static event Action<NetRematch> onRematchClientEvent;
+
+        public ProjectStateOptions globalOptions;
 
         // Lobby tracking variables
         private int playerCount = -1;
-        public int currentTeam = -1;
+        private int currentTeam = -1;
         private bool _eventsRegistered = false;
 
         private void Awake()
@@ -41,11 +45,17 @@ namespace ARChess.Scripts.Net
             }
         }
 
-        public static void Destroy()
+        public static void ResetOnline()
         {
-            if (Instance != null)
+            if (Instance)
             {
-                Instance.UnRegisterEvents();
+                Instance.playerCount = -1;
+                Instance.currentTeam = -1;
+
+                if (Instance.globalOptions)
+                {
+                    Instance.globalOptions.onlinePlay = false;
+                }
             }
         }
 
@@ -75,6 +85,10 @@ namespace ARChess.Scripts.Net
             // The Place Board events
             NetUtility.S_PLACE_BOARD += OnPlaceBoardServer;
             NetUtility.C_PLACE_BOARD += OnPlaceBoardClient;
+            
+            // The Rematch events
+            NetUtility.S_REMATCH += OnRematchServer;
+            NetUtility.C_REMATCH += OnRematchClient;
 
             _eventsRegistered = true;
         }
@@ -90,6 +104,9 @@ namespace ARChess.Scripts.Net
             
             NetUtility.S_PLACE_BOARD -= OnPlaceBoardServer;
             NetUtility.C_PLACE_BOARD -= OnPlaceBoardClient;
+            
+            NetUtility.S_REMATCH -= OnRematchServer;
+            NetUtility.C_REMATCH -= OnRematchClient;
 
             _eventsRegistered = false;
         }
@@ -107,6 +124,11 @@ namespace ARChess.Scripts.Net
             }
         }
         
+        private void OnRematchServer(NetMessage msg, NetworkConnection cnn)
+        {
+            Server.Instance.Broadcast(msg);
+        }
+        
         // Client
         private void OnWelcomeClient(NetMessage msg)
         {
@@ -118,12 +140,6 @@ namespace ARChess.Scripts.Net
         private void OnStartGameClientInternal(NetMessage msg)
         {
             onStartGameClient?.Invoke();
-            
-            if (currentTeam == 1) 
-            {
-                playerCount = -1;
-                currentTeam = -1; 
-            }
         }
 
         // Server: Broadcast the move
@@ -137,7 +153,6 @@ namespace ARChess.Scripts.Net
         private void OnMakeMoveClient(NetMessage msg)
         {
             NetMakeMove mm = msg as NetMakeMove;
-            Debug.Log("NetworkManager received move packet! Passing to Chessboard...");
             
             onMakeMoveClientEvent?.Invoke(mm);
         }
@@ -152,9 +167,17 @@ namespace ARChess.Scripts.Net
         private void OnPlaceBoardClient(NetMessage msg)
         {
             NetPlaceBoard npb = msg as NetPlaceBoard;
-            Debug.Log($"NetworkManager received board placement for team {npb.Team}!");
             
             onPlaceBoardClientEvent?.Invoke(npb);
+        }
+        
+        private void OnRematchClient(NetMessage msg)
+        {
+            // Receive the connection message
+            NetRematch rm = msg as NetRematch;
+            
+            // Send to event
+            onRematchClientEvent?.Invoke(rm);
         }
 
         #endregion

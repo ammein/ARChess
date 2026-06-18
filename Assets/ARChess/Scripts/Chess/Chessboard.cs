@@ -210,6 +210,13 @@ namespace ARChess.Scripts.Chess
                                                        Quaternion.Euler(_ambientLightEstimation.DynamicLightRotation);
             }
             
+            // If the game transitions from Online to Offline mid-match
+            if(!projectStateOptions.onlinePlay && !localGame)
+            {
+                localGame = true; // Unlock the board for local play
+                RemoveOnlineHighlightTiles(); // Scrub the opponent's leftover yellow tiles!
+            }
+            
             EnableMatchmakingUI(MyTurn);
         }
 
@@ -780,7 +787,15 @@ namespace ARChess.Scripts.Chess
             playerWins = loseTitle.ToString();
         }
 
-        public void OnResetButton()
+        public void OnRematch()
+        {
+            NetRematch rm = new NetRematch();
+            rm.teamId = startingTeam == ChessTeam.White ? 0 : 1;
+            rm.wantRematch = 1;
+            Client.Instance.SendToServer(rm);
+        }
+
+        public void GameReset()
         {
             EndGame = false;
             
@@ -791,13 +806,13 @@ namespace ARChess.Scripts.Chess
             
             // Clean up
             for(int x = 0; x < TILE_COUNT_X; x++)
-                for (int y = 0; y < TILE_COUNT_Y; y++)
-                {
-                    if (chessPieces[x, y] != null)
-                        Destroy(chessPieces[x, y].gameObject);
+            for (int y = 0; y < TILE_COUNT_Y; y++)
+            {
+                if (chessPieces[x, y] != null)
+                    Destroy(chessPieces[x, y].gameObject);
                     
-                    chessPieces[x, y] = null;
-                }
+                chessPieces[x, y] = null;
+            }
             
             foreach (var white in deadWhites)
                 Destroy(white.gameObject);
@@ -813,6 +828,10 @@ namespace ARChess.Scripts.Chess
             AnimateAllPiece();
             isWhiteTurn = true;
             MyTurn = startingTeam == ChessTeam.White;
+            
+            // Online
+            if(!localGame)
+                RemoveOnlineHighlightTiles();
         }
         
         // Special Moves
@@ -1226,10 +1245,13 @@ namespace ARChess.Scripts.Chess
 
                 if (target)
                 {
-                    // Calculate moves based on local coordinates
-                    availableMoves = target.GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
+                    // Create a completely temporary list just for the network's math.
+                    // This guarantees your global 'availableMoves' is NEVER touched!
+                    List<Vector2Int> opponentMoves = new List<Vector2Int>();
 
-                    specialMove = target.GetSpecialMoves(ref chessPieces, ref moveList, ref availableMoves, startingTeam);
+                    // Calculate moves using the temporary list
+                    opponentMoves = target.GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
+                    specialMove = target.GetSpecialMoves(ref chessPieces, ref moveList, ref opponentMoves, startingTeam);
             
                     // Execute the movement locally using the flipped positions
                     MoveTo(oppOriginalX, oppOriginalY, oppDestinationX, oppDestinationY);

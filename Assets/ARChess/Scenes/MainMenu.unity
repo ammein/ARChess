@@ -7289,6 +7289,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81e58a191aae64e0aaf8e2559782582d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkManager
+  globalOptions: {fileID: 11400000, guid: 1f891a6ddf5e14389b11da62ab79509f, type: 2}
 --- !u!114 &1362171116
 MonoBehaviour:
   m_ObjectHideFlags: 0

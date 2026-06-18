@@ -104,6 +104,8 @@ namespace ARChess.Scripts.Net
                     connection = default(NetworkConnection);
                     connectionDropped?.Invoke();
                     
+                    NetworkManager.ResetOnline();
+                    
                     Shutdown(); // This disposes the driver
                     
                     // --- THE MEMORY LEAKED FIX ---
