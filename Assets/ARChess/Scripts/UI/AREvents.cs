@@ -39,16 +39,6 @@ namespace ARChess.Scripts.UI
         // When the scene is unloaded, reset all settings
         public void OnDestroy()
         {
-            // First, clean up the network while we still know we are online!
-            if (projectStateOptions.onlinePlay)
-            {
-                NetworkManager.ResetOnline();
-                
-                // Physically close the sockets so they don't run in the background 
-                // while the player is sitting in the Main Menu!
-                if (Server.Instance != null) Server.Instance.Shutdown();
-                if (Client.Instance != null) Client.Instance.Shutdown();
-            }
             projectStateOptions.OnQuit();
         }
     }

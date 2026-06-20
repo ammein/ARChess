@@ -133,8 +133,6 @@ namespace ARChess.Scripts.Net
                         connections[i] = default(NetworkConnection);
                         connectionDropped?.Invoke();
                         
-                        NetworkManager.ResetOnline();
-                        
                         Shutdown(); // This does not happen usually, its just because we're in a two person game
                         
                         // --- THE THE MEMORY LEAKED FIX ---

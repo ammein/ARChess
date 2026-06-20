@@ -155,10 +155,10 @@ namespace ARChess.Scripts.UI
                 myPort = ushort.Parse(hostPortField.text);
             }
             
+            globalOptions.team = ChessTeam.White;
             // Re-fetch instances dynamically rather than via inspector fields
             Server.Instance.Init(myPort);
             Client.Instance.Init(globalOptions.ipAddress, myPort);
-            globalOptions.team = ChessTeam.White;
         }
 
         public void OnOnlineConnectButton()
@@ -179,8 +179,8 @@ namespace ARChess.Scripts.UI
                 myPort = ushort.Parse(connectPortField.text);
             }
             
-            Client.Instance.Init(Regex.IsMatch(globalOptions.ipAddress, IPPattern) ? globalOptions.ipAddress : "127.0.0.1", myPort);
             globalOptions.team = ChessTeam.Black;
+            Client.Instance.Init(Regex.IsMatch(globalOptions.ipAddress, IPPattern) ? globalOptions.ipAddress : "127.0.0.1", myPort);
         }
 
         public void OnHostBackButton()
@@ -191,7 +191,7 @@ namespace ARChess.Scripts.UI
             // ---------------------------------------------------------------
             
             Log.LogThis("Server/Client shutdown", this);
-            globalOptions.onlinePlay = false;
+            globalOptions.ResetOnline();
         }
 
         public void ResetOptions()

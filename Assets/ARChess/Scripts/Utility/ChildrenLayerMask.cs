@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace ARChess.Scripts.Utility
@@ -15,6 +16,21 @@ namespace ARChess.Scripts.Utility
             foreach (Transform child in allChildren)
             {
                 child.gameObject.layer = targetLayer;
+            }
+        }
+
+        public static void Chess(GameObject parentObject, string targetLayerName, string layerName)
+        {
+            int targetLayer = LayerMask.NameToLayer(layerName);
+            
+            Transform[] allChildren = parentObject.GetComponentsInChildren<Transform>(true);
+            
+            foreach (Transform child in allChildren)
+            {
+                if (child.gameObject.layer == LayerMask.NameToLayer(targetLayerName))
+                {
+                    child.gameObject.layer = targetLayer;
+                }
             }
         }
     }

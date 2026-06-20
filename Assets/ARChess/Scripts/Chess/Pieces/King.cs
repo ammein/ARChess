@@ -85,21 +85,30 @@ namespace ARChess.Scripts.Chess.Pieces
             {
                 // Left Rook
                 if (leftRook == null)
-                    if(board[0, ourY].type == ChessPieceType.Rook)
-                        if(!board[3, ourY] && !board[2, ourY] && !board[1, ourY])
+                {
+                    // Make sure there is actually a piece standing there before checking its type!
+                    if (board[0, ourY] && board[0, ourY].type == ChessPieceType.Rook)
+                    {
+                        if (!board[3, ourY] && !board[2, ourY] && !board[1, ourY])
                         {
                             availableMoves.Add(new Vector2Int(2, ourY));
                             r = SpecialMove.Castling;
                         }
+                    }
+                }
                     
                 // Right Rook
                 if (rightRook == null)
-                    if(board[7, ourY].type == ChessPieceType.Rook)
-                        if(!board[5,ourY] && !board[6, ourY])
+                {
+                    if (board[7, ourY] && board[7, ourY].type == ChessPieceType.Rook)
+                    {
+                        if (!board[5, ourY] && !board[6, ourY])
                         {
                             availableMoves.Add(new Vector2Int(6, ourY));
                             r = SpecialMove.Castling;
                         }
+                    }
+                }
             }
             
             return r;

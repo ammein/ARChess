@@ -15,12 +15,13 @@ namespace ARChess.Scripts.Net
         public static event Action<NetMakeMove> onMakeMoveClientEvent;
         public static event Action<NetPlaceBoard> onPlaceBoardClientEvent;
         public static event Action<NetRematch> onRematchClientEvent;
+        public static event Action connectionClientDropped;
 
         public ProjectStateOptions globalOptions;
 
         // Lobby tracking variables
         private int playerCount = -1;
-        private int currentTeam = -1;
+        public int currentTeam = -1;
         private bool _eventsRegistered = false;
 
         private void Awake()
@@ -45,7 +46,7 @@ namespace ARChess.Scripts.Net
             }
         }
 
-        public static void ResetOnline()
+        private static void ResetOnline()
         {
             if (Instance)
             {
@@ -54,7 +55,7 @@ namespace ARChess.Scripts.Net
 
                 if (Instance.globalOptions)
                 {
-                    Instance.globalOptions.onlinePlay = false;
+                    Instance.globalOptions.ResetOnline();
                 }
             }
         }
@@ -90,6 +91,9 @@ namespace ARChess.Scripts.Net
             NetUtility.S_REMATCH += OnRematchServer;
             NetUtility.C_REMATCH += OnRematchClient;
 
+            if (Server.Instance != null) Server.Instance.connectionDropped += OnConnectionDropped;
+            if (Client.Instance != null) Client.Instance.connectionDropped += OnConnectionDropped;
+
             _eventsRegistered = true;
         }
 
@@ -107,8 +111,18 @@ namespace ARChess.Scripts.Net
             
             NetUtility.S_REMATCH -= OnRematchServer;
             NetUtility.C_REMATCH -= OnRematchClient;
+            
+            if (Server.Instance != null) Server.Instance.connectionDropped -= OnConnectionDropped;
+            if (Client.Instance != null) Client.Instance.connectionDropped -= OnConnectionDropped;
 
             _eventsRegistered = false;
+        }
+        
+        // Connection Dropped
+        private void OnConnectionDropped()
+        {
+            ResetOnline();
+            connectionClientDropped?.Invoke();
         }
 
         // Server

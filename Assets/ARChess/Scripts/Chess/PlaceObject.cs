@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using ARChess.Scripts.Net;
 using ARChess.Scripts.Net.Net_Message;
 using ARChess.Scripts.Project;
@@ -63,6 +64,7 @@ namespace ARChess.Scripts.Chess
         private List<int> _teamPlaceFirst = new List<int>();
         private bool startOnlinePlay;
         private bool[] _playerRematch = new bool[2];
+        private bool _hasNotifiedQuit;
         
         /// <summary>
         /// Event invoked after an object is spawned.
@@ -129,16 +131,6 @@ namespace ARChess.Scripts.Chess
                     // Reset your turn gameObject
                     if(!yourTurn.activeInHierarchy && _chessboard.MyTurn)
                         yourTurn.SetActive(true);
-
-                    if (!globalProjectStateOptions.onlinePlay && startOnlinePlay)
-                    {
-                        // Immediately set this to false so it acts as a lock! 
-                        // This stops the Update loop from firing the Coroutine again.
-                        startOnlinePlay = false;
-                        
-                        // Safely fire the Coroutine exactly once.
-                        StartCoroutine(OpponentSuddenQuit());
-                    }
                     break;
             }
         }
@@ -156,44 +148,48 @@ namespace ARChess.Scripts.Chess
                 // Determine who the opponent is based on your local starting team
                 int opponentTeamId = (startingTeam == ChessTeam.White) ? 1 : 0;
                 
-                bool iHavePlaced = (m_ObjectInstance);
+                // If I physically have the board locally, I have placed it! 
+                // Do NOT wait for the network to echo my own packet back to me.
+                bool iHavePlaced = m_ObjectInstance != null;
+                
                 // Check if the list specifically contains the opponent's team ID
                 bool opponentHasPlaced = _teamPlaceFirst.Contains(opponentTeamId);
-
-                // --- THE SPECIFIC CONDITION ---
+                
                 // Trigger ONLY if the opponent has placed their board, but you haven't yet
                 if (opponentHasPlaced && !iHavePlaced)
                 {
-                    if (!placeboardTextContainer.activeInHierarchy)
-                    {
-                        placeboardTextContainer.SetActive(true);
-                        overlayScreen.SetActive(true);
+                    placeboardTextContainer.SetActive(true);
+                    overlayScreen.SetActive(true);
                         
-                        var color = overlayScreen.GetComponent<UnityEngine.UI.Image>().color;
-                        color.a = 0.0f; // Clear background so they can still scan the AR environment
-                        overlayScreen.GetComponent<UnityEngine.UI.Image>().color = color;
+                    var color = overlayScreen.GetComponent<UnityEngine.UI.Image>().color;
+                    color.a = 0.0f; // Clear background so they can still scan the AR environment
+                    overlayScreen.GetComponent<UnityEngine.UI.Image>().color = color;
                         
-                        ChildrenLayerMask.All(placeboardTextContainer, "Ignore Raycast");
-                        overlayScreen.layer = LayerMask.NameToLayer("Ignore Raycast");
-                        placeBoardText.text = "Your opponent is waiting for you to place your board to start the game";   
-                    }
+                    // Tell the UI system to stop absorbing clicks!
+                    overlayScreen.GetComponent<UnityEngine.UI.Image>().raycastTarget = false;
+                    placeboardTextContainer.GetComponentInChildren<UnityEngine.UI.Image>().raycastTarget = false;
+                    placeBoardText.raycastTarget = false;
+                    
+                    placeBoardText.text = "Your opponent is waiting for you to place your board to start the game";   
                 }
                 // Scenario B: You placed yours, but the opponent hasn't (Show dim overlay & wait text)
                 else if (iHavePlaced && !opponentHasPlaced)
                 {
-                    if (!placeboardTextContainer.activeInHierarchy || overlayScreen.layer == LayerMask.NameToLayer("Ignore Raycast"))
-                    {
-                        placeboardTextContainer.SetActive(true);
-                        overlayScreen.SetActive(true);
+                    placeboardTextContainer.SetActive(true);
+                    overlayScreen.SetActive(true);
                         
-                        var color = overlayScreen.GetComponent<UnityEngine.UI.Image>().color;
-                        color.a = 0.5f; // Dim the screen since they can't do anything until opponent joins
-                        overlayScreen.GetComponent<UnityEngine.UI.Image>().color = color;   
+                    var color = overlayScreen.GetComponent<UnityEngine.UI.Image>().color;
+                    color.a = 0.8f; // Dim the screen since they can't do anything until opponent joins
+                    overlayScreen.GetComponent<UnityEngine.UI.Image>().color = color;   
                         
-                        ChildrenLayerMask.All(placeboardTextContainer, "UI");
-                        overlayScreen.layer = LayerMask.NameToLayer("UI");
-                        placeBoardText.text = "Waiting for the opponent to place their board";   
-                    }
+                    // Turn the UI blocker back on so they can't touch the board!
+                    overlayScreen.GetComponent<UnityEngine.UI.Image>().raycastTarget = true;
+                    ChildrenLayerMask.Chess(m_ObjectInstance, "Chess", "Ignore Raycast");
+                    ChildrenLayerMask.Chess(m_ObjectInstance, "Tile", "Ignore Tile");
+                    ChildrenLayerMask.Chess(m_ObjectInstance, "Visual Tile", "Ignore Visual Tile");
+                    placeboardTextContainer.GetComponentInChildren<UnityEngine.UI.Image>().raycastTarget = true;
+                    placeBoardText.raycastTarget = true;
+                    placeBoardText.text = "Waiting for the opponent to place their board";  
                 }
                 // Scenario C: You haven't placed, and opponent hasn't placed (Do absolutely nothing / Keep UI hidden)
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
@@ -205,6 +201,9 @@ namespace ARChess.Scripts.Chess
             } 
             else // startOnlinePlay is true (Both have placed)
             {
+                ChildrenLayerMask.Chess(m_ObjectInstance, "Ignore Raycast", "Chess");
+                ChildrenLayerMask.Chess(m_ObjectInstance, "Ignore Tile", "Tile");
+                ChildrenLayerMask.Chess(m_ObjectInstance, "Ignore Visual Tile", "Visual Tile");
                 // Clean up and turn off all placement overlays completely
                 if (placeboardTextContainer.activeInHierarchy) placeboardTextContainer.SetActive(false);
                 if (overlayScreen.activeInHierarchy) overlayScreen.SetActive(false);
@@ -246,6 +245,11 @@ namespace ARChess.Scripts.Chess
                         chessboard.OnRematch();
                     else
                         chessboard.GameReset();
+        }
+
+        public void ExitGame()
+        {
+            Disconnected();
         }
 
         public void EndGame()
@@ -302,7 +306,8 @@ namespace ARChess.Scripts.Chess
             
             endGame.SetActive(false);
             
-            startOnlinePlay = false;
+            if(globalProjectStateOptions.onlinePlay)
+                Disconnected();
             
             if(_teamPlaceFirst.Count > 0)
                 _teamPlaceFirst.Clear();
@@ -313,11 +318,14 @@ namespace ARChess.Scripts.Chess
         private IEnumerator OpponentSuddenQuit()
         {
             placeboardTextContainer.SetActive(true);
+            overlayScreen.SetActive(false);
+            placeboardTextContainer.layer = LayerMask.NameToLayer("Ignore Raycast");
             placeBoardText.text = "Opponent has left the game";
             
-            yield return new WaitForSeconds(3f);
+            yield return new WaitForSeconds(5f);
             
             placeboardTextContainer.SetActive(false);
+            placeboardTextContainer.layer = LayerMask.NameToLayer("UI");
             placeBoardText.text = "";
         }
         
@@ -335,7 +343,7 @@ namespace ARChess.Scripts.Chess
                     // the moment the network is ready and accepts the message.
                     NetPlaceBoard npb = new NetPlaceBoard();
 
-                    npb.Team = (int)team;
+                    npb.Team = team == ChessTeam.White ? 0 : 1;
                     
                     sentSuccessfully = Client.Instance.SendToServer(npb);
                 }
@@ -351,6 +359,13 @@ namespace ARChess.Scripts.Chess
         // ReSharper disable Unity.PerformanceAnalysis
         public GameObject ClonePrefab(Vector3 positionPose, Vector3 spawnNormal)
         {
+            // Override the global options with the official Network Assigned Team (0=White, 1=Black)
+            // This guarantees players never accidentally pick the same color!
+            if (globalProjectStateOptions.onlinePlay && NetworkManager.Instance != null && NetworkManager.Instance.currentTeam != -1)
+            {
+                globalProjectStateOptions.team = NetworkManager.Instance.currentTeam == 0 ? ChessTeam.White : ChessTeam.Black;
+            }
+            
             startingTeam = globalProjectStateOptions.team;
             if (prefab.TryGetComponent(out Chessboard chessboard))
             {
@@ -408,6 +423,20 @@ namespace ARChess.Scripts.Chess
             m_ObjectInstance.transform.Find("Chess Attach").GetComponent<BoxCollider>().providesContacts = toggle;
         }
 
+        private void Disconnected()
+        {
+            if (_hasNotifiedQuit) return;
+            if(startOnlinePlay)
+                startOnlinePlay = false;
+            StartCoroutine(OpponentSuddenQuit());
+            
+            // Shutdown server & client
+            if (Server.Instance) Server.Instance.Shutdown();
+            if (Client.Instance) Client.Instance.Shutdown();
+            
+            _hasNotifiedQuit = true;
+        }
+
         #region Network Event Listeners
 
         public void RegisterEvents()
@@ -415,13 +444,21 @@ namespace ARChess.Scripts.Chess
             NetworkManager.onPlaceBoardClientEvent += OnNetworkPlaceBoard;
             NetworkManager.onRematchClientEvent += OnNetworkRematch;
             NetworkManager.onStartGameClient += OnStartGame;
+            NetworkManager.connectionClientDropped += OnConnectionDropped;
         }
 
         public void UnregisterEvents()
         {
             NetworkManager.onPlaceBoardClientEvent -= OnNetworkPlaceBoard;
-            NetworkManager.onRematchClientEvent += OnNetworkRematch;
+            NetworkManager.onRematchClientEvent -= OnNetworkRematch;
             NetworkManager.onStartGameClient -= OnStartGame;
+            NetworkManager.connectionClientDropped -= OnConnectionDropped;
+        }
+        
+        // Happens when client/server suddenly disconnected...
+        private void OnConnectionDropped()
+        {
+            Disconnected();
         }
         
         private void OnStartGame()
@@ -513,14 +550,19 @@ namespace ARChess.Scripts.Chess
                 var finalColor = rematchButton.GetComponentInChildren<TextMeshProUGUI>().color;
                 finalColor.a = 1f;
                 rematchButton.GetComponentInChildren<TextMeshProUGUI>().color = finalColor;
+                rematchButton.GetComponent<Button>().interactable = true;
+                onlineStatus.GetComponent<TextMeshProUGUI>().text = "";
                 onlineStatus.gameObject.SetActive(false);
                 
                 // Reset local logic array for the next game!
                 _playerRematch[0] = false;
                 _playerRematch[1] = false;
 
-                if(m_ObjectInstance.TryGetComponent(out Chessboard chessboard))
+                if (m_ObjectInstance.TryGetComponent(out Chessboard chessboard))
+                {
                     chessboard.GameReset();
+                    chessboard.OnlineStartPlay();
+                }
             }
         }
 

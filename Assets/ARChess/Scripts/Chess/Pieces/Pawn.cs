@@ -12,10 +12,16 @@ namespace ARChess.Scripts.Chess.Pieces
 
             int direction = (team == startingTeam) ? 1 : -1;
             
+            // If the pawn is already at the very edge of the board, it cannot move forward!
+            // This prevents the array from checking a row that doesn't exist and crashing.
+            if (currentY + direction >= tileCountY || currentY + direction < 0)
+            {
+                return r; 
+            }
+            
             // One in front
             if (!board[currentX, currentY + direction])
             {
-                Debug.Log("One In Front - Pawn");
                 r.Add(new Vector2Int(currentX, currentY + direction));
             }
             
@@ -47,9 +53,13 @@ namespace ARChess.Scripts.Chess.Pieces
         {
             int direction = (team == startingTeam) ? 1 : -1;
             
-            // Promotion
-            if ((team == ChessTeam.Black && currentY == 6) || (team == ChessTeam.White && currentY == 1))
+            // Local player pawns promote when stepping off the 2nd-to-last row (tileCountY - 2).
+            // Enemy pawns promote when stepping off the 2nd row (1).
+            bool isMyPawn = (team == startingTeam);
+            if ((isMyPawn && currentY == 6) || (!isMyPawn && currentY == 1))
+            {
                 return SpecialMove.Promotion;
+            }
             
             // En Passant
             if (moveList.Count > 0)

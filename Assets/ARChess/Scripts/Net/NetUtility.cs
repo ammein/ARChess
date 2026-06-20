@@ -13,7 +13,7 @@ namespace ARChess.Scripts.Net
         START_GAME = 3,
         PLACE_BOARD = 4,
         MAKE_MOVE = 5,
-        REMATCH = 6
+        REMATCH = 6,
     }
     
     public static class NetUtility

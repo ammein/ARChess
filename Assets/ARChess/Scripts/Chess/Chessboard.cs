@@ -76,7 +76,7 @@ namespace ARChess.Scripts.Chess
         /// <summary>
         /// Event invoked after a piece is MoveTo
         /// </summary>
-        public event Action<ChessPiece, int, int> objectPlaced;
+        public event Action<SpecialMove, List<Vector2Int[]>> objectPlaced;
 
         // LOGIC
         private ChessPiece[,] chessPieces;
@@ -109,6 +109,9 @@ namespace ARChess.Scripts.Chess
         // Track the exact tiles highlighted by the last network move
         private Vector2Int onlineHighlightedSrc = -Vector2Int.one;
         private Vector2Int onlineHighlightedDst = -Vector2Int.one;
+
+        public bool chessboardGenerated;
+        public bool chessboardInitialized;
 
         public BoxCollider ChessCollider => chessCollider;
 
@@ -174,21 +177,10 @@ namespace ARChess.Scripts.Chess
             }
 
             currentCamera = Camera.main;
-
+            
+            
             // Generate All Tiles
-            var generated = GenerateAllTiles(m_tileSize);
-
-            if (generated)
-            {
-                // Spawn All Pieces
-                SpawnAllPieces();
-
-                // Position All Pieces
-                PositionAllPieces();
-
-                // Animate Pieces to appear
-                AnimateAllPiece();
-            }
+            chessboardGenerated = GenerateAllTiles(m_tileSize);
         }
 
         private void Start()
@@ -201,6 +193,9 @@ namespace ARChess.Scripts.Chess
 
         private void Update()
         {
+            if(!chessboardInitialized && localGame)
+                chessboardInitialized = Initialized();
+            
             if (_directionalLight && _ambientLightEstimation)
             {
                 // Lights follow board
@@ -210,19 +205,43 @@ namespace ARChess.Scripts.Chess
                                                        Quaternion.Euler(_ambientLightEstimation.DynamicLightRotation);
             }
             
-            // If the game transitions from Online to Offline mid-match
-            if(!projectStateOptions.onlinePlay && !localGame)
-            {
-                localGame = true; // Unlock the board for local play
-                RemoveOnlineHighlightTiles(); // Scrub the opponent's leftover yellow tiles!
-            }
-            
             EnableMatchmakingUI(MyTurn);
         }
 
         private void OnDestroy()
         {
             UnRegisterEvents();
+        }
+
+        public bool Initialized()
+        {
+            if (chessboardGenerated && localGame)
+            {
+                // Spawn All Pieces
+                SpawnAllPieces();
+
+                // Position All Pieces
+                PositionAllPieces();
+
+                // Animate Pieces to appear
+                AnimateAllPiece();
+                
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool OnlineStartPlay()
+        {
+            if (chessboardGenerated && !localGame)
+            {
+                chessboardInitialized = Initialized();
+
+                return true;
+            }
+
+            return false;
         }
 
         private void EnableMatchmakingUI(bool state)
@@ -858,26 +877,29 @@ namespace ARChess.Scripts.Chess
 
                 if (targetPawn.type == ChessPieceType.Pawn)
                 {
-                    if (targetPawn.team == ChessTeam.Black && lastMove[1].y == 7)
+                    // Because the board is flipped so the local player starts at the bottom,
+                    // MY pawns always promote at the top (7), and ENEMY pawns always promote at the bottom (0).
+                    bool isMyPawn = (targetPawn.team == startingTeam);
+                    bool reachedPromotionRow = (isMyPawn && lastMove[1].y == 7) || (!isMyPawn && lastMove[1].y == 0);
+                    // ------------------------------
+
+                    if (reachedPromotionRow)
                     {
-                        ChessPiece newQueen = SpawnSinglePiece(pieces.Find(p => p.type == ChessPieceType.Queen), ChessTeam.Black, teamMaterials.Find(m => m.team == ChessTeam.Black).material, true);
+                        // Spawn a Queen of the EXACT same team as the pawn
+                        ChessPiece newQueen = SpawnSinglePiece(
+                            pieces.Find(p => p.type == ChessPieceType.Queen), 
+                            targetPawn.team, 
+                            teamMaterials.Find(m => m.team == targetPawn.team).material, 
+                            true
+                        );
+                        
                         // Small movement transition
                         newQueen.transform.position = chessPieces[lastMove[1].x, lastMove[1].y].transform.position;
-                        // Destroy piece
+                        
+                        // Destroy original pawn
                         Destroy(chessPieces[lastMove[1].x, lastMove[1].y].gameObject);
-                        // Position piece
-                        chessPieces[lastMove[1].x, lastMove[1].y] = newQueen;
-                        PositionSinglePiece(lastMove[1].x, lastMove[1].y);
-                    }
-                    
-                    if (targetPawn.team == ChessTeam.White && lastMove[1].y == 0)
-                    {
-                        ChessPiece newQueen = SpawnSinglePiece(pieces.Find(p => p.type == ChessPieceType.Queen), ChessTeam.White, teamMaterials.Find(m => m.team == ChessTeam.White).material, true);
-                        // Small movement transition
-                        newQueen.transform.position = chessPieces[lastMove[1].x, lastMove[1].y].transform.position;
-                        // Destroy piece
-                        Destroy(chessPieces[lastMove[1].x, lastMove[1].y].gameObject);
-                        // Position piece
+                        
+                        // Position new piece in the array
                         chessPieces[lastMove[1].x, lastMove[1].y] = newQueen;
                         PositionSinglePiece(lastMove[1].x, lastMove[1].y);
                     }
@@ -888,45 +910,26 @@ namespace ARChess.Scripts.Chess
             {
                 Vector2Int[] lastMove = moveList[moveList.Count - 1];
                 
-                // Left Rook
+                // The King's destination row (lastMove[1].y) tells us exactly 
+                // which row we are castling on (0 for Local, 7 for Opponent).
+                int castlingY = lastMove[1].y;
+                // ---------------------------
+                
+                // Left Rook (Queenside Castling)
                 if (lastMove[1].x == 2)
                 {
-                    // White Side
-                    if (lastMove[1].y == 0)
-                    {
-                        ChessPiece rook = chessPieces[0, 0];
-                        chessPieces[3, 0] = rook;
-                        PositionSinglePiece(3, 0);
-                        chessPieces[0, 0] = null;
-                    }
-                    // Black Side
-                    else if (lastMove[1].y == 7)
-                    {
-                        ChessPiece rook = chessPieces[0, 7];
-                        chessPieces[3, 7] = rook;
-                        PositionSinglePiece(3, 7);
-                        chessPieces[0, 7] = null;
-                    }
+                    ChessPiece rook = chessPieces[0, castlingY];
+                    chessPieces[3, castlingY] = rook;
+                    PositionSinglePiece(3, castlingY);
+                    chessPieces[0, castlingY] = null;
                 }
-                // Right Rook
+                // Right Rook (Kingside Castling)
                 else if (lastMove[1].x == 6)
                 {
-                    // White Side
-                    if (lastMove[1].y == 0)
-                    {
-                        ChessPiece rook = chessPieces[7, 0];
-                        chessPieces[5, 0] = rook;
-                        PositionSinglePiece(5, 0);
-                        chessPieces[7, 0] = null;
-                    }
-                    // Black Side
-                    else if (lastMove[1].y == 7)
-                    {
-                        ChessPiece rook = chessPieces[7, 7];
-                        chessPieces[5, 7] = rook;
-                        PositionSinglePiece(5, 7);
-                        chessPieces[7, 7] = null;
-                    }
+                    ChessPiece rook = chessPieces[7, castlingY];
+                    chessPieces[5, castlingY] = rook;
+                    PositionSinglePiece(5, castlingY);
+                    chessPieces[7, castlingY] = null;
                 }
             }
         }
@@ -1178,8 +1181,6 @@ namespace ARChess.Scripts.Chess
                 DestroyPiece(ocp, ocp.team != startingTeam ? ChessTeam.White : ChessTeam.Black);
             }
 
-            objectPlaced?.Invoke(cp, x, y);
-
             chessPieces[x, y] = cp;
             chessPieces[previousPosition.x, previousPosition.y] = null;
 
@@ -1189,6 +1190,8 @@ namespace ARChess.Scripts.Chess
             moveList.Add(new Vector2Int[] {previousPosition, new Vector2Int(x, y)});
 
             ProcessSpecialMove();
+            
+            objectPlaced?.Invoke(specialMove, moveList);
             
             switch (CheckForCheckmate())
             {
@@ -1210,16 +1213,26 @@ namespace ARChess.Scripts.Chess
         private void RegisterEvents()
         {
             NetworkManager.onMakeMoveClientEvent += OnNetworkMakeMove;
+            NetworkManager.connectionClientDropped += OnConnectionDropped;
         }
 
         private void UnRegisterEvents()
         {
             NetworkManager.onMakeMoveClientEvent -= OnNetworkMakeMove;
+            NetworkManager.connectionClientDropped -= OnConnectionDropped;
+        }
+        
+        private void OnConnectionDropped()
+        {
+            if (!localGame)
+                localGame = true;
+            
+            RemoveOnlineHighlightTiles();
         }
         
         private void OnNetworkMakeMove(NetMakeMove mm)
         {
-            Debug.Log($"MM : {mm.teamId} : {mm.originalX} {mm.originalY} -> {mm.destinationX} {mm.destinationY}");
+            Log.LogThis($"MM : {mm.teamId} : {mm.originalX} {mm.originalY} -> {mm.destinationX} {mm.destinationY}", this);
 
             int myTeam = startingTeam == ChessTeam.White ? 0 : 1;
             
@@ -1236,7 +1249,7 @@ namespace ARChess.Scripts.Chess
                 int oppDestinationY = (TILE_COUNT_Y - 1) - mm.destinationY;
                 // ------------------------------
 
-                Debug.Log($"Opponent Move Translated to Local: {mm.teamId} : {oppOriginalX} {oppOriginalY} -> {oppDestinationX} {oppDestinationY}");
+                Log.LogThis($"Opponent Move Translated to Local: {mm.teamId} : {oppOriginalX} {oppOriginalY} -> {oppDestinationX} {oppDestinationY}", this);
 
                 // Use the translated coordinates to find the piece on YOUR local board layout
                 ChessPiece target = chessPieces[oppOriginalX, oppOriginalY];
