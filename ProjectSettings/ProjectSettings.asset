@@ -146,7 +146,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 1.0.10
+  bundleVersion: 1.1.0
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -263,7 +263,7 @@ PlayerSettings:
   clonedFromGUID: 069202b91adc77e41923adcf0d1b815b
   templatePackageId: com.unity.template.ar-mobile@2.1.0
   templateDefaultScene: Assets/Scenes/SampleScene.unity
-  useCustomMainManifest: 0
+  useCustomMainManifest: 1
   useCustomLauncherManifest: 0
   useCustomMainGradleTemplate: 0
   useCustomLauncherGradleManifest: 0
@@ -565,6 +565,9 @@ PlayerSettings:
   - m_BuildTarget: iPhone
     m_StaticBatching: 1
     m_DynamicBatching: 0
+  - m_BuildTarget: Android
+    m_StaticBatching: 1
+    m_DynamicBatching: 0
   m_BuildTargetShaderSettings: []
   m_BuildTargetGraphicsJobs: []
   m_BuildTargetGraphicsJobMode: []
@@ -608,7 +611,7 @@ PlayerSettings:
   enableInternalProfiler: 0
   logObjCUncaughtExceptions: 1
   enableCrashReportAPI: 1
-  cameraUsageDescription: This app uses augmented reality, which requires access
+  cameraUsageDescription: This game uses augmented reality, which requires access
     to your camera
   locationUsageDescription: 
   microphoneUsageDescription: 
@@ -868,6 +871,7 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
+    Android: SENTIS_ANALYTICS_ENABLED;APP_UI_EDITOR_ONLY
     Standalone: APP_UI_EDITOR_ONLY;AR_FOUNDATION_REMOTE_INSTALLED;SENTIS_ANALYTICS_ENABLED
     iPhone: UNITY_XR_ARKIT_LOADER_ENABLED;__UNIFIED__;__IOS__;UNITY_POST_PROCESSING_STACK_V2;APP_UI_EDITOR_ONLY;UNITY_XR_ARKIT_FACE_TRACKING_ENABLED;SENTIS_ANALYTICS_ENABLED
   additionalCompilerArguments:

@@ -268,7 +268,11 @@ namespace ARChess.Scripts.Chess
             EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
             
             for (var i = 0 ; i < results.Count; i++)
-                if (results[i].gameObject.layer.Equals(LayerMask.NameToLayer("Ignore Raycast")))
+                if (
+                    results[i].gameObject.layer.Equals(LayerMask.NameToLayer("Ignore Raycast")) ||
+                    results[i].gameObject.layer.Equals(LayerMask.NameToLayer("Ignore Tile")) ||
+                    results[i].gameObject.layer.Equals(LayerMask.NameToLayer("Ignore Visual Tile"))
+                    )
                     return false;
             
             return results.Count > 0;

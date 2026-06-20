@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using ARChess.Scripts.Chess.Pieces;
 using ARChess.Scripts.Lights;
+using ARChess.Scripts.Net;
+using ARChess.Scripts.Net.Net_Message;
 using ARChess.Scripts.Project;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -74,7 +76,7 @@ namespace ARChess.Scripts.Chess
         /// <summary>
         /// Event invoked after a piece is MoveTo
         /// </summary>
-        public event Action<ChessPiece, int, int> objectPlaced;
+        public event Action<SpecialMove, List<Vector2Int[]>> objectPlaced;
 
         // LOGIC
         private ChessPiece[,] chessPieces;
@@ -100,6 +102,16 @@ namespace ARChess.Scripts.Chess
         
         private SpecialMove specialMove;
         private List<Vector2Int[]> moveList = new List<Vector2Int[]>();
+        
+        // Multi Logic
+        private ChessTeam madeMoveTeam;
+        private bool localGame = true;
+        // Track the exact tiles highlighted by the last network move
+        private Vector2Int onlineHighlightedSrc = -Vector2Int.one;
+        private Vector2Int onlineHighlightedDst = -Vector2Int.one;
+
+        public bool chessboardGenerated;
+        public bool chessboardInitialized;
 
         public BoxCollider ChessCollider => chessCollider;
 
@@ -125,6 +137,13 @@ namespace ARChess.Scripts.Chess
 
         private void Awake()
         {
+            RegisterEvents();
+            
+            if (projectStateOptions != null)
+            {
+                localGame = !projectStateOptions.onlinePlay;
+            }
+            
             isWhiteTurn = true;
             MyTurn = startingTeam == ChessTeam.White;
             try
@@ -158,21 +177,10 @@ namespace ARChess.Scripts.Chess
             }
 
             currentCamera = Camera.main;
-
+            
+            
             // Generate All Tiles
-            var generated = GenerateAllTiles(m_tileSize);
-
-            if (generated)
-            {
-                // Spawn All Pieces
-                SpawnAllPieces();
-
-                // Position All Pieces
-                PositionAllPieces();
-
-                // Animate Pieces to appear
-                AnimateAllPiece();
-            }
+            chessboardGenerated = GenerateAllTiles(m_tileSize);
         }
 
         private void Start()
@@ -185,6 +193,9 @@ namespace ARChess.Scripts.Chess
 
         private void Update()
         {
+            if(!chessboardInitialized && localGame)
+                chessboardInitialized = Initialized();
+            
             if (_directionalLight && _ambientLightEstimation)
             {
                 // Lights follow board
@@ -197,9 +208,45 @@ namespace ARChess.Scripts.Chess
             EnableMatchmakingUI(MyTurn);
         }
 
+        private void OnDestroy()
+        {
+            UnRegisterEvents();
+        }
+
+        public bool Initialized()
+        {
+            if (chessboardGenerated)
+            {
+                // Spawn All Pieces
+                SpawnAllPieces();
+
+                // Position All Pieces
+                PositionAllPieces();
+
+                // Animate Pieces to appear
+                AnimateAllPiece();
+                
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool OnlineStartPlay()
+        {
+            if (chessboardGenerated && !localGame)
+            {
+                chessboardInitialized = Initialized();
+
+                return true;
+            }
+
+            return false;
+        }
+
         private void EnableMatchmakingUI(bool state)
         {
-            if(yourTurnUI is not null && yourTurnUI.activeInHierarchy != state)
+            if(yourTurnUI is not null && yourTurnUI.activeInHierarchy != state && !EndGame)
             {
                 yourTurnUI.SetActive(state);
             }
@@ -217,7 +264,7 @@ namespace ARChess.Scripts.Chess
         {
             // To prevent raycast to infinite distance, we have to make the endpoint only react to Tile or 100 max distance
             if (Physics.Raycast(ray, out info, 100,
-                    LayerMask.GetMask("Tile", "Selected", "Bound Selected", "Visual Tile", "Highlight")))
+                    LayerMask.GetMask("Tile", "Selected", "Bound Selected", "Visual Tile", "Highlight", "Online Highlight")))
             {
                 // Get the indexes of the tile I've hit
                 Vector2Int hitPosition = LookupTileIndex(info.collider.gameObject);
@@ -237,7 +284,7 @@ namespace ARChess.Scripts.Chess
                 {
                     Log.LogThis($"Tile {currentHover.x},{currentHover.y} hit", this);
                     tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                    tiles[currentHover.x, currentHover.y].layer = ContainsValidMove(ref availableMoves, currentHover) ? LayerMask.NameToLayer("Highlight") :  LayerMask.NameToLayer("Visual Tile");
+                    RestoreTileLayer(currentHover);
                     currentHover = hitPosition;
                     // Change Layer to "Hover"
                     tilesBounds[hitPosition.x, hitPosition.y].layer = LayerMask.NameToLayer("Bound Selected");
@@ -249,21 +296,34 @@ namespace ARChess.Scripts.Chess
                 {
                     // If currentlyDragging is already dragging, cancel it...
                     if (currentlyDragging) return;
-                        
-                    // Is it our turn?
-                    if ((chessPieces[hitPosition.x, hitPosition.y].team == ChessTeam.White && isWhiteTurn) || (chessPieces[hitPosition.x, hitPosition.y].team == ChessTeam.Black && !isWhiteTurn))
+                
+                    // 1. Is it currently this color's turn?
+                    bool isCurrentTeamTurn = (chessPieces[hitPosition.x, hitPosition.y].team == ChessTeam.White && isWhiteTurn) || 
+                                             (chessPieces[hitPosition.x, hitPosition.y].team == ChessTeam.Black && !isWhiteTurn);
+
+                    if (isCurrentTeamTurn)
                     {
+                        // --- THE MULTIPLAYER TURN PROTECTION ---
+                        // If it is an online game, you must only pick up pieces that belong to YOUR local starting team side
+                        if (!localGame)
+                        {
+                            if (chessPieces[hitPosition.x, hitPosition.y].team != startingTeam)
+                            {
+                                Log.LogThis("Cannot interact with enemy pieces in an online match!", this);
+                                return; // Block pick-up immediately
+                            }
+                        }
+                        // ----------------------------------------
+
                         currentlyDragging = chessPieces[hitPosition.x, hitPosition.y];
-                            
+                    
                         // Get a list of where I can go, highlight tiles as well
                         availableMoves = currentlyDragging.GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
-                        
+                
                         // Get a list of special moves as well
-                        specialMove =
-                            currentlyDragging.GetSpecialMoves(ref chessPieces, ref moveList, ref availableMoves, startingTeam);
+                        specialMove = currentlyDragging.GetSpecialMoves(ref chessPieces, ref moveList, ref availableMoves, startingTeam);
 
                         PreventCheck();
-
                         HighlightTiles();
                     }
                 }
@@ -273,19 +333,33 @@ namespace ARChess.Scripts.Chess
                 {
                     Vector2Int previousPosition =
                         new Vector2Int(currentlyDragging.currentX, currentlyDragging.currentY);
-                    
-                    var validMove = MoveTo(currentlyDragging, hitPosition.x, hitPosition.y);
-                    
-                    switch (validMove)
-                    {
-                        case false:
-                            currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
-                            break;
-                        case true:
-                            MyTurn = currentlyDragging.team != startingTeam;
-                            break;
-                    }
 
+                    if (ContainsValidMove(ref availableMoves, new Vector2Int(hitPosition.x, hitPosition.y)))
+                    {
+                        MoveTo(previousPosition.x, previousPosition.y, hitPosition.x, hitPosition.y);
+                        
+                        if(!localGame)
+                            RemoveOnlineHighlightTiles();
+                        
+                        // Net Implementation
+                        if (!localGame && Client.Instance && Client.Instance.driver.IsCreated)
+                        {
+                            NetMakeMove mm = new NetMakeMove();
+                            mm.originalX = previousPosition.x;
+                            mm.originalY = previousPosition.y;
+                            mm.destinationX = hitPosition.x;
+                            mm.destinationY = hitPosition.y;
+                            mm.teamId = currentlyDragging.team == ChessTeam.White ? 0 : 1;
+                            Client.Instance.SendToServer(mm);   
+                        }
+                        
+                        MyTurn = currentlyDragging.team != startingTeam;
+                    }
+                    else
+                    {
+                        currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                    }
+                    
                     currentlyDragging = null;
                     RemoveHighlightTiles();
                 }
@@ -296,15 +370,14 @@ namespace ARChess.Scripts.Chess
                 if (currentHover != -Vector2Int.one)
                 {
                     tilesBounds[currentHover.x, currentHover.y].layer = LayerMask.NameToLayer("Tile");
-                    tiles[currentHover.x, currentHover.y].layer = ContainsValidMove(ref availableMoves, currentHover) ? LayerMask.NameToLayer("Highlight") :  LayerMask.NameToLayer("Visual Tile");
+                    RestoreTileLayer(currentHover);
                     currentHover = -Vector2Int.one;
                 }
 
                 // Else, if it not hit the appropriate raycast, and currentlyDragging is selected AND if it is not touched anymore
                 if (currentlyDragging && !touched)
                 {
-                    currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX,
-                        currentlyDragging.currentY));
+                    currentlyDragging.SetPosition(GetTileCenter(currentlyDragging.currentX, currentlyDragging.currentY));
                     currentlyDragging = null;
                     RemoveHighlightTiles();
                 }
@@ -345,6 +418,55 @@ namespace ARChess.Scripts.Chess
                 tiles[availableMoves[i].x, availableMoves[i].y].layer = LayerMask.NameToLayer("Tile");
             
             availableMoves.Clear();
+        }
+
+        private void OnlineHighlightTiles(int originalX, int originalY, int destinationX, int destinationY)
+        {
+            // Clear any old highlights before setting new ones
+            RemoveOnlineHighlightTiles();
+
+            // Save the new targets
+            onlineHighlightedSrc = new Vector2Int(originalX, originalY);
+            onlineHighlightedDst = new Vector2Int(destinationX, destinationY);
+
+            // Apply layers
+            tiles[originalX, originalY].layer = LayerMask.NameToLayer("Online Highlight");
+            tiles[destinationX, destinationY].layer = LayerMask.NameToLayer("Online Highlight");
+        }
+
+        private void RemoveOnlineHighlightTiles()
+        {
+            // Only clean up if valid highlights exist
+            if (onlineHighlightedSrc != -Vector2Int.one)
+            {
+                tiles[onlineHighlightedSrc.x, onlineHighlightedSrc.y].layer = LayerMask.NameToLayer("Visual Tile");
+                onlineHighlightedSrc = -Vector2Int.one;
+            }
+
+            if (onlineHighlightedDst != -Vector2Int.one)
+            {
+                tiles[onlineHighlightedDst.x, onlineHighlightedDst.y].layer = LayerMask.NameToLayer("Visual Tile");
+                onlineHighlightedDst = -Vector2Int.one;
+            }
+        }
+
+        private void RestoreTileLayer(Vector2Int tileIndex)
+        {
+            // 1. HIGHEST PRIORITY: Is it part of the opponent's last online move?
+            if (tileIndex == onlineHighlightedSrc || tileIndex == onlineHighlightedDst)
+            {
+                tiles[tileIndex.x, tileIndex.y].layer = LayerMask.NameToLayer("Online Highlight");
+            }
+            // 2. SECOND PRIORITY: Is it a valid move for a piece we are currently holding?
+            else if (ContainsValidMove(ref availableMoves, tileIndex))
+            {
+                tiles[tileIndex.x, tileIndex.y].layer = LayerMask.NameToLayer("Highlight");
+            }
+            // 3. LOWEST PRIORITY: Just a normal empty tile
+            else
+            {
+                tiles[tileIndex.x, tileIndex.y].layer = LayerMask.NameToLayer("Visual Tile");
+            }
         }
 
         // Generate the board
@@ -682,7 +804,15 @@ namespace ARChess.Scripts.Chess
             playerWins = loseTitle.ToString();
         }
 
-        public void OnResetButton()
+        public void OnRematch()
+        {
+            NetRematch rm = new NetRematch();
+            rm.teamId = startingTeam == ChessTeam.White ? 0 : 1;
+            rm.wantRematch = 1;
+            Client.Instance.SendToServer(rm);
+        }
+
+        public void GameReset()
         {
             EndGame = false;
             
@@ -693,13 +823,13 @@ namespace ARChess.Scripts.Chess
             
             // Clean up
             for(int x = 0; x < TILE_COUNT_X; x++)
-                for (int y = 0; y < TILE_COUNT_Y; y++)
-                {
-                    if (chessPieces[x, y] != null)
-                        Destroy(chessPieces[x, y].gameObject);
+            for (int y = 0; y < TILE_COUNT_Y; y++)
+            {
+                if (chessPieces[x, y] != null)
+                    Destroy(chessPieces[x, y].gameObject);
                     
-                    chessPieces[x, y] = null;
-                }
+                chessPieces[x, y] = null;
+            }
             
             foreach (var white in deadWhites)
                 Destroy(white.gameObject);
@@ -709,12 +839,18 @@ namespace ARChess.Scripts.Chess
             
             deadWhites.Clear();
             deadBlacks.Clear();
+
+            bool init = Initialized();
+
+            if (init)
+            {
+                isWhiteTurn = true;
+                MyTurn = startingTeam == ChessTeam.White;
             
-            SpawnAllPieces();
-            PositionAllPieces();
-            AnimateAllPiece();
-            isWhiteTurn = true;
-            MyTurn = startingTeam == ChessTeam.White;
+                // Online
+                if(!localGame)
+                    RemoveOnlineHighlightTiles();   
+            }
         }
         
         // Special Moves
@@ -743,26 +879,29 @@ namespace ARChess.Scripts.Chess
 
                 if (targetPawn.type == ChessPieceType.Pawn)
                 {
-                    if (targetPawn.team == ChessTeam.Black && lastMove[1].y == 7)
+                    // Because the board is flipped so the local player starts at the bottom,
+                    // MY pawns always promote at the top (7), and ENEMY pawns always promote at the bottom (0).
+                    bool isMyPawn = (targetPawn.team == startingTeam);
+                    bool reachedPromotionRow = (isMyPawn && lastMove[1].y == 7) || (!isMyPawn && lastMove[1].y == 0);
+                    // ------------------------------
+
+                    if (reachedPromotionRow)
                     {
-                        ChessPiece newQueen = SpawnSinglePiece(pieces.Find(p => p.type == ChessPieceType.Queen), ChessTeam.Black, teamMaterials.Find(m => m.team == ChessTeam.Black).material, true);
+                        // Spawn a Queen of the EXACT same team as the pawn
+                        ChessPiece newQueen = SpawnSinglePiece(
+                            pieces.Find(p => p.type == ChessPieceType.Queen), 
+                            targetPawn.team, 
+                            teamMaterials.Find(m => m.team == targetPawn.team).material, 
+                            true
+                        );
+                        
                         // Small movement transition
                         newQueen.transform.position = chessPieces[lastMove[1].x, lastMove[1].y].transform.position;
-                        // Destroy piece
+                        
+                        // Destroy original pawn
                         Destroy(chessPieces[lastMove[1].x, lastMove[1].y].gameObject);
-                        // Position piece
-                        chessPieces[lastMove[1].x, lastMove[1].y] = newQueen;
-                        PositionSinglePiece(lastMove[1].x, lastMove[1].y);
-                    }
-                    
-                    if (targetPawn.team == ChessTeam.White && lastMove[1].y == 0)
-                    {
-                        ChessPiece newQueen = SpawnSinglePiece(pieces.Find(p => p.type == ChessPieceType.Queen), ChessTeam.White, teamMaterials.Find(m => m.team == ChessTeam.White).material, true);
-                        // Small movement transition
-                        newQueen.transform.position = chessPieces[lastMove[1].x, lastMove[1].y].transform.position;
-                        // Destroy piece
-                        Destroy(chessPieces[lastMove[1].x, lastMove[1].y].gameObject);
-                        // Position piece
+                        
+                        // Position new piece in the array
                         chessPieces[lastMove[1].x, lastMove[1].y] = newQueen;
                         PositionSinglePiece(lastMove[1].x, lastMove[1].y);
                     }
@@ -773,45 +912,26 @@ namespace ARChess.Scripts.Chess
             {
                 Vector2Int[] lastMove = moveList[moveList.Count - 1];
                 
-                // Left Rook
+                // The King's destination row (lastMove[1].y) tells us exactly 
+                // which row we are castling on (0 for Local, 7 for Opponent).
+                int castlingY = lastMove[1].y;
+                // ---------------------------
+                
+                // Left Rook (Queenside Castling)
                 if (lastMove[1].x == 2)
                 {
-                    // White Side
-                    if (lastMove[1].y == 0)
-                    {
-                        ChessPiece rook = chessPieces[0, 0];
-                        chessPieces[3, 0] = rook;
-                        PositionSinglePiece(3, 0);
-                        chessPieces[0, 0] = null;
-                    }
-                    // Black Side
-                    else if (lastMove[1].y == 7)
-                    {
-                        ChessPiece rook = chessPieces[0, 7];
-                        chessPieces[3, 7] = rook;
-                        PositionSinglePiece(3, 7);
-                        chessPieces[0, 7] = null;
-                    }
+                    ChessPiece rook = chessPieces[0, castlingY];
+                    chessPieces[3, castlingY] = rook;
+                    PositionSinglePiece(3, castlingY);
+                    chessPieces[0, castlingY] = null;
                 }
-                // Right Rook
+                // Right Rook (Kingside Castling)
                 else if (lastMove[1].x == 6)
                 {
-                    // White Side
-                    if (lastMove[1].y == 0)
-                    {
-                        ChessPiece rook = chessPieces[7, 0];
-                        chessPieces[5, 0] = rook;
-                        PositionSinglePiece(5, 0);
-                        chessPieces[7, 0] = null;
-                    }
-                    // Black Side
-                    else if (lastMove[1].y == 7)
-                    {
-                        ChessPiece rook = chessPieces[7, 7];
-                        chessPieces[5, 7] = rook;
-                        PositionSinglePiece(5, 7);
-                        chessPieces[7, 7] = null;
-                    }
+                    ChessPiece rook = chessPieces[7, castlingY];
+                    chessPieces[5, castlingY] = rook;
+                    PositionSinglePiece(5, castlingY);
+                    chessPieces[7, castlingY] = null;
                 }
             }
         }
@@ -907,7 +1027,6 @@ namespace ARChess.Scripts.Chess
             ChessTeam targetTeam = chessPieces[lastMove[1].x, lastMove[1].y].team == ChessTeam.White
                 ? ChessTeam.Black
                 : ChessTeam.White;
-            ChessTeam currentTeam = chessPieces[lastMove[1].x, lastMove[1].y].team;
             
             List<ChessPiece> attackingPieces = new List<ChessPiece>();
             List<ChessPiece> defendingPieces = new List<ChessPiece>();
@@ -929,12 +1048,21 @@ namespace ARChess.Scripts.Chess
                         }
                     }
             
+            // --- THE SAFETY NET FIX ---
+            if (!targetKing)
+            {
+                // The king was physically captured and destroyed. 
+                // Skip the math and instantly return checkmate.
+                return 1; 
+            }
+            // --------------------------
+            
             // Is the king attacked right now?
             List<Vector2Int> currentAvailableMoves = new List<Vector2Int>();
             for (int i = 0; i < attackingPieces.Count; i++)
             {
                 var pieceMoves = attackingPieces[i]
-                    .GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, currentTeam); // Get available moves based on our simulation board move
+                    .GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam); // Get available moves based on our simulation board move
 
                 for (int b = 0; b < pieceMoves.Count; b++)
                     currentAvailableMoves.Add(pieceMoves[b]);
@@ -946,7 +1074,7 @@ namespace ARChess.Scripts.Chess
                 // King is under attacked, can we move something to help him?
                 for (int i = 0; i < defendingPieces.Count; i++)
                 {
-                    List<Vector2Int> defendingMoves = defendingPieces[i].GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, targetTeam);
+                    List<Vector2Int> defendingMoves = defendingPieces[i].GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
                     // Since we're sending ref availableMoves, we will be deleting moves that are putting us in check
                     SimulateMoveForSinglePiece(defendingPieces[i], ref defendingMoves, targetKing);
 
@@ -960,7 +1088,7 @@ namespace ARChess.Scripts.Chess
             {
                 for (int i = 0; i < defendingPieces.Count; i++)
                 {
-                    List<Vector2Int> defendingMoves = defendingPieces[i].GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, targetTeam);
+                    List<Vector2Int> defendingMoves = defendingPieces[i].GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
                     SimulateMoveForSinglePiece(defendingPieces[i], ref defendingMoves, targetKing);
                     if (defendingMoves.Count != 0)
                         return 0;
@@ -1035,12 +1163,10 @@ namespace ARChess.Scripts.Chess
             }
         }
 
-        private bool MoveTo(ChessPiece cp, int x, int y)
+        private void MoveTo(int originalX, int originalY, int x, int y)
         {
-            if (!ContainsValidMove(ref availableMoves, new Vector2Int(x, y)))
-                return false;
-            
-            Vector2Int previousPosition = new Vector2Int(cp.currentX, cp.currentY);
+            ChessPiece cp = chessPieces[originalX, originalY];
+            Vector2Int previousPosition = new Vector2Int(originalX, originalY);
 
             // Is there another piece in target position?
             if (chessPieces[x, y] is not null)
@@ -1048,7 +1174,7 @@ namespace ARChess.Scripts.Chess
                 ChessPiece ocp = chessPieces[x, y];
 
                 if (cp.team == ocp.team)
-                    return false;
+                    return;
 
                 // If it's the enemy team
                 if (ocp.type == ChessPieceType.King)
@@ -1056,8 +1182,6 @@ namespace ARChess.Scripts.Chess
                     
                 DestroyPiece(ocp, ocp.team != startingTeam ? ChessTeam.White : ChessTeam.Black);
             }
-
-            objectPlaced?.Invoke(cp, x, y);
 
             chessPieces[x, y] = cp;
             chessPieces[previousPosition.x, previousPosition.y] = null;
@@ -1068,6 +1192,8 @@ namespace ARChess.Scripts.Chess
             moveList.Add(new Vector2Int[] {previousPosition, new Vector2Int(x, y)});
 
             ProcessSpecialMove();
+            
+            objectPlaced?.Invoke(specialMove, moveList);
             
             switch (CheckForCheckmate())
             {
@@ -1081,7 +1207,83 @@ namespace ARChess.Scripts.Chess
                     break;
             }
 
-            return true;
+            return;
         }
+
+        #region Network Event Listeners
+
+        private void RegisterEvents()
+        {
+            NetworkManager.onMakeMoveClientEvent += OnNetworkMakeMove;
+            NetworkManager.connectionClientDropped += OnConnectionDropped;
+        }
+
+        private void UnRegisterEvents()
+        {
+            NetworkManager.onMakeMoveClientEvent -= OnNetworkMakeMove;
+            NetworkManager.connectionClientDropped -= OnConnectionDropped;
+        }
+        
+        private void OnConnectionDropped()
+        {
+            if (!localGame)
+                localGame = true;
+            
+            RemoveOnlineHighlightTiles();
+        }
+        
+        private void OnNetworkMakeMove(NetMakeMove mm)
+        {
+            Log.LogThis($"MM : {mm.teamId} : {mm.originalX} {mm.originalY} -> {mm.destinationX} {mm.destinationY}", this);
+
+            int myTeam = startingTeam == ChessTeam.White ? 0 : 1;
+            
+            madeMoveTeam = mm.teamId == 0 ? ChessTeam.White : ChessTeam.Black;
+
+            if (mm.teamId != myTeam)
+            {
+                // --- THE REAL INVERSION FIX ---
+                // ONLY flip the Y axis! The X axis is identical for both players 
+                // because of how SpawnAllPieces assigns the array indices.
+                int oppOriginalX = mm.originalX; 
+                int oppOriginalY = (TILE_COUNT_Y - 1) - mm.originalY;
+                int oppDestinationX = mm.destinationX;
+                int oppDestinationY = (TILE_COUNT_Y - 1) - mm.destinationY;
+                // ------------------------------
+
+                Log.LogThis($"Opponent Move Translated to Local: {mm.teamId} : {oppOriginalX} {oppOriginalY} -> {oppDestinationX} {oppDestinationY}", this);
+
+                // Use the translated coordinates to find the piece on YOUR local board layout
+                ChessPiece target = chessPieces[oppOriginalX, oppOriginalY];
+
+                if (target)
+                {
+                    // Create a completely temporary list just for the network's math.
+                    // This guarantees your global 'availableMoves' is NEVER touched!
+                    List<Vector2Int> opponentMoves = new List<Vector2Int>();
+
+                    // Calculate moves using the temporary list
+                    opponentMoves = target.GetAvailableMoves(ref chessPieces, TILE_COUNT_X, TILE_COUNT_Y, startingTeam);
+                    specialMove = target.GetSpecialMoves(ref chessPieces, ref moveList, ref opponentMoves, startingTeam);
+            
+                    // Execute the movement locally using the flipped positions
+                    MoveTo(oppOriginalX, oppOriginalY, oppDestinationX, oppDestinationY);
+                    
+                    OnlineHighlightTiles(oppOriginalX, oppOriginalY, oppDestinationX, oppDestinationY);
+                    
+                    // Now that the opponent has completed their move on our board,
+                    // check the new turn state. If the board says it's now our team's turn,
+                    // open up our turn UI!
+                    MyTurn = (isWhiteTurn && startingTeam == ChessTeam.White) || 
+                             (!isWhiteTurn && startingTeam == ChessTeam.Black);
+                }
+                else
+                {
+                    Debug.LogError($"Network Error: No chess piece found at inverted local coordinates [{oppOriginalX}, {oppOriginalY}]");
+                }
+            }
+        }
+
+        #endregion
     }
 }

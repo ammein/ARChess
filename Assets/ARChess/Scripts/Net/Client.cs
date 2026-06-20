@@ -13,7 +13,13 @@ namespace ARChess.Scripts.Net
         public static Client Instance { get; set; }
         private void Awake()
         {
+            // --- THE SINGLETON PROTECTION ---
+            // If an instance already exists, do NOT overwrite it. 
+            // Just wait quietly for the NetworkManager to destroy this duplicate object.
+            if (Instance != null && Instance != this) return; 
+
             Instance = this;
+            // --------------------------------
         }
         #endregion
         
@@ -109,12 +115,26 @@ namespace ARChess.Scripts.Net
             }
         }
 
-        public void SendToServer(NetMessage msg)
+        public bool SendToServer(NetMessage msg)
         {
+            // Prevent crash if driver/connection is dead or not initialized
+            if (!driver.IsCreated || !connection.IsCreated) return false;
+
             DataStreamWriter writer;
-            driver.BeginSend(connection, out writer);
-            msg.Serialize(ref writer);
-            driver.EndSend(writer);
+            int status = driver.BeginSend(connection, out writer);
+            
+            // ONLY serialize and send if BeginSend was successful (returns 0)
+            if (status == 0)
+            {
+                msg.Serialize(ref writer);
+                driver.EndSend(writer);
+                return true; // Successfully queued!
+            }
+            else
+            {
+                Debug.LogWarning("Failed to begin send. Network queue may be invalid.");
+                return false; // Failed to send
+            }
         }
         
         // Event parsing

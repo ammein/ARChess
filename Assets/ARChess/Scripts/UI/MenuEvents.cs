@@ -1,14 +1,11 @@
-using System;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using ARChess.Scripts.Chess;
 using ARChess.Scripts.Loading;
 using ARChess.Scripts.Net;
-using ARChess.Scripts.Net.Net_Message;
 using ARChess.Scripts.Project;
 using ARChess.Scripts.Utility;
 using TMPro;
-using Unity.Networking.Transport;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,11 +13,6 @@ namespace ARChess.Scripts.UI
 {
     public class MenuEvents : MonoBehaviour
     {
-        
-        public static MenuEvents Instance { get; set; }
-
-        public Server server;
-        public Client client;
         
         [Header("Menu References")]
         [SerializeField]
@@ -64,15 +56,15 @@ namespace ARChess.Scripts.UI
         private LoadingScene loadingScene;
         
         // Multi Logic
-        private int playerCount = -1;
-        private int currentTeam = -1;
 
         private string IPPattern =
             @"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
 
-        private void Awake()
+        private void Start()
         {
-            Instance = this;
+            // Register Multiplayer Events
+            NetworkManager.Init();
+            NetworkManager.onStartGameClient += OnStartGameClient;
         }
 
         public void ToggleOptions(bool enable)
@@ -88,9 +80,6 @@ namespace ARChess.Scripts.UI
         public void ToggleOnlineLobby(bool enable)
         {
             onlineLobbyUI.SetActive(enable);
-            
-            // Register Multiplayer Events
-            RegisterEvents();
             
             if(!enable) return;
             if (ipField.placeholder != null)
@@ -155,18 +144,29 @@ namespace ARChess.Scripts.UI
 
         public void OnOnlineHostButton()
         {
+            // --- THE RESET ---
+            if (Server.Instance != null) Server.Instance.Shutdown();
+            if (Client.Instance != null) Client.Instance.Shutdown();
+            // -----------------
+
             ushort myPort = globalOptions.port;
             if (hostPortField.text.Length > 0)
             {
                 myPort = ushort.Parse(hostPortField.text);
             }
-            server.Init(myPort);
-            client.Init(globalOptions.ipAddress, myPort);
-            globalOptions.onlinePlay = true;
+            
+            globalOptions.team = ChessTeam.White;
+            // Re-fetch instances dynamically rather than via inspector fields
+            Server.Instance.Init(myPort);
+            Client.Instance.Init(globalOptions.ipAddress, myPort);
         }
 
         public void OnOnlineConnectButton()
         {
+            // --- THE RESET ---
+            if (Client.Instance != null) Client.Instance.Shutdown();
+            // -----------------
+
             if (ipField.text.Length > 0)
             {
                 if(Regex.IsMatch(ipField.text, IPPattern))
@@ -179,16 +179,19 @@ namespace ARChess.Scripts.UI
                 myPort = ushort.Parse(connectPortField.text);
             }
             
-            client.Init(Regex.IsMatch(globalOptions.ipAddress, IPPattern) ? globalOptions.ipAddress : "127.0.0.1", myPort);
-            globalOptions.onlinePlay = true;
+            globalOptions.team = ChessTeam.Black;
+            Client.Instance.Init(Regex.IsMatch(globalOptions.ipAddress, IPPattern) ? globalOptions.ipAddress : "127.0.0.1", myPort);
         }
 
         public void OnHostBackButton()
         {
-            server.Shutdown();
-            client.Shutdown();
+            // --- THE FIX: Use the Singletons instead of local references ---
+            if (Server.Instance != null) Server.Instance.Shutdown();
+            if (Client.Instance != null) Client.Instance.Shutdown();
+            // ---------------------------------------------------------------
+            
             Log.LogThis("Server/Client shutdown", this);
-            globalOptions.onlinePlay = false;
+            globalOptions.ResetOnline();
         }
 
         public void ResetOptions()
@@ -207,72 +210,15 @@ namespace ARChess.Scripts.UI
 
         public void OnDestroy()
         {
-            globalOptions.OnQuit();
-        }
-        
-        
-        #region
-        private void RegisterEvents()
-        {
-            NetUtility.S_WELCOME += OnWelcomeServer;
-
-            NetUtility.C_WELCOME += OnWelcomeClient;
-
-            NetUtility.C_START_GAME += OnStartGameClient;
+            NetworkManager.onStartGameClient -= OnStartGameClient;
         }
 
-        private void UnRegisterEvents()
+        private void OnStartGameClient()
         {
-            NetUtility.S_WELCOME -= OnWelcomeServer;
-            NetUtility.C_WELCOME -= OnWelcomeClient;
-            NetUtility.C_START_GAME -= OnStartGameClient;
-        }
-        
-        //Server
-        private void OnWelcomeServer(NetMessage msg, NetworkConnection cnn)
-        {
-            // Client has connected, assign a team and return the message back to him
-            NetWelcome nw = msg as NetWelcome;
-            
-            // Assign a team
-            nw.AssignedTeam = ++playerCount; // When host start a server, it will be "0". Which is a good thing...
-            
-            // Return back to the client
-            Server.Instance.SendToClient(cnn, nw);
-
-            // If full, start the game
-            if (playerCount == 1)
-            {
-                Server.Instance.Broadcast(new NetStartGame());
-            }
-        }
-        
-        // Client
-        private void OnWelcomeClient(NetMessage msg)
-        {
-            // Receive the connection message
-            NetWelcome nw = msg as NetWelcome;
-            
-            // Assign the team
-            currentTeam = nw.AssignedTeam;
-            
-            Debug.Log($"My assigned team is {nw.AssignedTeam}");
-        }
-        
-        private void OnStartGameClient(NetMessage msg)
-        {
-            globalOptions.team = currentTeam == 0 ? ChessTeam.White : ChessTeam.Black;
             globalOptions.onlinePlay = true;
-
             loadingScene.loadingTextString = "Found your match, loading scene";
             loadingScene.enteringTextString = $"You against {globalOptions.playerName}";
             loadingScene.LoadScene(1);
-            if (currentTeam == 1) // Reset counts since we don't need it and properly assigned the team too.
-            {
-                playerCount = -1;
-                currentTeam = -1; 
-            }
         }
-        #endregion
     }
 }

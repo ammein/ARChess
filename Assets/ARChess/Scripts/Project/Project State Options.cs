@@ -42,9 +42,10 @@ namespace ARChess.Scripts.Project
         public void ResetToDefaults()
         {
             playerName = "Guest";
-            initialChessboardSize = 0.06f;
+            initialChessboardSize = 1f;
             tutorialsEnabled = true;
             dynamicLighting = false;
+            ResetOnline();
         }
 
         public void OnQuit()
@@ -54,6 +55,13 @@ namespace ARChess.Scripts.Project
             port = 8007;
             onlinePlay = false;
             tutorialPlayed = false;
+        }
+
+        public void ResetOnline()
+        {
+            ipAddress = "127.0.0.1";
+            port = 8007;
+            onlinePlay = false;
         }
     }
 }

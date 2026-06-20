@@ -1,8 +1,7 @@
 using ARChess.Scripts.Project;
 using UnityEngine;
-using UnityEngine.XR.Management;
-using UnityEngine.XR.ARSubsystems;
 using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 using UnityEngine.UI;
 
 namespace ARChess.Scripts.UI
@@ -23,19 +22,14 @@ namespace ARChess.Scripts.UI
         [SerializeField]
         private ProjectStateOptions projectStateOptions;
 
-        private Texture _jsonImage;
-        private XRLoader _loader;
-        private XRCameraSubsystem _cameraSubsystem;
+        private ARCameraManager _cameraManager;
         private UnityEngine.UI.Image _backgroundImage;
         
         private void Awake()
         {
             if (TryGetComponent(out Toggle toggle))
             {
-                if (toggle)
-                {
-                    _toggle = toggle;
-                }
+                _toggle = toggle;
             }
             
             _backgroundImage = GetComponent<UnityEngine.UI.Image>();
@@ -43,6 +37,8 @@ namespace ARChess.Scripts.UI
 
         private void Start()
         {
+            _cameraManager = Object.FindObjectOfType<ARCameraManager>();
+            UpdateUI(_toggle.isOn);
             _toggle.onValueChanged.AddListener(SwitchLight);
         }
 
@@ -51,30 +47,31 @@ namespace ARChess.Scripts.UI
             _toggle.onValueChanged.RemoveListener(SwitchLight);
         }
         
-        private void EnableCameraTorch(bool enable)
-        {
-            _loader = LoaderUtility.GetActiveLoader();
-            _cameraSubsystem = _loader?.GetLoadedSubsystem<XRCameraSubsystem>();
-            if (_cameraSubsystem != null && _cameraSubsystem.DoesCurrentCameraSupportTorch())
-                _cameraSubsystem.requestedCameraTorchMode = enable ? XRCameraTorchMode.On : XRCameraTorchMode.Off;
-        }
-        
         private void SwitchLight(bool isOn)
         {
-            if (_toggle.isOn && _backgroundImage.sprite != lightOn)
+            UpdateUI(isOn);
+
+            if (_cameraManager != null && _cameraManager.subsystem != null)
             {
-                _backgroundImage.sprite = lightOn;
-                icon.SetActive(false);
-                iconLottie.SetActive(true);
-                EnableCameraTorch(isOn);
+                if (_cameraManager.subsystem.DoesCurrentCameraSupportTorch())
+                {
+                    _cameraManager.subsystem.requestedCameraTorchMode = isOn ? XRCameraTorchMode.On : XRCameraTorchMode.Off;
+                }
+                else
+                {
+                    Debug.LogWarning("Torch is not supported by the current AR Configuration.");
+                }
             }
-            else if(!_toggle.isOn && _backgroundImage.sprite != lightOff)
+        }
+
+        private void UpdateUI(bool isOn)
+        {
+            if (_backgroundImage != null)
             {
-                _backgroundImage.sprite = lightOff;
-                icon.SetActive(true);
-                iconLottie.SetActive(false);
-                EnableCameraTorch(isOn);
+                _backgroundImage.sprite = isOn ? lightOn : lightOff;
             }
+            if (icon != null) icon.SetActive(!isOn);
+            if (iconLottie != null) iconLottie.SetActive(isOn);
         }
     }
 }

@@ -315,11 +315,93 @@ namespace ARChess.Scripts.Chess
         }
 
         // Operations
-        private void ObjectPlaced(ChessPiece previousPiece, int x, int y)
+        private void ObjectPlaced(SpecialMove specialMove, List<Vector2Int[]> moveList)
         {
-            UnityEngine.UI.Image previousImage = _spritePieces[previousPiece.currentX, previousPiece.currentY].GetComponent<UnityEngine.UI.Image>();
-            AssignSprite(x, y, previousImage.sprite);
-            AssignEmptySprite(previousPiece.currentX, previousPiece.currentY);
+            Debug.Log("Special Move " + specialMove);
+            var lastMove = moveList[moveList.Count - 1];
+            if (specialMove is SpecialMove.EnPassant)
+            {
+                var targetPawnMove = moveList[moveList.Count - 2];
+                UnityEngine.UI.Image previousImage = _spritePieces[lastMove[0].x, lastMove[0].y].GetComponent<UnityEngine.UI.Image>();
+                AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
+                AssignEmptySprite(targetPawnMove[1].x, targetPawnMove[1].y);
+                AssignEmptySprite(lastMove[0].x, lastMove[0].y);
+            }
+            else if (specialMove is SpecialMove.Promotion)
+            {
+                // Because the board is flipped so the local player starts at the bottom,
+                // MY pawns always promote at the top (7), and ENEMY pawns always promote at the bottom (0).
+                if (lastMove[1].y == 7)
+                {
+                    Piece piece = pieces.Find(p => p.type == ChessPieceType.Queen && p.team == startingTeam);
+                    if (piece != null)
+                    {
+                        AssignSprite(lastMove[1].x, lastMove[1].y, piece.pieceSprite);
+                        AssignEmptySprite(lastMove[0].x, lastMove[0].y);
+                    }
+                } else if (lastMove[1].y == 0)
+                {
+                    Piece piece = pieces.Find(p => p.type == ChessPieceType.Queen && p.team != startingTeam);
+                    if (piece != null)
+                    {
+                        AssignSprite(lastMove[1].x, lastMove[1].y, piece.pieceSprite);
+                        AssignEmptySprite(lastMove[0].x, lastMove[0].y);
+                    }
+                }
+            }
+            else if (specialMove is SpecialMove.Castling)
+            {
+                int castlingY = lastMove[1].y;
+                UnityEngine.UI.Image previousImage = _spritePieces[lastMove[0].x, lastMove[0].y].GetComponent<UnityEngine.UI.Image>();
+                
+                // Because the board is flipped so the local player starts at the bottom,
+                // MY pieces always stays at the bottom (0), and ENEMY pieces always stays at the top (7).
+                if (lastMove[1].y == 7)
+                {
+                    // Right Rook (Kingside Castling)
+                    if (lastMove[1].x == 6)
+                    {
+                        Piece rook = pieces.Find(p => p.type == ChessPieceType.Rook && p.team != startingTeam);
+                        AssignSprite(5, castlingY, rook.pieceSprite);
+                        AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
+                        AssignEmptySprite(7, castlingY);
+                    }
+                    // Left Rook (Queenside Castling)
+                    else if (lastMove[1].x == 2)
+                    {
+                        Piece rook = pieces.Find(p => p.type == ChessPieceType.Rook && p.team != startingTeam);
+                        AssignSprite(3, castlingY, rook.pieceSprite);
+                        AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
+                        AssignEmptySprite(0, castlingY);
+                    }
+                } 
+                else if (lastMove[1].y == 0)
+                {
+                    // Right Rook (Queenside Castling)
+                    if (lastMove[1].x == 2)
+                    {
+                        Piece rook = pieces.Find(p => p.type == ChessPieceType.Rook && p.team == startingTeam);
+                        AssignSprite(3, castlingY, rook.pieceSprite);
+                        AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
+                        AssignEmptySprite(0, castlingY);
+                    }
+                    // Left Rook (Kingside Castling)
+                    else if (lastMove[1].x == 6)
+                    {
+                        Piece rook = pieces.Find(p => p.type == ChessPieceType.Rook && p.team == startingTeam);
+                        AssignSprite(5, castlingY, rook.pieceSprite);
+                        AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
+                        AssignEmptySprite(7, castlingY);
+                    }
+                }
+            }
+            else
+            {
+                Debug.Log("Normal Move 2D Board");
+                UnityEngine.UI.Image previousImage = _spritePieces[lastMove[0].x, lastMove[0].y].GetComponent<UnityEngine.UI.Image>();
+                AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
+                AssignEmptySprite(lastMove[0].x, lastMove[0].y);   
+            }
         }
     }
 }

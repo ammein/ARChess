@@ -1,4 +1,5 @@
 using System;
+using ARChess.Scripts.Net;
 using ARChess.Scripts.Project;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -35,6 +36,7 @@ namespace ARChess.Scripts.UI
             projectStateOptions.tutorialsEnabled = value;
         }
 
+        // When the scene is unloaded, reset all settings
         public void OnDestroy()
         {
             projectStateOptions.OnQuit();
