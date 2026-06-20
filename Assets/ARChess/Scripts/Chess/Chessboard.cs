@@ -215,7 +215,7 @@ namespace ARChess.Scripts.Chess
 
         public bool Initialized()
         {
-            if (chessboardGenerated && localGame)
+            if (chessboardGenerated)
             {
                 // Spawn All Pieces
                 SpawnAllPieces();
@@ -839,16 +839,18 @@ namespace ARChess.Scripts.Chess
             
             deadWhites.Clear();
             deadBlacks.Clear();
+
+            bool init = Initialized();
+
+            if (init)
+            {
+                isWhiteTurn = true;
+                MyTurn = startingTeam == ChessTeam.White;
             
-            SpawnAllPieces();
-            PositionAllPieces();
-            AnimateAllPiece();
-            isWhiteTurn = true;
-            MyTurn = startingTeam == ChessTeam.White;
-            
-            // Online
-            if(!localGame)
-                RemoveOnlineHighlightTiles();
+                // Online
+                if(!localGame)
+                    RemoveOnlineHighlightTiles();   
+            }
         }
         
         // Special Moves

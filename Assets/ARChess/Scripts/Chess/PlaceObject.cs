@@ -104,6 +104,9 @@ namespace ARChess.Scripts.Chess
                 m_ObjectInstance.TryGetComponent(out _chessboard);
             }
             
+            // If Online Play and not started yet, don't run end game yet.
+            if (globalProjectStateOptions.onlinePlay && !startOnlinePlay) return;
+            
             // Check if the chess is ended
             switch (_chessboard.EndGame)
             {
@@ -482,7 +485,9 @@ namespace ARChess.Scripts.Chess
 
             if (_teamPlaceFirst.Count == 2)
             {
-                startOnlinePlay = true;
+                bool init = _chessboard.OnlineStartPlay();
+                if(init)
+                    startOnlinePlay = true;
             }
         }
         
@@ -561,7 +566,6 @@ namespace ARChess.Scripts.Chess
                 if (m_ObjectInstance.TryGetComponent(out Chessboard chessboard))
                 {
                     chessboard.GameReset();
-                    chessboard.OnlineStartPlay();
                 }
             }
         }
