@@ -60,6 +60,15 @@ namespace ARChess.Scripts.Chess
         
         [SerializeField] [Tooltip("Project State Options")]
         private ProjectStateOptions projectStateOptions;
+        
+        [Header("SFX Settings")]
+        [SerializeField] [Tooltip("Drop chess piece sfx")]
+        private AudioClip dropSound;
+        [SerializeField] [Tooltip("Crowd Boo SFX when losing")]
+        private AudioClip crowdBooSound;
+        [SerializeField] [Tooltip("Crowd Applause SFX when losing")]
+        private AudioClip crowdApplauseSound;
+        
 
         [HideInInspector]
         public ChessTeam startingTeam;
@@ -99,6 +108,7 @@ namespace ARChess.Scripts.Chess
         private GameObject _directionalLight;
         private AmbientLightEstimation _ambientLightEstimation;
         private bool isWhiteTurn;
+        private AudioSource audioSource;
         
         private SpecialMove specialMove;
         private List<Vector2Int[]> moveList = new List<Vector2Int[]>();
@@ -110,7 +120,9 @@ namespace ARChess.Scripts.Chess
         private Vector2Int onlineHighlightedSrc = -Vector2Int.one;
         private Vector2Int onlineHighlightedDst = -Vector2Int.one;
 
+        [HideInInspector]
         public bool chessboardGenerated;
+        [HideInInspector]
         public bool chessboardInitialized;
 
         public BoxCollider ChessCollider => chessCollider;
@@ -189,6 +201,8 @@ namespace ARChess.Scripts.Chess
             _directionalLight = FindAnyObjectByType<Light>().transform.gameObject;
             if (_directionalLight)
                 _ambientLightEstimation = _directionalLight.GetComponent<AmbientLightEstimation>();
+            
+            audioSource = GetComponent<AudioSource>();
         }
 
         private void Update()
@@ -215,33 +229,28 @@ namespace ARChess.Scripts.Chess
 
         public bool Initialized()
         {
-            if (chessboardGenerated)
-            {
-                // Spawn All Pieces
-                SpawnAllPieces();
+            if (!chessboardGenerated) return false;
+            
+            // Spawn All Pieces
+            SpawnAllPieces();
 
-                // Position All Pieces
-                PositionAllPieces();
+            // Position All Pieces
+            PositionAllPieces();
 
-                // Animate Pieces to appear
-                AnimateAllPiece();
+            // Animate Pieces to appear
+            AnimateAllPiece();
                 
-                return true;
-            }
+            return true;
 
-            return false;
         }
 
         public bool OnlineStartPlay()
         {
-            if (chessboardGenerated && !localGame)
-            {
-                chessboardInitialized = Initialized();
+            if (!chessboardGenerated || localGame) return false;
+            
+            chessboardInitialized = Initialized();
+            return true;
 
-                return true;
-            }
-
-            return false;
         }
 
         private void EnableMatchmakingUI(bool state)
@@ -790,6 +799,18 @@ namespace ARChess.Scripts.Chess
             playerWinsString.Append(startingTeam == team ? projectStateOptions.playerName : "Your Opponent");
             teamWins = teamWinsString.ToString();
             playerWins = playerWinsString.ToString();
+            
+            // Play Sound
+            if (team == startingTeam)
+            {
+                if(crowdApplauseSound)
+                    audioSource.PlayOneShot(crowdApplauseSound);
+            }
+            else
+            {
+                if(crowdBooSound)
+                    audioSource.PlayOneShot(crowdBooSound);
+            }
         }
 
         private void DisplayStale()
@@ -802,6 +823,9 @@ namespace ARChess.Scripts.Chess
             loseTitle.Append("Stalemate");
             teamWins = teamLosesString.ToString();
             playerWins = loseTitle.ToString();
+            
+            if(crowdBooSound)
+                audioSource.PlayOneShot(crowdBooSound);
         }
 
         public void OnRematch()
@@ -814,6 +838,9 @@ namespace ARChess.Scripts.Chess
 
         public void GameReset()
         {
+            if(audioSource.isPlaying)
+                audioSource.Stop();
+            
             EndGame = false;
             
             // Fields reset
@@ -1187,6 +1214,10 @@ namespace ARChess.Scripts.Chess
             chessPieces[previousPosition.x, previousPosition.y] = null;
 
             PositionSinglePiece(x, y);
+            
+            // Play sound
+            if(dropSound)
+                AudioSource.PlayClipAtPoint(dropSound, tiles[x, y].transform.position);
             
             isWhiteTurn = !isWhiteTurn;
             moveList.Add(new Vector2Int[] {previousPosition, new Vector2Int(x, y)});

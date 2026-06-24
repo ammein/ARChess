@@ -305,6 +305,7 @@ namespace ARChess.Scripts.Chess
             {
                 chessboard.EndGame = false;
                 chessboard.yourTurnUI.gameObject.SetActive(false);
+                chessboard.GameReset();
             }
             
             endGame.SetActive(false);
