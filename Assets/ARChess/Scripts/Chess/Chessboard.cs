@@ -124,6 +124,8 @@ namespace ARChess.Scripts.Chess
         public bool chessboardGenerated;
         [HideInInspector]
         public bool chessboardInitialized;
+        [HideInInspector]
+        public ChessTeam winnerTeam;
 
         public BoxCollider ChessCollider => chessCollider;
 
@@ -799,6 +801,8 @@ namespace ARChess.Scripts.Chess
             playerWinsString.Append(startingTeam == team ? projectStateOptions.playerName : "Your Opponent");
             teamWins = teamWinsString.ToString();
             playerWins = playerWinsString.ToString();
+            
+            winnerTeam = team;
             
             // Play Sound
             if (team == startingTeam)

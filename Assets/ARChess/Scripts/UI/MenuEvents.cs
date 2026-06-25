@@ -1,4 +1,6 @@
+using System.Collections;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Text.RegularExpressions;
 using ARChess.Scripts.Chess;
 using ARChess.Scripts.Loading;
@@ -23,6 +25,12 @@ namespace ARChess.Scripts.UI
         [OptionalField]
         [Tooltip("Online Lobby UI Gameobject")]
         private GameObject onlineLobbyUI;
+        [SerializeField]
+        [Tooltip("Connection Lobby UI Gameobject")]
+        private GameObject connectionLobbyUI;
+        [SerializeField]
+        [Tooltip("Connection Text")]
+        private TextMeshProUGUI connectionText;
         [SerializeField]
         [OptionalField]
         [Tooltip("Name Field")]
@@ -55,16 +63,17 @@ namespace ARChess.Scripts.UI
         [Tooltip("Loading Scene")]
         private LoadingScene loadingScene;
         
-        // Multi Logic
-
-        private string IPPattern =
-            @"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+        // Logic
+        private Coroutine _ellipsesAnimation;
+        private const string IPPattern = @"^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$";
+        private bool onlineConnection = false;
 
         private void Start()
         {
             // Register Multiplayer Events
             NetworkManager.Init();
             NetworkManager.onStartGameClient += OnStartGameClient;
+            NetworkManager.connectionClientDropped += OnConnectionDropped;
         }
 
         public void ToggleOptions(bool enable)
@@ -144,10 +153,9 @@ namespace ARChess.Scripts.UI
 
         public void OnOnlineHostButton()
         {
-            // --- THE RESET ---
+            // THE RESET
             if (Server.Instance != null) Server.Instance.Shutdown();
             if (Client.Instance != null) Client.Instance.Shutdown();
-            // -----------------
 
             ushort myPort = globalOptions.port;
             if (hostPortField.text.Length > 0)
@@ -159,13 +167,15 @@ namespace ARChess.Scripts.UI
             // Re-fetch instances dynamically rather than via inspector fields
             Server.Instance.Init(myPort);
             Client.Instance.Init(globalOptions.ipAddress, myPort);
+            onlineConnection = true;
+            connectionText.text = "Finding player";
+            _ellipsesAnimation = StartCoroutine(AnimateConnectionTextEllipses(0.5f));
         }
 
         public void OnOnlineConnectButton()
         {
-            // --- THE RESET ---
+            // THE RESET
             if (Client.Instance != null) Client.Instance.Shutdown();
-            // -----------------
 
             if (ipField.text.Length > 0)
             {
@@ -181,17 +191,68 @@ namespace ARChess.Scripts.UI
             
             globalOptions.team = ChessTeam.Black;
             Client.Instance.Init(Regex.IsMatch(globalOptions.ipAddress, IPPattern) ? globalOptions.ipAddress : "127.0.0.1", myPort);
+            onlineConnection = true;
+            connectionText.text = "Waiting for connection to host";
+            _ellipsesAnimation = StartCoroutine(AnimateConnectionTextEllipses(0.5f));
         }
 
         public void OnHostBackButton()
         {
-            // --- THE FIX: Use the Singletons instead of local references ---
+            if(_ellipsesAnimation != null) StopCoroutine(_ellipsesAnimation);
+            connectionText.text = "Disconnecting from server";
+            // Use the Singletons instead of local references 
             if (Server.Instance != null) Server.Instance.Shutdown();
             if (Client.Instance != null) Client.Instance.Shutdown();
-            // ---------------------------------------------------------------
             
-            Log.LogThis("Server/Client shutdown", this);
-            globalOptions.ResetOnline();
+            NetworkManager.ResetOnline();
+            
+            _ellipsesAnimation = StartCoroutine(AnimateConnectionTextEllipses(0.5f));
+            StartCoroutine(CloseOnline());
+        }
+        
+        private IEnumerator AnimateConnectionTextEllipses(float animationDotSpeed)
+        {
+            int dotCount = 0;
+            string initialText = connectionText.text;
+            StringBuilder dots =  new StringBuilder();
+            while (onlineConnection)
+            {
+                // Add dots up to 3
+                dots.Append('.', dotCount);
+                connectionText.text += dots.ToString();
+
+                // Increment dot count, reset after 3
+                dotCount++;
+                
+                // If we reach 3 dots, reset to 0 and remove the dots
+                if (dotCount > 3)
+                {
+                    dots.Clear();
+                    dotCount = 0; // Reset to 0
+                    connectionText.text = initialText; // Remove dots
+                }
+
+                // Wait for the specified animation speed
+                yield return new WaitForSeconds(animationDotSpeed);
+            }
+        }
+
+        private IEnumerator CloseOnline()
+        {
+            while (onlineConnection)
+            {
+                if(onlineConnection) yield return new WaitForSeconds(0.2f);
+                
+                if(_ellipsesAnimation != null)
+                    StopCoroutine(_ellipsesAnimation);
+                Log.LogThis("Server/Client shutdown", this);
+                globalOptions.ResetOnline();
+                connectionLobbyUI.SetActive(false);
+                onlineLobbyUI.SetActive(true);
+                onlineConnection = false;
+                yield break;
+
+            }
         }
 
         public void ResetOptions()
@@ -210,14 +271,24 @@ namespace ARChess.Scripts.UI
 
         public void OnDestroy()
         {
+            StopAllCoroutines();
             NetworkManager.onStartGameClient -= OnStartGameClient;
+            NetworkManager.connectionClientDropped -= OnConnectionDropped;
+        }
+        
+        private void OnConnectionDropped()
+        {
+            if(!Server.Instance || !Client.Instance) onlineConnection = false;
         }
 
         private void OnStartGameClient()
         {
             globalOptions.onlinePlay = true;
             loadingScene.loadingTextString = "Found your match, loading scene";
-            loadingScene.enteringTextString = $"You against {globalOptions.playerName}";
+            loadingScene.enteringTextString = $"Prepare yourself \"{globalOptions.playerName}\"";
+            if(_ellipsesAnimation != null)
+                StopCoroutine(_ellipsesAnimation);
+            connectionText.text = "Found player!";
             loadingScene.LoadScene(1);
         }
     }

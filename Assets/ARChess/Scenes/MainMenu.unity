@@ -965,30 +965,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 639846129}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1710732537}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 1
-        m_CallState: 2
 --- !u!114 &198108290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2704,6 +2680,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.UI.MenuButtons
   optionsUI: {fileID: 1659314783}
   onlineLobbyUI: {fileID: 1710732537}
+  connectionLobbyUI: {fileID: 639846129}
+  connectionText: {fileID: 37375409}
   nameField: {fileID: 3724917967502815950}
   tutorial: {fileID: 1799487131}
   dynamicLighting: {fileID: 1017046644}
@@ -7271,7 +7249,7 @@ Transform:
   m_GameObject: {fileID: 1362171113}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 52.36511, y: -0.00003, z: 2267.5754}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

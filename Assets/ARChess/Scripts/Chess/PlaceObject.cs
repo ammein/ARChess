@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using ARChess.Scripts.Net;
 using ARChess.Scripts.Net.Net_Message;
 using ARChess.Scripts.Project;
@@ -40,6 +39,9 @@ namespace ARChess.Scripts.Chess
         [SerializeField]
         [Tooltip("End Game Game Object")]
         private GameObject endGame;
+        [SerializeField]
+        [Tooltip("Confetti Material")]
+        private Material confettiMaterial;
         [SerializeField]
         [Tooltip("Rematch Button")]
         private GameObject rematchButton;
@@ -123,6 +125,26 @@ namespace ARChess.Scripts.Chess
                         playerText.text = _chessboard.playerWins;
                         teamText.text = _chessboard.teamWins;
                     }
+                    
+                    // Adjust End Game Confetti Material
+                    if(startingTeam == _chessboard.winnerTeam)
+                        if (endGame.transform.GetChild(0).TryGetComponent(out UnityEngine.UI.Image image) &&
+                            image.material != confettiMaterial)
+                        {
+                            image.material = confettiMaterial;
+                            Color color = image.color;
+                            color.a = 1f;
+                            image.color = color;
+                        }
+                    if(startingTeam != _chessboard.winnerTeam)
+                        if (endGame.transform.GetChild(0).TryGetComponent(out UnityEngine.UI.Image image1) &&
+                            image1.material == confettiMaterial)
+                        {
+                            image1.material = null;
+                            Color color1 = image1.color;
+                            color1.a = 0f;
+                            image1.color = color1;
+                        }
                     break;
                 case false:
                     if(overlayScreen.activeInHierarchy)

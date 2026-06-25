@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 373856d6b226545ffb2bac4223b4d417, type: 3}
   m_Name: ProjectStateOptions
   m_EditorClassIdentifier: Assembly-CSharp::ARChess.Scripts.Project.ProjectStateOptions
-  playerName: Unity
-  team: 0
+  playerName: Guest
+  team: 1
   initialChessboardSize: 1
   tutorialsEnabled: 1
   tutorialPlayed: 0

@@ -38,6 +38,12 @@ namespace ARChess.Scripts.Loading
             Application.targetFrameRate = 30;
         }
 
+        private void OnDestroy()
+        {
+            // Fix all coroutines that produce memory leaks 
+            StopAllCoroutines();
+        }
+
         public void LoadScene(int id)
         {
             loadingScreen.SetActive(true);
@@ -70,7 +76,6 @@ namespace ARChess.Scripts.Loading
                 // Wait for the specified animation speed
                 yield return new WaitForSeconds(animationDotSpeed);
             }
-            // ReSharper disable once IteratorNeverReturns
         }
 
         private IEnumerator LoadSceneAsync(int id)
@@ -119,12 +124,11 @@ namespace ARChess.Scripts.Loading
                             yield return null;
                         }
                         
-                        // --- THE FIX: Stop the coroutine BEFORE activating the scene ---
+                        // Stop the coroutine BEFORE activating the scene
                         if (_ellipsisCoroutine != null)
                         {
                             StopCoroutine(_ellipsisCoroutine);
                         }
-                        // ---------------------------------------------------------------
 
                         operation.allowSceneActivation = true;
                         backgroundOpacityControl.opacity = 0.0f;
