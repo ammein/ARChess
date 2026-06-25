@@ -135,11 +135,10 @@ namespace ARChess.Scripts.Net
                         
                         Shutdown(); // This does not happen usually, its just because we're in a two person game
                         
-                        // --- THE THE MEMORY LEAKED FIX ---
+                        // THE THE MEMORY LEAKED FIX
                         // Immediately exit the entire method. Do not allow the loop 
                         // to evaluate connections[i] again!
                         return; 
-                        // ---------------
                     }
                 }
             }
@@ -147,13 +146,13 @@ namespace ARChess.Scripts.Net
         
         public void SendToClient(NetworkConnection connection, NetMessage msg) // send only to specific client
         {
-            // 1. Prevent crash if driver or connection is dead/uninitialized
+            // Prevent crash if driver or connection is dead/uninitialized
             if (!driver.IsCreated || !connection.IsCreated) return;
 
             DataStreamWriter writer;
             int status = driver.BeginSend(connection, out writer); // The pipeline writes out to the "writer"
             
-            // 2. ONLY serialize and send if BeginSend was successful (returns 0)
+            // ONLY serialize and send if BeginSend was successful (returns 0)
             if (status == 0)
             {
                 msg.Serialize(ref writer); // We can put our own message to the "writer"

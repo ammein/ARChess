@@ -21,6 +21,7 @@ namespace ARChess.Scripts.Net
 
         // Lobby tracking variables
         private int playerCount = -1;
+        [HideInInspector]
         public int currentTeam = -1;
         private bool _eventsRegistered = false;
 
@@ -46,7 +47,7 @@ namespace ARChess.Scripts.Net
             }
         }
 
-        private static void ResetOnline()
+        public static void ResetOnline()
         {
             if (Instance)
             {
