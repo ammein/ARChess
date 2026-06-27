@@ -204,51 +204,54 @@ MonoBehaviour:
   deathSize: 0.5
   deathDistance: 0.02
   dragOffset: 0.1
+  checkedBlinkingCount: 3
+  intervalBetweenBlinkingCount: 0.3
+  checkedMaterial: {fileID: 2100000, guid: 628e3e2066a6a4520b4856181418db7d, type: 2}
   pieces:
   - prefabs: {fileID: 1855450608229433149, guid: 7903db20da41842878cb18a4a61c52e6, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
     - appearance: 1
-      duration: 1
-    - appearance: 2
       duration: 0.5
+    - appearance: 2
+      duration: 2
     type: 2
   - prefabs: {fileID: 4315537594980845524, guid: 0858ebc30a45b42a38e7051ba72d7fc4, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
     - appearance: 1
-      duration: 1.4
+      duration: 0.8
     - appearance: 2
-      duration: 0.5
+      duration: 2
     type: 3
   - prefabs: {fileID: 1763362143766825556, guid: 10f0b9e5b84b040b7be223145418dca5, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
     - appearance: 1
-      duration: 1.8
+      duration: 1
     - appearance: 2
-      duration: 0.5
+      duration: 2
     type: 4
   - prefabs: {fileID: 3678072596417990763, guid: c77740021e2154cd19a7ab8e7475e2d4, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
     - appearance: 1
-      duration: 2
+      duration: 1.3
     - appearance: 2
-      duration: 0.5
+      duration: 2
     type: 5
   - prefabs: {fileID: 6123722144443265574, guid: 38fd1141daeba45869ea5c46cb8edb3a, type: 3}
     appearance:
     - appearance: 0
       duration: 1.5
     - appearance: 1
-      duration: 2
+      duration: 1.3
     - appearance: 2
-      duration: 0.5
+      duration: 2
     type: 6
   - prefabs: {fileID: 8522672881098904743, guid: e5a04f9bab4da4328a72be3fabb0e977, type: 3}
     appearance:
@@ -257,7 +260,7 @@ MonoBehaviour:
     - appearance: 1
       duration: 0.5
     - appearance: 2
-      duration: 0.5
+      duration: 2
     type: 1
   teamMaterials:
   - material: {fileID: 2100000, guid: d32756e9d582446169050c19b3839353, type: 2}
@@ -277,6 +280,7 @@ MonoBehaviour:
   teamWins: 
   chessboardGenerated: 0
   chessboardInitialized: 0
+  winnerTeam: 0
 --- !u!114 &8035476916194715064
 MonoBehaviour:
   m_ObjectHideFlags: 0

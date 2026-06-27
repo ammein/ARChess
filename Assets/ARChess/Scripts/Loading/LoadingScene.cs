@@ -51,6 +51,13 @@ namespace ARChess.Scripts.Loading
             _textLoadingState = loadingTextString;
             StartCoroutine(LoadSceneAsync(id));
             _ellipsisCoroutine = StartCoroutine(AnimateEllipsis());
+
+            // Switch sleep timeout for different scenes. Only enable on ARScene
+            Screen.sleepTimeout = id switch
+            {
+                1 => SleepTimeout.NeverSleep,
+                _ => SleepTimeout.SystemSetting
+            };
         }
 
         private IEnumerator AnimateEllipsis()

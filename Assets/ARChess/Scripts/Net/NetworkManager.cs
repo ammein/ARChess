@@ -1,8 +1,10 @@
 using System;
 using ARChess.Scripts.Net.Net_Message;
 using ARChess.Scripts.Project;
+using GLTFast.Schema;
 using Unity.Networking.Transport;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace ARChess.Scripts.Net
 {
