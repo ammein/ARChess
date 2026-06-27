@@ -365,6 +365,9 @@ namespace ARChess.Scripts.Chess
                         AssignSprite(5, castlingY, rook.pieceSprite);
                         AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
                         AssignEmptySprite(7, castlingY);
+                        
+                        // Assign Empty Sprite from previous king move
+                        AssignEmptySprite(lastMove[0].x, lastMove[0].y);
                     }
                     // Left Rook (Queenside Castling)
                     else if (lastMove[1].x == 2)
@@ -373,6 +376,9 @@ namespace ARChess.Scripts.Chess
                         AssignSprite(3, castlingY, rook.pieceSprite);
                         AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
                         AssignEmptySprite(0, castlingY);
+                        
+                        // Assign Empty Sprite from previous king move
+                        AssignEmptySprite(lastMove[0].x, lastMove[0].y);
                     }
                 } 
                 else if (lastMove[1].y == 0)
@@ -384,6 +390,9 @@ namespace ARChess.Scripts.Chess
                         AssignSprite(3, castlingY, rook.pieceSprite);
                         AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
                         AssignEmptySprite(0, castlingY);
+                        
+                        // Assign Empty Sprite from previous king move
+                        AssignEmptySprite(lastMove[0].x, lastMove[0].y);
                     }
                     // Left Rook (Kingside Castling)
                     else if (lastMove[1].x == 6)
@@ -392,6 +401,9 @@ namespace ARChess.Scripts.Chess
                         AssignSprite(5, castlingY, rook.pieceSprite);
                         AssignSprite(lastMove[1].x, lastMove[1].y, previousImage.sprite);
                         AssignEmptySprite(7, castlingY);
+                        
+                        // Assign Empty Sprite from previous king move
+                        AssignEmptySprite(lastMove[0].x, lastMove[0].y);
                     }
                 }
             }

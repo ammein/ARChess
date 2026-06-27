@@ -170,6 +170,9 @@ namespace ARChess.Scripts.UI
             onlineConnection = true;
             connectionText.text = "Finding player";
             _ellipsesAnimation = StartCoroutine(AnimateConnectionTextEllipses(0.5f));
+            
+            if(Screen.sleepTimeout != SleepTimeout.NeverSleep)
+                Screen.sleepTimeout = SleepTimeout.NeverSleep;
         }
 
         public void OnOnlineConnectButton()
@@ -194,6 +197,10 @@ namespace ARChess.Scripts.UI
             onlineConnection = true;
             connectionText.text = "Waiting for connection to host";
             _ellipsesAnimation = StartCoroutine(AnimateConnectionTextEllipses(0.5f));
+            
+            // Make it never sleep so that the connection
+            if(Screen.sleepTimeout != SleepTimeout.NeverSleep)
+                Screen.sleepTimeout = SleepTimeout.NeverSleep;
         }
 
         public void OnHostBackButton()
@@ -205,6 +212,10 @@ namespace ARChess.Scripts.UI
             if (Client.Instance != null) Client.Instance.Shutdown();
             
             NetworkManager.ResetOnline();
+            
+            // Back to current settings
+            if(Screen.sleepTimeout != SleepTimeout.SystemSetting)
+                Screen.sleepTimeout = SleepTimeout.SystemSetting;
             
             _ellipsesAnimation = StartCoroutine(AnimateConnectionTextEllipses(0.5f));
             StartCoroutine(CloseOnline());
@@ -251,7 +262,6 @@ namespace ARChess.Scripts.UI
                 onlineLobbyUI.SetActive(true);
                 onlineConnection = false;
                 yield break;
-
             }
         }
 

@@ -43,10 +43,19 @@ namespace ARChess.Scripts.Chess
         [SerializeField] [Range(0.01f, 1f)] private float deathSize = 0.3f;
         [SerializeField] private float deathDistance = 0.3f;
         [SerializeField] private float dragOffset = 1.5f;
+        [SerializeField] 
+        [Tooltip("For blinking checked material when king piece in checked for invalid moves")] 
+        private int checkedBlinkingCount = 3;
+        [SerializeField] [Range(0.01f, 1f)]
+        [Tooltip("For interval between blinking checked materials")]
+        private float intervalBetweenBlinkingCount = .3f;
 
-        [Header("Prefabs & Materials")] [SerializeField]
+        [Header("Prefabs & Materials")] 
+        [SerializeField]
+        [Tooltip("The material that is highlighting the king piece when it is checked")]
+        private Material checkedMaterial;
+        [SerializeField]
         List<Piece> pieces = new List<Piece>();
-
         [SerializeField] private List<TeamMaterials> teamMaterials = new List<TeamMaterials>();
 
         [Header("Chess Settings")] [SerializeField] [Tooltip("Tile size of the chessboard")]
@@ -109,7 +118,7 @@ namespace ARChess.Scripts.Chess
         private AmbientLightEstimation _ambientLightEstimation;
         private bool isWhiteTurn;
         private AudioSource audioSource;
-        
+        private bool _isChecked;
         private SpecialMove specialMove;
         private List<Vector2Int[]> moveList = new List<Vector2Int[]>();
         
@@ -369,6 +378,9 @@ namespace ARChess.Scripts.Chess
                     else
                     {
                         currentlyDragging.SetPosition(GetTileCenter(previousPosition.x, previousPosition.y));
+                        
+                        if(_isChecked)
+                            CheckedKing();
                     }
                     
                     currentlyDragging = null;
@@ -534,6 +546,48 @@ namespace ARChess.Scripts.Chess
             interactable.interactionManager.RegisterInteractable(interactable as IXRInteractable);
 
             yield return null;
+        }
+
+        private void CheckedKing()
+        {
+            if (!_isChecked) return;
+            
+            Log.LogThis("King is checked, ", this);
+            
+            ChessPiece targetKing = null;
+            
+            for(int x = 0; x < TILE_COUNT_X; x++)
+            for(int y = 0; y < TILE_COUNT_Y; y++)
+                if(chessPieces[x, y])
+                    if(chessPieces[x, y].type == ChessPieceType.King)
+                        if(chessPieces[x, y].team == currentlyDragging.team)
+                            targetKing = chessPieces[x, y];
+
+            StartCoroutine(AnimateCheckedKing(targetKing));
+        }
+
+        private IEnumerator AnimateCheckedKing(ChessPiece targetKing)
+        {
+            int counter = 0;
+            
+            
+
+            do
+            {
+                if (tiles[targetKing.currentX, targetKing.currentY].GetComponent<MeshRenderer>().material != checkedMaterial)
+                    tiles[targetKing.currentX, targetKing.currentY].GetComponent<MeshRenderer>().material = checkedMaterial;
+                Log.LogThis($"Change to checkedMaterial: {tiles[targetKing.currentX, targetKing.currentY].GetComponent<MeshRenderer>().material}", this);
+                yield return new WaitForSeconds(intervalBetweenBlinkingCount);
+                if (tiles[targetKing.currentX, targetKing.currentY].GetComponent<MeshRenderer>().material != tileMaterial)
+                    tiles[targetKing.currentX, targetKing.currentY].GetComponent<MeshRenderer>().material = tileMaterial;
+                Log.LogThis($"Change to tileMaterial (default): {tiles[targetKing.currentX, targetKing.currentY].GetComponent<MeshRenderer>().material}", this);
+                yield return new WaitForSeconds(intervalBetweenBlinkingCount);
+                counter++;
+                if (counter == checkedBlinkingCount)
+                {
+                    yield break;
+                }
+            } while (counter <= checkedBlinkingCount);
         }
 
         private void AddChessBound(GameObject[,] allTiles, int tileCountX, int tileCountY)
@@ -984,6 +1038,8 @@ namespace ARChess.Scripts.Chess
 
         private void SimulateMoveForSinglePiece(ChessPiece cp, ref List<Vector2Int> moves, ChessPiece targetKing)
         {
+            if (_isChecked)
+                _isChecked = false;
             // Save the current values, to reset after the function call
             int actualX = cp.currentX, actualY = cp.currentY;
             List<Vector2Int> movesToRemove = new List<Vector2Int>();
@@ -1039,6 +1095,7 @@ namespace ARChess.Scripts.Chess
                 if (ContainsValidMove(ref simMoves, kingPositionThisSim))
                 {
                     movesToRemove.Add(moves[i]); // If king is in danger, we remove the moves completely
+                    _isChecked = true;
                 }
                 
                 // Restore the actual CP data
